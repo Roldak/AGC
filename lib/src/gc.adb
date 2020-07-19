@@ -28,8 +28,25 @@ package body GC is
    Reach_Set : Address_Vectors.Vector;
 
    procedure Push_Reachable (X : Address) is
+      procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
+      begin
+         if V = Temporary then
+            V := Unknown;
+         end if;
+      end Mark_Unknown;
+
+      Ref  : Address := As_Address_Access (X).all;
+      Elem : Address_Maps.Cursor := Address_Maps.Find
+        (Alloc_Set, Ref);
+
+      use type Address_Maps.Cursor;
    begin
       Address_Vectors.Append (Reach_Set, X);
+
+      if Elem /= Address_Maps.No_Element then
+         Address_Maps.Update_Element
+           (Alloc_Set, Elem, Mark_Unknown'Access);
+      end if;
    end Push_Reachable;
 
    procedure Pop_Reachable (Count : Ada.Containers.Count_Type) is
