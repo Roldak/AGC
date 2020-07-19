@@ -30,16 +30,40 @@ procedure Main is
       Ctx : LAL.Analysis_Context := Node.Unit.Context;
       RH  : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Ctx);
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
-      Id  : LALRW.Node_Rewriting_Handle := LALRW.Create_Token_Node
-        (RH, LALCO.Ada_Identifier, "GC_Register");
-      CE  : LALRW.Node_Rewriting_Handle := LALRW.Create_Call_Expr
-        (RH, Id, LALRW.Clone (SH));
    begin
-      LALRW.Replace (SH, CE);
+      LALRW.Replace
+        (SH, LALRW.Create_Call_Expr
+           (RH,
+            LALRW.Create_Dotted_Name
+              (RH,
+               LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, "GC"),
+               LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, "Register")),
+            LALRW.Clone (SH)));
       if not LALRW.Apply (RH).Success then
          raise Program_Error with "Could not rewrite unit";
       end if;
    end Handle_Allocator;
+
+   procedure Add_With_Clause (Unit : LAL.Compilation_Unit'Class)
+   is
+      Ctx : LAL.Analysis_Context := Unit.Unit.Context;
+      RH  : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Ctx);
+      PH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Unit.F_Prelude);
+   begin
+      LALRW.Insert_Child
+        (PH, 1,
+         LALRW.Create_With_Clause
+           (RH,
+            LALRW.Create_Node (RH, LALCO.Ada_Limited_Absent),
+            LALRW.Create_Node (RH, LALCO.Ada_Private_Absent),
+            LALRW.Create_Regular_Node
+              (RH, LALCO.Ada_Name_List,
+               (1 => LALRW.Create_Token_Node
+                  (RH, LALCO.Ada_Identifier, "GC")))));
+      if not LALRW.Apply (RH).Success then
+         raise Program_Error with "Could not add with clause";
+      end if;
+   end Add_With_Clause;
 
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit)
@@ -56,7 +80,15 @@ procedure Main is
          end case;
          return LALCO.Into;
       end Process_Node;
+
+      use type LALCO.Ada_Node_Kind_Type;
    begin
+      if Unit.Root.Kind /= LALCO.Ada_Compilation_Unit then
+         raise Program_Error with "Unhandled multi compilation unit files";
+      end if;
+
+      Add_With_Clause (Unit.Root.As_Compilation_Unit);
+
       if Unit.Has_Diagnostics then
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
       else
