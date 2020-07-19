@@ -57,6 +57,15 @@ procedure Main is
             LALRW.Clone (SH)));
    end Handle_Allocator;
 
+   procedure Handle_Aliased_Annot
+     (RH : LALRW.Rewriting_Handle; Node : LAL.Aliased_Absent'Class)
+   is
+      SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
+   begin
+      LALRW.Replace
+        (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+   end Handle_Aliased_Annot;
+
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit)
    is
@@ -69,6 +78,8 @@ procedure Main is
          case Node.Kind is
             when LALCO.Ada_Allocator =>
                Handle_Allocator (RH, Node.As_Allocator);
+            when LALCO.Ada_Aliased_Absent =>
+               Handle_Aliased_Annot (RH, Node.As_Aliased_Absent);
             when others =>
                null;
          end case;
