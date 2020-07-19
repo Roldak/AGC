@@ -19,7 +19,9 @@ package body GC is
    procedure Free is new Ada.Unchecked_Deallocation
      (Address, Address_Access);
 
-   package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Boolean);
+   type Alloc_State is (Unknown, Reachable, Temporary);
+
+   package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
    package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
 
    Alloc_Set : Address_Maps.Map;
@@ -42,20 +44,22 @@ package body GC is
    begin
       Collect;
       Put_Line ("Adding " & Address_Image (X.all'Address));
-      Address_Maps.Insert (Alloc_Set, X.all'Address, False);
+      Address_Maps.Insert (Alloc_Set, X.all'Address, Temporary);
       return X;
    end Register;
 
    procedure Collect is
-      procedure Mark_Reached (A : Address; V : in out Boolean) is
+      procedure Mark_Reached (A : Address; V : in out Alloc_State) is
       begin
-         V := True;
+         V := Reachable;
       end Mark_Reached;
 
-      procedure Mark_Unreached (A : Address; V : in out Boolean) is
+      procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
       begin
-         V := False;
-      end Mark_Unreached;
+         if V = Reachable then
+            V := Unknown;
+         end if;
+      end Mark_Unknown;
 
       use type Address_Maps.Cursor;
    begin
@@ -73,17 +77,19 @@ package body GC is
       end loop;
 
       declare
-         Elem : Address_Maps.Cursor := Address_Maps.First (Alloc_Set);
-         Next : Address_Maps.Cursor;
+         Elem  : Address_Maps.Cursor := Address_Maps.First (Alloc_Set);
+         Next  : Address_Maps.Cursor;
+         State : Alloc_State;
       begin
          while Elem /= Address_Maps.No_Element loop
-            Next := Address_Maps.Next (Elem);
+            State := Address_Maps.Element (Elem);
+            Next  := Address_Maps.Next (Elem);
 
-            if Address_Maps.Element (Elem) = True then
+            if State /= Unknown then
                Put_Line ("Keeping " & Address_Image
                            (Address_Maps.Key (Elem)));
                Address_Maps.Update_Element
-                 (Alloc_Set, Elem, Mark_Unreached'Access);
+                 (Alloc_Set, Elem, Mark_Unknown'Access);
             else
                Put_Line ("Collecting " & Address_Image
                            (Address_Maps.Key (Elem)));
