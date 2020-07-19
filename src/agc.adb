@@ -9,7 +9,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
-procedure Main is
+procedure AGC is
    package Slocs   renames Langkit_Support.Slocs;
 
    package Helpers renames Libadalang.Helpers;
@@ -160,4 +160,4 @@ procedure Main is
    end Process_Unit;
 begin
    App.Run;
-end Main;
+end AGC;
