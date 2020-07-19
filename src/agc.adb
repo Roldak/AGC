@@ -33,14 +33,8 @@ procedure AGC is
    begin
       LALRW.Insert_Child
         (PH, 1,
-         LALRW.Create_With_Clause
-           (RH,
-            LALRW.Create_Node (RH, LALCO.Ada_Limited_Absent),
-            LALRW.Create_Node (RH, LALCO.Ada_Private_Absent),
-            LALRW.Create_Regular_Node
-              (RH, LALCO.Ada_Name_List,
-               (1 => LALRW.Create_Token_Node
-                  (RH, LALCO.Ada_Identifier, "GC")))));
+         LALRW.Create_From_Template
+           (RH, "with GC;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
    end Add_With_Clause;
 
    procedure Handle_Allocator
@@ -48,14 +42,8 @@ procedure AGC is
    is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
-      LALRW.Replace
-        (SH, LALRW.Create_Call_Expr
-           (RH,
-            LALRW.Create_Dotted_Name
-              (RH,
-               LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, "GC"),
-               LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, "Register")),
-            LALRW.Clone (SH)));
+      LALRW.Replace (SH, LALRW.Create_From_Template
+        (RH, "GC.Register ({})", (1 => LALRW.Clone (SH)), LALCO.Expr_Rule));
    end Handle_Allocator;
 
    procedure Handle_Aliased_Annot
@@ -103,15 +91,11 @@ procedure AGC is
                end if;
             end loop;
             if Object_Count > 0 then
-               LALRW.Append_Child
-                 (SH,
-                  LALRW.Create_From_Template
-                    (RH,
-                     "GC.Pop_Reachable ({});",
-                     (1 => LALRW.Create_Token_Node
-                             (RH, LALCO.Ada_Int_Literal,
-                              Object_Count'Wide_Wide_Image)),
-                     LALCO.Call_Stmt_Rule));
+               LALRW.Append_Child (SH, LALRW.Create_From_Template
+                 (RH,
+                  "GC.Pop_Reachable (" & Object_Count'Wide_Wide_Image & ");",
+                  (1 .. 0 => <>),
+                  LALCO.Call_Stmt_Rule));
             end if;
          end;
       end if;
