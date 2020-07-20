@@ -1,21 +1,14 @@
-==79733== Memcheck, a memory error detector
-==79733== Copyright (C) 2002-2017, and GNU GPL'd, by Julian Seward et al.
-==79733== Using Valgrind-3.15.0 and LibVEX; rerun with -h for copyright info
-==79733== Command: /tmp/tmpxgfaae1t/tmp5oxuhpog
-==79733== 
-==79733== 
-==79733== HEAP SUMMARY:
-==79733==     in use at exit: 3,600 bytes in 5 blocks
-==79733==   total heap usage: 30,004 allocs, 29,999 frees, 923,608 bytes allocated
-==79733== 
-==79733== LEAK SUMMARY:
-==79733==    definitely lost: 8 bytes in 2 blocks
-==79733==    indirectly lost: 0 bytes in 0 blocks
-==79733==      possibly lost: 0 bytes in 0 blocks
-==79733==    still reachable: 3,592 bytes in 3 blocks
-==79733==         suppressed: 0 bytes in 0 blocks
-==79733== Rerun with --leak-check=full to see details of leaked memory
-==79733== 
-==79733== For lists of detected and suppressed errors, rerun with: -s
-==79733== ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
-
+ HEAP SUMMARY:
+     in use at exit: 3,600 bytes in 5 blocks
+   total heap usage: 30,004 allocs, 29,999 frees, 923,608 bytes allocated
+ 
+ LEAK SUMMARY:
+    definitely lost: 8 bytes in 2 blocks
+    indirectly lost: 0 bytes in 0 blocks
+      possibly lost: 0 bytes in 0 blocks
+    still reachable: 3,592 bytes in 3 blocks
+         suppressed: 0 bytes in 0 blocks
+full to see details of leaked memory
+ 
+ For lists of detected and suppressed errors, rerun with: -s
+ ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)
