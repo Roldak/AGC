@@ -136,4 +136,9 @@ package body GC is
          end loop;
       end;
    end Collect;
+
+   procedure Print_Stats is
+   begin
+      Put_Line ("Still alive : " & Address_Maps.Length (Alloc_Set)'Image);
+   end Print_Stats;
 end GC;

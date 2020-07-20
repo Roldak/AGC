@@ -13,4 +13,6 @@ package GC is
    procedure Untemp (Site_Id : Natural);
 
    procedure Collect;
+
+   procedure Print_Stats;
 end GC;
