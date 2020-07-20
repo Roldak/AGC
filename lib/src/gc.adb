@@ -19,6 +19,12 @@ package body GC is
    procedure Free is new Ada.Unchecked_Deallocation
      (Address, Address_Access);
 
+   procedure Collect (Value : in Address) is
+      Var : Address_Access := As_Address_Access (Value);
+   begin
+      Free (Var);
+   end Collect;
+
    type Alloc_State is (Unknown, Reachable, Temporary);
 
    package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
@@ -109,19 +115,20 @@ package body GC is
          Elem  : Address_Maps.Cursor := Address_Maps.First (Alloc_Set);
          Next  : Address_Maps.Cursor;
          State : Alloc_State;
+         Key   : Address;
       begin
          while Elem /= Address_Maps.No_Element loop
             State := Address_Maps.Element (Elem);
             Next  := Address_Maps.Next (Elem);
+            Key   := Address_Maps.Key (Elem);
 
             if State /= Unknown then
-               Put_Line ("Keeping " & Address_Image
-                           (Address_Maps.Key (Elem)));
+               Put_Line ("Keeping " & Address_Image (Key));
                Address_Maps.Update_Element
                  (Alloc_Set, Elem, Mark_Unknown'Access);
             else
-               Put_Line ("Collecting " & Address_Image
-                           (Address_Maps.Key (Elem)));
+               Put_Line ("Collecting " & Address_Image (Key));
+               Collect (Key);
                Address_Maps.Delete (Alloc_Set, Elem);
             end if;
 
