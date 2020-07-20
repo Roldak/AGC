@@ -23,30 +23,15 @@ package body GC is
 
    package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
    package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
+   package Alloc_Site_Maps is new Ada.Containers.Ordered_Maps (Natural, Address);
 
    Alloc_Set : Address_Maps.Map;
    Reach_Set : Address_Vectors.Vector;
+   Temps_Set  : Alloc_Site_Maps.Map;
 
    procedure Push_Reachable (X : Address) is
-      procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
-      begin
-         if V = Temporary then
-            V := Unknown;
-         end if;
-      end Mark_Unknown;
-
-      Ref  : Address := As_Address_Access (X).all;
-      Elem : Address_Maps.Cursor := Address_Maps.Find
-        (Alloc_Set, Ref);
-
-      use type Address_Maps.Cursor;
    begin
       Address_Vectors.Append (Reach_Set, X);
-
-      if Elem /= Address_Maps.No_Element then
-         Address_Maps.Update_Element
-           (Alloc_Set, Elem, Mark_Unknown'Access);
-      end if;
    end Push_Reachable;
 
    procedure Pop_Reachable (Count : Ada.Containers.Count_Type) is
@@ -56,14 +41,41 @@ package body GC is
         (Reach_Set, Address_Vectors.Length (Reach_Set) - Count);
    end Pop_Reachable;
 
-   function Register (X : access Integer) return access Integer is
+   function Register
+     (Site_Id : Natural; X : access Integer) return access Integer
+   is
 		pragma Suppress (Accessibility_Check);
+
+      Addr : Address := X.all'Address;
    begin
       Collect;
-      Put_Line ("Adding " & Address_Image (X.all'Address));
-      Address_Maps.Insert (Alloc_Set, X.all'Address, Temporary);
+      Put_Line ("Adding " & Address_Image (Addr));
+      Address_Maps.Insert (Alloc_Set, Addr, Temporary);
+      Alloc_Site_Maps.Insert (Temps_Set, Site_Id, Addr);
       return X;
    end Register;
+
+   procedure Untemp (Site_Id : Natural) is
+      procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
+      begin
+         if V = Temporary then
+            V := Unknown;
+         end if;
+      end Mark_Unknown;
+
+      Site_Elem : Alloc_Site_Maps.Cursor :=
+         Alloc_Site_Maps.Find (Temps_Set, Site_Id);
+
+      Addr : Address := Alloc_Site_Maps.Element (Site_Elem);
+
+      Alloc_Elem : Address_Maps.Cursor :=
+         Address_Maps.Find (Alloc_Set, Addr);
+   begin
+      Alloc_Site_Maps.Delete (Temps_Set, Site_Elem);
+
+      Address_Maps.Update_Element
+        (Alloc_Set, Alloc_Elem, Mark_Unknown'Access);
+   end Untemp;
 
    procedure Collect is
       procedure Mark_Reached (A : Address; V : in out Alloc_State) is

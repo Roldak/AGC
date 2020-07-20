@@ -7,7 +7,10 @@ package GC is
 
    procedure Pop_Reachable (Count : Ada.Containers.Count_Type);
 
-   function Register (X : access Integer) return access Integer;
+   function Register
+     (Site_Id : Natural; X : access Integer) return access Integer;
+
+   procedure Untemp (Site_Id : Natural);
 
    procedure Collect;
 end GC;
