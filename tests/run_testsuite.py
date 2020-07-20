@@ -41,7 +41,12 @@ def run_test(runner, test, rewrite):
             capture_output=True,
             text=True,
             cwd=test
-        ).stdout
+        )
+
+        if out.stderr:
+            print(out.stderr)
+
+        out = out.stdout
 
         out_file_path = path.join(test, "test.out")
 
