@@ -19,20 +19,15 @@ is
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
 
-   function Hash (X : LAL.Handled_Stmts) return Ada.Containers.Hash_Type is
-   begin
-      return LAL.Hash (X.As_Ada_Node);
-   end Hash;
-
-   package Alloc_Maps is new Ada.Containers.Hashed_Maps
-     (LAL.Handled_Stmts, Natural, Hash, LAL."=");
-   use type Alloc_Maps.Cursor;
+   package Node_Counters is new Ada.Containers.Hashed_Maps
+     (LAL.Ada_Node, Natural, LAL.Hash, LAL."=");
+   use type Node_Counters.Cursor;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
-   Alloc_Map : Alloc_Maps.Map;
+   Alloc_Count_Map : Node_Counters.Map;
 
-   function Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
+   function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
    is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
@@ -45,36 +40,36 @@ is
          return LAL.No_Ada_Node;
       elsif Grand_Parent.Kind = LALCO.Ada_Declarative_Part then
          return N;
-      elsif Grand_Parent.Kind = LALCO.Ada_Handled_Stmts then
+      elsif Parent.Kind = LALCO.Ada_Stmt_List then
          return N;
       else
-         return Scope (Parent);
+         return Find_Scope (Parent);
       end if;
-   end Scope;
+   end Find_Scope;
 
-   procedure Update_Stmt_Counter (Stmts : LAL.Handled_Stmts) is
-      Cursor : Alloc_Maps.Cursor := Alloc_Maps.Find
-        (Alloc_Map, Stmts);
+   procedure Increase_Node_Counter (Node : LAL.Ada_Node) is
+      Cursor : Node_Counters.Cursor := Node_Counters.Find
+        (Alloc_Count_Map, Node);
    begin
-      if Cursor = Alloc_Maps.No_element then
-         Alloc_Maps.Insert
-           (Alloc_Map, Stmts, 1);
+      if Cursor = Node_Counters.No_element then
+         Node_Counters.Insert
+           (Alloc_Count_Map, Node, 1);
       else
-         Alloc_Maps.Replace_Element
-           (Alloc_Map, Cursor, Alloc_Maps.Element (Cursor) + 1);
+         Node_Counters.Replace_Element
+           (Alloc_Count_Map, Cursor, Node_Counters.Element (Cursor) + 1);
       end if;
-   end Update_Stmt_Counter;
+   end Increase_Node_Counter;
 
-   function Get_Stmt_Counter (Stmts : LAL.Handled_Stmts) return Natural is
-      Cursor : Alloc_Maps.Cursor := Alloc_Maps.Find
-        (Alloc_Map, Stmts);
+   function Get_Node_Counter (Node : LAL.Ada_Node) return Natural is
+      Cursor : Node_Counters.Cursor := Node_Counters.Find
+        (Alloc_Count_Map, Node);
    begin
-      if Cursor = Alloc_Maps.No_element then
+      if Cursor = Node_Counters.No_element then
          return 0;
       else
-         return Alloc_Maps.Element (Cursor);
+         return Node_Counters.Element (Cursor);
       end if;
-   end Get_Stmt_Counter;
+   end Get_Node_Counter;
 
    Alloc_Site_Count : Natural := 0;
 
@@ -86,7 +81,7 @@ is
 
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
 
-      List : LAL.Ada_Node'Class := Scope (Node);
+      Scope : LAL.Ada_Node'Class := Find_Scope (Node);
 
       Alloc_Site : Langkit_Support.Text.Text_Type :=
          Alloc_Site_Count'Wide_Wide_Image;
@@ -97,39 +92,39 @@ is
 
       Alloc_Site_Count := Alloc_Site_Count + 1;
 
-      if List.Is_Null then
+      if Scope.Is_Null then
          raise Program_Error with "Could not find allocator's scope";
       end if;
 
-      if List.Parent.Parent.Kind = LALCO.Ada_Declarative_Part then
+      if Scope.Parent.Parent.Kind = LALCO.Ada_Declarative_Part then
          declare
-            Stmts : LAL.Handled_Stmts :=
-               List.Parent.Parent.Next_Sibling.As_Handled_Stmts;
+            Stmts : LAL.Ada_Node :=
+               Scope.Parent.Parent.Next_Sibling
+                  .As_Handled_Stmts.F_Stmts.As_Ada_Node;
 
-            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts.F_Stmts);
+            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
          begin
             LALRW.Insert_Child (TH, 1, LALRW.Create_From_Template
               (RH, "GC.Untemp (" & Alloc_Site & ");",
                (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
 
-            Update_Stmt_Counter (Stmts);
+            Increase_Node_Counter (Stmts);
          end;
       else
          declare
-            Stmts : LAL.Handled_Stmts :=
-               List.Parent.Parent.As_Handled_Stmts;
+            Stmts : LAL.Ada_Node := Scope.Parent;
 
-            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts.F_Stmts);
+            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
 
             Index : Positive :=
-               LAL.Child_Index (List) + Get_Stmt_Counter (Stmts) + 2;
+               LAL.Child_Index (Scope) + Get_Node_Counter (Stmts) + 2;
          begin
             LALRW.Insert_Child (TH, Index,
                LALRW.Create_From_Template
                  (RH, "GC.Untemp (" & Alloc_Site & ");",
                   (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
 
-            Update_Stmt_Counter (Stmts);
+            Increase_Node_Counter (Stmts);
          end;
       end if;
    end Handle_Allocator;
