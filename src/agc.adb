@@ -1,5 +1,8 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
+with GNATCOLL.Opt_Parse;
+with GNATCOLL.Strings; use GNATCOLL.Strings;
+
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
@@ -12,6 +15,7 @@ with Libadalang.Unparsing;
 with Add_With_Clause;
 with Track_Roots;
 with Register_Allocs;
+with Output_Unit;
 
 procedure AGC is
    package Slocs   renames Langkit_Support.Slocs;
@@ -30,6 +34,15 @@ procedure AGC is
       Description  => "Garbage collection for Ada",
       Process_Unit => Process_Unit);
 
+   package Output_Dir is new GNATCOLL.Opt_Parse.Parse_Option
+     (Parser      => App.Args.Parser,
+      Long        => "--output-dir",
+      Arg_Type    => XString,
+      Convert     => GNATCOLL.Opt_Parse.Convert,
+      Default_Val => Null_XString,
+      Help        =>
+         "The directory in which to save the transformed ada units.");
+
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit)
    is
@@ -41,7 +54,7 @@ procedure AGC is
          Add_With_Clause (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Register_Allocs (Job_Ctx, Unit);
-         Put_Line (LALU.Unparse (Unit.Root));
+         Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
       end if;
    end Process_Unit;
 begin
