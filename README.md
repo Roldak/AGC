@@ -65,7 +65,7 @@ end Test;
 
 As you can see:
 
-1. Roots are explicited to the garbage collector through calls to `GC.Push_Reachable`. The example above shows it working for stack-allocated variables, but this must also include global variables. Note that all stack-allocated variables are now marked `aliased`: this is because we are taking their address which is only meaningful for aliased objects in Ada ().
+1. Roots are explicited to the garbage collector through calls to `GC.Push_Reachable`. The example above shows it working for stack-allocated variables, but this must also include global variables. Note that all stack-allocated variables are now marked `aliased`: this is because we are taking their address which in Ada is only necessarily meaningful for aliased objects (see RM 13.3.16).
 2. Heap allocations are wrapped in calls to `GC.Register`, in order for the GC to track them. Additionally, note the calls to `GC.Untemp` right after allocation sites: this is because upon allocation, the allocated memory cannot be considered reachable by the GC as no root can reach it yet, which means they could be free'd by the GC instantly if another expression from the same statement triggers a collection before the memory location can be assigned to a variable. So, those are initially marked _temporary_ which signifies that they cannot be collected even though they are not reachable by the GC. Then, calls to `GC.Untemp` make sure to remove this flag once the statement in which the allocation occurs is completed. 
 
 _more to come_
