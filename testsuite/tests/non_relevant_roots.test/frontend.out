@@ -1,4 +1,3 @@
---  test.adb
 with GC;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is

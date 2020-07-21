@@ -5,11 +5,19 @@ import sys
 
 
 def run(src_file):
-    out = subprocess.run(["agc", src_file], capture_output=True)
-    with tempfile.NamedTemporaryFile() as temp:
-        temp.write(out.stdout)
-        temp.flush()
-        subprocess.run(["gnatpp", "--pipe", temp.name])
+    with tempfile.TemporaryDirectory() as d:
+        # Run AGC
+        agc_out = subprocess.run(
+            ["agc", src_file, "--output-dir", d],
+            capture_output=True,
+            text=True
+        )
+        if agc_out.returncode != 0:
+            print(agc_out.stderr)
+            return
+
+        # Run gnatpp
+        subprocess.run(["gnatpp", "--pipe", os.path.join(d, src_file)])
 
 
 if __name__ == "__main__":
