@@ -19,12 +19,23 @@ is
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
+   function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
+      Type_Expr : LAL.Type_Expr := Decl.P_Type_Expression;
+      Type_Decl : LAL.Base_Type_Decl := Type_Expr.P_Designated_Type_Decl;
+   begin
+      return Type_Decl.P_Is_Access_Type;
+   end Is_Relevant_Root;
+
    procedure Handle_Aliased_Annot (Node : LAL.Aliased_Absent'Class)
    is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
-      LALRW.Replace
-        (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+      if Node.Parent.Kind in LALCO.Ada_Object_Decl | LALCO.Ada_Param_Spec then
+         if Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
+            LALRW.Replace
+              (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+         end if;
+      end if;
    end Handle_Aliased_Annot;
 
    procedure Handle_Handled_Stmts (Node : LAL.Handled_Stmts'Class)
@@ -56,10 +67,16 @@ is
             Object_Count : Natural := 0;
          begin
             for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
-               if LAL.Child (Decls, N).Kind = LALCO.Ada_Object_Decl then
-                  Push_Object (LAL.Child (Decls, N).As_Object_Decl);
-                  Object_Count := Object_Count + 1;
-               end if;
+               declare
+                  C : LAL.Ada_Node := LAL.Child (Decls, N);
+               begin
+                  if C.Kind = LALCO.Ada_Object_Decl then
+                     if Is_Relevant_Root (C.As_Basic_Decl) then
+                        Push_Object (C.As_Object_Decl);
+                        Object_Count := Object_Count + 1;
+                     end if;
+                  end if;
+               end;
             end loop;
             if Object_Count > 0 then
                LALRW.Append_Child (SH, LALRW.Create_From_Template
