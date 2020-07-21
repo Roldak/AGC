@@ -16,8 +16,11 @@ base_dir = path.dirname(__file__)
 
 
 def discover_runners():
-    for runner in iglob(path.join(base_dir, "**", "run.py")):
+    for runner in iglob(path.join(base_dir, "**", "*.runner")):
         yield runner
+
+def runner_name(runner_path):
+    return path.basename(runner_path)[:-7]
 
 
 def discover_tests(patterns):
@@ -29,15 +32,16 @@ def discover_tests(patterns):
 
 def runners_for_test(test, runners):
     for runner in runners:
-        if test.startswith(path.dirname(runner)):
+        if path.exists(path.join(test, runner_name(runner) + ".out")):
             yield runner
 
 
 def run_test(runner, test, rewrite):
     try:
-        runner = path.abspath(runner)
+
+        runner_exec = path.abspath(path.join(runner, "run.py"))
         out = subprocess.run(
-            args=[sys.executable, runner],
+            args=[sys.executable, runner_exec],
             capture_output=True,
             text=True,
             cwd=test
@@ -48,7 +52,7 @@ def run_test(runner, test, rewrite):
 
         out = out.stdout
 
-        out_file_path = path.join(test, "test.out")
+        out_file_path = path.join(test, runner_name(runner) + ".out")
 
         with open(out_file_path, "r") as f:
             expected_output = f.read()
