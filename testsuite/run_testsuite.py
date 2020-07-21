@@ -67,7 +67,11 @@ def run_test(runner, test, rewrite):
     except subprocess.CalledProcessError:
         status = "CRASH"
 
-    print("{}: {}".format(test[:-5], status))
+    print("{0:10} {1}: {2}".format(
+        "[{}]".format(runner_name(runner)),
+        test[:-5],
+        status
+    ))
 
 
 def run(test_patterns, rewrite):
