@@ -26,7 +26,8 @@ is
 
    Alloc_Count_Map : Node_Counters.Counter;
 
-   Alloc_Site_Count : Natural := 0;
+   Temp_Count_Map  : Node_Counters.Counter;
+   Temp_Site_Count : Natural := 0;
 
    procedure Handle_Allocator
      (RH : LALRW.Rewriting_Handle; Node : LAL.Allocator'Class)
@@ -38,14 +39,22 @@ is
 
       Scope : LAL.Ada_Node'Class := Utils.Find_Scope (Node);
 
-      Alloc_Site : Langkit_Support.Text.Text_Type :=
-         Alloc_Site_Count'Wide_Wide_Image;
+      Temp_Site_Id : Natural := Node_Counters.Get_Or_Set
+        (Temp_Count_Map, Scope.As_Ada_Node, Temp_Site_Count);
+
+      Temp_Site : Langkit_Support.Text.Text_Type :=
+         Temp_Site_Id'Wide_Wide_Image;
    begin
       LALRW.Replace (SH, LALRW.Create_From_Template
-        (RH, "GC.Temp (" & Alloc_Site & ", {})",
+        (RH, "GC.Temp (" & Temp_Site & ", {})",
          (1 => LALRW.Clone (SH)), LALCO.Expr_Rule));
 
-      Alloc_Site_Count := Alloc_Site_Count + 1;
+      if Temp_Site_Id /= Temp_Site_Count then
+         --  Call to GC.Untemp already added by a previous iteration
+         return;
+      end if;
+
+      Temp_Site_Count := Temp_Site_Count + 1;
 
       if Scope.Is_Null then
          raise Program_Error with "Could not find allocator's scope";
@@ -60,7 +69,7 @@ is
             TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
          begin
             LALRW.Insert_Child (TH, 1, LALRW.Create_From_Template
-              (RH, "GC.Untemp (" & Alloc_Site & ");",
+              (RH, "GC.Untemp (" & Temp_Site & ");",
                (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
 
             Node_Counters.Increase (Alloc_Count_Map, Stmts);
@@ -78,7 +87,7 @@ is
          begin
             LALRW.Insert_Child (TH, Index,
                LALRW.Create_From_Template
-                 (RH, "GC.Untemp (" & Alloc_Site & ");",
+                 (RH, "GC.Untemp (" & Temp_Site & ");",
                   (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
 
             Node_Counters.Increase (Alloc_Count_Map, Stmts);

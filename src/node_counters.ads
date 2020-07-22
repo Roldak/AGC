@@ -17,4 +17,9 @@ package Node_Counters is
 
    function Get
      (C : Counter; Node : Libadalang.Analysis.Ada_Node) return Natural;
+
+   function Get_Or_Set
+     (C     : in out Counter;
+      Node  : Libadalang.Analysis.Ada_Node;
+      Value : Natural) return Natural;
 end Node_Counters;

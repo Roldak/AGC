@@ -26,4 +26,19 @@ package body Node_Counters is
          return Maps.Element (Cursor);
       end if;
    end Get;
+
+   function Get_Or_Set
+     (C     : in out Counter;
+      Node  : Libadalang.Analysis.Ada_Node;
+      Value : Natural) return Natural
+   is
+      Cursor : Maps.Cursor := Maps.Find (C, Node);
+   begin
+      if Cursor = Maps.No_element then
+         Maps.Insert (C, Node, Value);
+         return Value;
+      else
+         return Maps.Element (Cursor);
+      end if;
+   end Get_Or_Set;
 end Node_Counters;
