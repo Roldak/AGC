@@ -58,25 +58,24 @@ is
          raise Program_Error with "Could not find allocator's scope";
       end if;
 
-      if Scope.Kind = LALCO.Ada_Return_Stmt then
+      if Scope.Kind = LALCO.Ada_Extended_Return_Stmt then
          declare
-            Ret_Expr : LAL.Expr := Scope.As_Return_Stmt.F_Return_Expr;
+            Stmts : LAL.Ada_Node :=
+               Scope.As_Extended_Return_Stmt.F_Stmts.F_Stmts.As_Ada_Node;
 
-            Subp     : LAL.Base_Subp_Body := Utils.Enclosing_Subp_Body (Scope);
-            Ret_Type : LAL.Type_Expr := Subp.F_Subp_Spec.F_Subp_Returns;
+            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
          begin
-            LALRW.Replace
-              (LALRW.Handle (Scope),
-               LALRW.Create_From_Template
-                 (RH,
-                  "return AGC_Ret_"
-                  & Temp_Site (Temp_Site'First + 1 .. Temp_Site'Last)
-                  & " : {} := {} do"
-                  & " GC.Untemp (" & Temp_Site & "); "
-                  & "end return;",
-                  (1 => LALRW.Clone (LALRW.Handle (Ret_Type)),
-                   2 => LALRW.Child (LALRW.Handle (Scope), 1)),
-                  LALCO.Ext_Return_Stmt_Rule));
+            if
+               Stmts.Children_Count = 1
+               and then Stmts.Child (1).Kind = LALCO.Ada_Null_Stmt
+            then
+               LALRW.Remove_Child (TH, 1);
+            end if;
+            LALRW.Insert_Child (TH, 1, LALRW.Create_From_Template
+              (RH, "GC.Untemp (" & Temp_Site & ");",
+               (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
+
+            Node_Counters.Increase (Alloc_Count_Map, Stmts);
          end;
       elsif Scope.Parent.Parent.Kind = LALCO.Ada_Declarative_Part then
          declare

@@ -13,6 +13,7 @@ with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
 with Add_With_Clause;
+with Extend_Return_Stmts;
 with Track_Roots;
 with Handle_Temporaries;
 with Register_Allocs;
@@ -53,6 +54,7 @@ procedure AGC is
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
       else
          Add_With_Clause (Job_Ctx, Unit);
+         Extend_Return_Stmts (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Handle_Temporaries (Job_Ctx, Unit);
          Register_Allocs (Job_Ctx, Unit);

@@ -10,14 +10,17 @@ procedure Test is
          GC.Untemp (0);
       end return;
    end Inner;
-   function Add (A, B : Integer_Access) return Integer is
+   function Add (A, B, C : Integer) return Integer is
    begin
-      return AGC_Ret : Integer := A.all + B.all do
-         null;
+      return
+        AGC_Ret : Integer :=
+          GC.Temp (1, Inner (A)).all + GC.Temp (1, Inner (B)).all +
+          GC.Temp (1, Inner (C)).all
+      do
+         GC.Untemp (1);
       end return;
    end Add;
-   A : Integer := Add (GC.Temp (1, Inner (1)), GC.Temp (1, Inner (2)));
+   A : Integer := Add (1, 2, 3);
 begin
-   GC.Untemp (1);
    GC.Collect;
 end Test;
