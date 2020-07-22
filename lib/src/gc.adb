@@ -122,7 +122,7 @@ package body GC is
       else
          Temps_Set.Set_Length
            (Ada.Containers.Count_Type
-              (Temp_Site_Vectors.To_Index (Cursor) + 1));
+              (Temp_Site_Vectors.To_Index (Cursor)));
       end if;
    end Untemp;
 
