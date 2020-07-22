@@ -25,7 +25,7 @@ is
    is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
-      if Node.Parent.Kind in LALCO.Ada_Object_Decl | LALCO.Ada_Param_Spec then
+      if Node.Parent.Kind in LALCO.Ada_Object_Decl then
          if Utils.Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
             LALRW.Replace
               (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));

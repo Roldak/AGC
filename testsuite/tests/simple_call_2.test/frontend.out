@@ -10,10 +10,8 @@ procedure Test is
       null;
       GC.Pop_Reachable (1);
    end Inner;
-   A : aliased Integer_Access := GC.Register (1, new Integer'(1));
 begin
+   Inner (GC.Register (1, new Integer'(1)));
    GC.Untemp (1);
-   GC.Push_Reachable (A'Address);
-   Inner (A);
-   GC.Pop_Reachable (1);
+   GC.Collect;
 end Test;
