@@ -54,8 +54,6 @@ package body GC is
 
    function Register (X : access Integer) return access Integer
    is
-		pragma Suppress (Accessibility_Check);
-
       Addr : Address := X.all'Address;
    begin
       Collect;
@@ -67,8 +65,6 @@ package body GC is
    function Temp
      (Site_Id : Natural; X : access Integer) return access Integer
    is
-		pragma Suppress (Accessibility_Check);
-
       procedure Mark_Temp (A : Address; V : in out Alloc_State) is
       begin
          if V = Unknown then
