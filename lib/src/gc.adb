@@ -25,7 +25,7 @@ package body GC is
       Free (Var);
    end Collect;
 
-   type Alloc_State is (Unknown, Reachable, Temporary);
+   type Alloc_State is (Unknown, Reachable);
 
    type Temporary_Site is record
       Site_Id : Natural;
@@ -65,33 +65,14 @@ package body GC is
    function Temp
      (Site_Id : Natural; X : access Integer) return access Integer
    is
-      procedure Mark_Temp (A : Address; V : in out Alloc_State) is
-      begin
-         if V = Unknown then
-            V := Temporary;
-         end if;
-      end Mark_Temp;
-
       Addr : Address := X.all'Address;
-
-		Alloc_Elem : Address_Maps.Cursor :=
-			Address_Maps.Find (Alloc_Set, Addr);
    begin
       Temp_Site_Vectors.Append (Temps_Set, (Site_Id, Addr));
-		Address_Maps.Update_Element
- 		  (Alloc_Set, Alloc_Elem, Mark_Temp'Access);
       return X;
    end Temp;
 
    procedure Untemp (Site_Id : Natural) is
       use type Temp_Site_Vectors.Cursor;
-
-      procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
-      begin
-         if V = Temporary then
-            V := Unknown;
-         end if;
-      end Mark_Unknown;
 
 		Cursor  : Temp_Site_Vectors.Cursor := Temps_Set.Last;
 		Found   : Boolean := False;
@@ -102,17 +83,12 @@ package body GC is
                Temp_Site_Vectors.Element (Cursor);
 
             Matches_Site : Boolean := Temp_Elem.Site_Id = Site_Id;
-
-            Alloc_Elem : Address_Maps.Cursor :=
-               Address_Maps.Find (Alloc_Set, Temp_Elem.Value);
          begin
             if Matches_Site then
                Found := True;
             end if;
             exit when Found and not Matches_Site;
 
-            Address_Maps.Update_Element
-              (Alloc_Set, Alloc_Elem, Mark_Unknown'Access);
 			   Cursor := Temp_Site_Vectors.Previous (Cursor);
          end;
 		end loop;
@@ -127,30 +103,27 @@ package body GC is
    end Untemp;
 
    procedure Collect is
-      procedure Mark_Reached (A : Address; V : in out Alloc_State) is
-      begin
-         V := Reachable;
-      end Mark_Reached;
-
-      procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
-      begin
-         if V = Reachable then
-            V := Unknown;
-         end if;
-      end Mark_Unknown;
-
       use type Address_Maps.Cursor;
+
+      procedure Mark_Reached (Addr : Address) is
+         Cursor : Address_Maps.Cursor :=
+            Address_Maps.Find (Alloc_Set, Addr);
+      begin
+         if Cursor /= Address_Maps.No_Element then
+            Address_Maps.Replace_Element
+              (Alloc_Set, Cursor, Reachable);
+         end if;
+      end Mark_Reached;
    begin
+      for Temp of Temps_Set loop
+         Mark_Reached (Temp.Value);
+      end loop;
+
       for Addr of Reach_Set loop
          declare
             Ref  : Address := As_Address_Access (Addr).all;
-            Elem : Address_Maps.Cursor := Address_Maps.Find
-              (Alloc_Set, Ref);
          begin
-            if Elem /= Address_Maps.No_Element then
-               Address_Maps.Update_Element
-                 (Alloc_Set, Elem, Mark_Reached'Access);
-            end if;
+            Mark_Reached (Ref);
          end;
       end loop;
 
@@ -167,8 +140,7 @@ package body GC is
 
             if State /= Unknown then
                Put_Line ("Keeping " & Address_Image (Key));
-               Address_Maps.Update_Element
-                 (Alloc_Set, Elem, Mark_Unknown'Access);
+               Address_Maps.Replace_Element (Alloc_Set, Elem, Unknown);
             else
                Put_Line ("Collecting " & Address_Image (Key));
                Collect (Key);
