@@ -1,0 +1,19 @@
+with GC;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   type Integer_Access is access all Integer;
+   procedure Inner (X : aliased Integer_Access) is
+      Y : aliased Integer_Access := GC.Register (0, new Integer'(2));
+   begin
+      GC.Untemp (0);
+      GC.Push_Reachable (Y'Address);
+      null;
+      GC.Pop_Reachable (1);
+   end Inner;
+   A : aliased Integer_Access := GC.Register (1, new Integer'(1));
+begin
+   GC.Untemp (1);
+   GC.Push_Reachable (A'Address);
+   Inner (A);
+   GC.Pop_Reachable (1);
+end Test;
