@@ -21,9 +21,7 @@ is
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
-   procedure Handle_Allocator
-     (RH : LALRW.Rewriting_Handle; Node : LAL.Allocator'Class)
-   is
+   procedure Handle_Allocator (Node : LAL.Allocator'Class) is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
 
@@ -40,7 +38,7 @@ is
    begin
       case Node.Kind is
          when LALCO.Ada_Allocator =>
-            Handle_Allocator (RH, Node.As_Allocator);
+            Handle_Allocator (Node.As_Allocator);
          when others =>
             null;
       end case;

@@ -29,9 +29,7 @@ is
    Temp_Count_Map  : Node_Counters.Counter;
    Temp_Site_Count : Natural := 0;
 
-   procedure Handle_Expr
-     (RH : LALRW.Rewriting_Handle; Expr : LAL.Expr'Class)
-   is
+   procedure Handle_Expr (Expr : LAL.Expr'Class) is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
 
@@ -131,7 +129,7 @@ is
                   and then Utils.Is_Relevant_Type (Expr_Type)
                   and then not Utils.Is_Named_Expr (Expr)
                then
-                  Handle_Expr (RH, Expr);
+                  Handle_Expr (Expr);
                end if;
             exception
                when LALCO.Property_Error =>
