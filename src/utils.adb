@@ -2,11 +2,18 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 
 package body Utils is
+   function Is_Relevant_Type
+     (Typ  : LAL.Base_Type_Decl'Class) return Boolean
+   is
+   begin
+      return Typ.P_Is_Access_Type;
+   end Is_Relevant_Type;
+
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
       Type_Expr : LAL.Type_Expr := Decl.P_Type_Expression;
       Type_Decl : LAL.Base_Type_Decl := Type_Expr.P_Designated_Type_Decl;
    begin
-      return Type_Decl.P_Is_Access_Type;
+      return Is_Relevant_Type (Type_Decl);
    end Is_Relevant_Root;
 
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
@@ -41,4 +48,32 @@ package body Utils is
          return LAL.No_Base_Subp_Body;
       end if;
    end Enclosing_Subp_Body;
+
+   function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean is
+   begin
+      case Expr.Kind is
+         when LALCO.Ada_Identifier =>
+            declare
+               Decl : LAL.Basic_Decl'Class :=
+                  Expr.As_Identifier.P_Referenced_Decl;
+            begin
+               return
+                  Decl.Kind in
+                     LALCO.Ada_Object_Decl
+                   | LALCO.Ada_Param_Spec
+                   | LALCO.Ada_Component_Decl;
+            end;
+
+         when LALCO.Ada_Dotted_Name =>
+            return Is_Named_Expr (Expr.As_Dotted_Name.F_Suffix);
+
+         when LALCO.Ada_Null_Literal =>
+            return True;
+
+         --  TODO: handle arrays
+
+         when others =>
+            return False;
+      end case;
+   end Is_Named_Expr;
 end Utils;

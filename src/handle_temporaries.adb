@@ -29,15 +29,15 @@ is
    Temp_Count_Map  : Node_Counters.Counter;
    Temp_Site_Count : Natural := 0;
 
-   procedure Handle_Allocator
-     (RH : LALRW.Rewriting_Handle; Node : LAL.Allocator'Class)
+   procedure Handle_Expr
+     (RH : LALRW.Rewriting_Handle; Expr : LAL.Expr'Class)
    is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
 
-      SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
+      SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Expr);
 
-      Scope : LAL.Ada_Node'Class := Utils.Find_Scope (Node);
+      Scope : LAL.Ada_Node'Class := Utils.Find_Scope (Expr);
 
       Temp_Site_Id : Natural := Node_Counters.Get_Or_Set
         (Temp_Count_Map, Scope.As_Ada_Node, Temp_Site_Count);
@@ -113,15 +113,30 @@ is
             Node_Counters.Increase (Alloc_Count_Map, Stmts);
          end;
       end if;
-   end Handle_Allocator;
+   end Handle_Expr;
 
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
    begin
       case Node.Kind is
-         when LALCO.Ada_Allocator =>
-            Handle_Allocator (RH, Node.As_Allocator);
+         when LALCO.Ada_Expr =>
+            declare
+               Expr      : LAL.Expr := Node.As_Expr;
+               Expr_Type : LAL.Base_Type_Decl :=
+                  Expr.P_Expression_Type;
+            begin
+               if
+                  not Expr_Type.Is_Null
+                  and then Utils.Is_Relevant_Type (Expr_Type)
+                  and then not Utils.Is_Named_Expr (Expr)
+               then
+                  Handle_Expr (RH, Expr);
+               end if;
+            exception
+               when LALCO.Property_Error =>
+                  null;
+            end;
          when others =>
             null;
       end case;

@@ -14,7 +14,8 @@ procedure Test is
    begin
       return A.all + B.all;
    end Add;
-   A : Integer := Add (Inner (1), Inner (2));
+   A : Integer := Add (GC.Temp (1, Inner (1)), GC.Temp (1, Inner (2)));
 begin
+   GC.Untemp (1);
    GC.Collect;
 end Test;
