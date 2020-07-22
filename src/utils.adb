@@ -28,4 +28,17 @@ package body Utils is
          return Find_Scope (Parent);
       end if;
    end Find_Scope;
+
+   function Enclosing_Subp_Body
+     (N : LAL.Ada_Node'Class) return LAL.Base_Subp_Body
+   is
+   begin
+      if N.Kind in LALCO.Ada_Base_Subp_Body then
+         return N.As_Base_Subp_Body;
+      elsif not N.Parent.Is_Null then
+         return Enclosing_Subp_Body (N.Parent);
+      else
+         return LAL.No_Base_Subp_Body;
+      end if;
+   end Enclosing_Subp_Body;
 end Utils;

@@ -8,4 +8,7 @@ package Utils is
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean;
 
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class;
+
+   function Enclosing_Subp_Body
+     (N : LAL.Ada_Node'Class) return LAL.Base_Subp_Body;
 end Utils;

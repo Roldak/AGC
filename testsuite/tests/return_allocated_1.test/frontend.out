@@ -1,0 +1,20 @@
+with GC;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   type Integer_Access is access all Integer;
+   function Inner (X : Integer) return Integer_Access is
+   begin
+      return
+        AGC_Ret_0 : Integer_Access :=
+          GC.Temp (0, GC.Register (new Integer'(X))) do
+         GC.Untemp (0);
+      end return;
+   end Inner;
+   function Add (A, B : Integer_Access) return Integer is
+   begin
+      return A.all + B.all;
+   end Add;
+   A : Integer := Add (Inner (1), Inner (2));
+begin
+   GC.Collect;
+end Test;

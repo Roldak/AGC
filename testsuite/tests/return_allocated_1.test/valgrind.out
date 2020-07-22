@@ -1,0 +1,34 @@
+    at 0x4049F0: test__add.4547 (in /tmp/tmprxy8peyt/test)
+    by 0x404995: _ada_test (in /tmp/tmprxy8peyt/test)
+    by 0x4050E8: main (in /tmp/tmprxy8peyt/test)
+  Address 0x4a8bf20 is 0 bytes inside a block of size 4 free'd
+    at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x4443E8: __gnat_free (in /tmp/tmprxy8peyt/test)
+    by 0x4205AE: gc__collect__2 (in /tmp/tmprxy8peyt/test)
+    by 0x4269B3: gc__collect (in /tmp/tmprxy8peyt/test)
+    by 0x425DE5: gc__register (in /tmp/tmprxy8peyt/test)
+    by 0x404921: test__inner.4543 (in /tmp/tmprxy8peyt/test)
+    by 0x404983: _ada_test (in /tmp/tmprxy8peyt/test)
+    by 0x4050E8: main (in /tmp/tmprxy8peyt/test)
+  Block was alloc'd at
+    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x44438E: __gnat_malloc (in /tmp/tmprxy8peyt/test)
+    by 0x40490A: test__inner.4543 (in /tmp/tmprxy8peyt/test)
+    by 0x40496F: _ada_test (in /tmp/tmprxy8peyt/test)
+    by 0x4050E8: main (in /tmp/tmprxy8peyt/test)
+ 
+ 
+ HEAP SUMMARY:
+     in use at exit: 3,592 bytes in 3 blocks
+   total heap usage: 8 allocs, 5 frees, 3,720 bytes allocated
+ 
+ LEAK SUMMARY:
+    definitely lost: 0 bytes in 0 blocks
+    indirectly lost: 0 bytes in 0 blocks
+      possibly lost: 0 bytes in 0 blocks
+    still reachable: 3,592 bytes in 3 blocks
+         suppressed: 0 bytes in 0 blocks
+full to see details of leaked memory
+ 
+ For lists of detected and suppressed errors, rerun with: -s
+ ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

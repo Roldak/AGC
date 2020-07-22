@@ -60,7 +60,27 @@ is
          raise Program_Error with "Could not find allocator's scope";
       end if;
 
-      if Scope.Parent.Parent.Kind = LALCO.Ada_Declarative_Part then
+      if Scope.Kind = LALCO.Ada_Return_Stmt then
+         declare
+            Ret_Expr : LAL.Expr := Scope.As_Return_Stmt.F_Return_Expr;
+
+            Subp     : LAL.Base_Subp_Body := Utils.Enclosing_Subp_Body (Scope);
+            Ret_Type : LAL.Type_Expr := Subp.F_Subp_Spec.F_Subp_Returns;
+         begin
+            LALRW.Replace
+              (LALRW.Handle (Scope),
+               LALRW.Create_From_Template
+                 (RH,
+                  "return AGC_Ret_"
+                  & Temp_Site (Temp_Site'First + 1 .. Temp_Site'Last)
+                  & " : {} := {} do"
+                  & " GC.Untemp (" & Temp_Site & "); "
+                  & "end return;",
+                  (1 => LALRW.Clone (LALRW.Handle (Ret_Type)),
+                   2 => LALRW.Child (LALRW.Handle (Scope), 1)),
+                  LALCO.Ext_Return_Stmt_Rule));
+         end;
+      elsif Scope.Parent.Parent.Kind = LALCO.Ada_Declarative_Part then
          declare
             Stmts : LAL.Ada_Node :=
                Scope.Parent.Parent.Next_Sibling
