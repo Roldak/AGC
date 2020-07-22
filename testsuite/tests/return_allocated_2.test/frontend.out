@@ -4,12 +4,13 @@ procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    function Inner (X : Integer) return Integer_Access is
-      AGC_Base_Root_Count : Natural := GC.Root_Count;
+      AGC_Base_Root_Count : Natural                := GC.Root_Count;
+      Tmp                 : aliased Integer_Access :=
+        GC.Temp (0, GC.Register (new Integer'(X)));
    begin
-      return
-        AGC_Ret : Integer_Access := GC.Temp (0, GC.Register (new Integer'(X)))
-      do
-         GC.Untemp (0);
+      GC.Untemp (0);
+      GC.Push_Root (Tmp'Address);
+      return AGC_Ret : Integer_Access := Tmp do
          null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;

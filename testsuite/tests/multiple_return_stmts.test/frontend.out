@@ -1,29 +1,33 @@
 with GC;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Root_Count : Natural := GC.Root_Count;
+   AGC_Base_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    function Inner (B : Boolean; X : Integer) return Integer_Access is
-      AGC_Root_Count : Natural := GC.Root_Count;
+      AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
       if B then
          return
            AGC_Ret : Integer_Access :=
              GC.Temp (0, GC.Register (new Integer'(X + 1))) do
             GC.Untemp (0);
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       else
          return
            AGC_Ret : Integer_Access :=
              GC.Temp (1, GC.Register (new Integer'(X - 1))) do
             GC.Untemp (1);
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end if;
-      GC.Pop_Roots (AGC_Root_Count);
+      GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
    A : Integer := GC.Temp (2, Inner (True, 42)).all;
 begin
    GC.Untemp (2);
    GC.Collect;
-   GC.Pop_Roots (AGC_Root_Count);
+   GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

@@ -37,13 +37,21 @@ is
             LALCO.Call_Stmt_Rule));
    end Push_Object;
 
-   procedure Pop_Objects (Stmts : LALRW.Node_Rewriting_Handle) is
+   function Root_Count_Name
+     (Subp_Level : Boolean) return Langkit_Support.Text.Text_Type
+   is
+     (if Subp_Level then "AGC_Base_Root_Count"
+      else "AGC_Root_Count");
+
+   procedure Pop_Objects
+     (Stmts        : LALRW.Node_Rewriting_Handle;
+      Leaving_Subp : Boolean) is
    begin
       LALRW.Append_Child
         (Stmts,
          LALRW.Create_From_Template
            (RH,
-            "GC.Pop_Roots (AGC_Root_Count);",
+            "GC.Pop_Roots (" & Root_Count_Name (Leaving_Subp) & ");",
             (1 .. 0 => <>),
             LALCO.Call_Stmt_Rule));
    end Pop_Objects;
@@ -70,14 +78,17 @@ is
    begin
       if Sibling.Kind = LALCO.Ada_Declarative_Part then
          declare
-            Decl_Part : LAL.Declarative_Part := Sibling.As_Declarative_Part;
-            Decls     : LAL.Ada_Node_List := Decl_Part.F_Decls;
+            Decl_Part  : LAL.Declarative_Part := Sibling.As_Declarative_Part;
+            Decls      : LAL.Ada_Node_List := Decl_Part.F_Decls;
+            Container  : LAL.Ada_Node := Decl_Part.Parent;
+            Subp_Level : Boolean :=
+               Container.Kind in LALCO.Ada_Base_Subp_Body;
 
             DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
          begin
             LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
               (RH,
-               "AGC_Root_Count : Natural := GC.Root_Count;",
+               Root_Count_Name (Subp_Level) & " : Natural := GC.Root_Count;",
                (1 .. 0 => <>),
                LALCO.Object_Decl_Rule));
 
@@ -92,10 +103,19 @@ is
                   end if;
                end;
             end loop;
-            Pop_Objects (SH);
+            Pop_Objects (SH, Subp_Level);
          end;
       end if;
    end Handle_Handled_Stmts;
+
+   procedure Handle_Return_Stmt
+     (Stmt : LAL.Extended_Return_Stmt'Class)
+   is
+      SH : LALRW.Node_Rewriting_Handle :=
+         LALRW.Handle (Stmt.F_Stmts.F_Stmts);
+   begin
+      Pop_Objects (SH, True);
+   end Handle_Return_Stmt;
 
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
@@ -106,6 +126,8 @@ is
             Handle_Aliased_Annot (Node.As_Aliased_Absent);
          when LALCO.Ada_Handled_Stmts =>
             Handle_Handled_Stmts (Node.As_Handled_Stmts);
+         when LALCO.Ada_Extended_Return_Stmt =>
+            Handle_Return_Stmt (Node.As_Extended_Return_Stmt);
          when others =>
             null;
       end case;
