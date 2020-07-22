@@ -40,17 +40,17 @@ package body GC is
    Reach_Set : Address_Vectors.Vector;
    Temps_Set : Temp_Site_Vectors.Vector;
 
-   procedure Push_Reachable (X : Address) is
-   begin
-      Address_Vectors.Append (Reach_Set, X);
-   end Push_Reachable;
+   function Root_Count return Natural is (Natural (Reach_Set.Length));
 
-   procedure Pop_Reachable (Count : Ada.Containers.Count_Type) is
-      use type Ada.Containers.Count_Type;
+   procedure Push_Root (X : Address) is
    begin
-      Address_Vectors.Set_Length
-        (Reach_Set, Address_Vectors.Length (Reach_Set) - Count);
-   end Pop_Reachable;
+      Reach_Set.Append (X);
+   end Push_Root;
+
+   procedure Pop_Roots (X : Natural) is
+   begin
+      Reach_Set.Set_Length (Ada.Containers.Count_Type (X));
+   end Pop_Roots;
 
    function Register (X : access Integer) return access Integer
    is

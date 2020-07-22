@@ -1,10 +1,13 @@
 with GC;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
+   AGC_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    procedure Inner (X, Y : Integer_Access) is
+      AGC_Root_Count : Natural := GC.Root_Count;
    begin
       null;
+      GC.Pop_Roots (AGC_Root_Count);
    end Inner;
 begin
    Inner
@@ -12,4 +15,5 @@ begin
       GC.Temp (0, GC.Register (new Integer'(2))));
    GC.Untemp (0);
    GC.Collect;
+   GC.Pop_Roots (AGC_Root_Count);
 end Test;

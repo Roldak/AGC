@@ -1,19 +1,22 @@
 with GC;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
+   AGC_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    procedure Foo (N : Natural) is
-      X : aliased Integer_Access :=
+      AGC_Root_Count : Natural                := GC.Root_Count;
+      X              : aliased Integer_Access :=
         GC.Temp (0, GC.Register (new Integer'(42)));
    begin
       GC.Untemp (0);
-      GC.Push_Reachable (X'Address);
+      GC.Push_Root (X'Address);
       if N < 100 then
          Foo (N + 1);
       end if;
-      GC.Pop_Reachable (1);
+      GC.Pop_Roots (AGC_Root_Count);
    end Foo;
 begin
    Foo (0);
    Foo (100);
+   GC.Pop_Roots (AGC_Root_Count);
 end Test;

@@ -21,6 +21,33 @@ is
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
+   procedure Push_Object
+     (Stmts : LALRW.Node_Rewriting_Handle; X : LAL.Object_Decl)
+   is
+      Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (X.P_Defining_Name);
+   begin
+      LALRW.Insert_Child
+        (Stmts, 1,
+         LALRW.Create_From_Template
+           (RH,
+            "GC.Push_Root ({}'Address);",
+            (1 => LALRW.Create_Token_Node
+                    (RH, LALCO.Ada_Identifier, Name)),
+            LALCO.Call_Stmt_Rule));
+   end Push_Object;
+
+   procedure Pop_Objects (Stmts : LALRW.Node_Rewriting_Handle) is
+   begin
+      LALRW.Append_Child
+        (Stmts,
+         LALRW.Create_From_Template
+           (RH,
+            "GC.Pop_Roots (AGC_Root_Count);",
+            (1 .. 0 => <>),
+            LALCO.Call_Stmt_Rule));
+   end Pop_Objects;
+
    procedure Handle_Aliased_Annot (Node : LAL.Aliased_Absent'Class)
    is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
@@ -40,46 +67,32 @@ is
       Sibling : LAL.Ada_Node := LAL.Previous_Sibling (Node);
 
       SH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node.F_Stmts);
-
-      procedure Push_Object (X : LAL.Object_Decl) is
-         Name : Langkit_Support.Text.Text_Type :=
-            LAL.Text (X.P_Defining_Name);
-      begin
-         LALRW.Insert_Child
-           (SH, 1,
-            LALRW.Create_From_Template
-              (RH,
-               "GC.Push_Reachable ({}'Address);",
-               (1 => LALRW.Create_Token_Node
-                       (RH, LALCO.Ada_Identifier, Name)),
-               LALCO.Call_Stmt_Rule));
-      end Push_Object;
    begin
       if Sibling.Kind = LALCO.Ada_Declarative_Part then
          declare
             Decl_Part : LAL.Declarative_Part := Sibling.As_Declarative_Part;
-            Decls : LAL.Ada_Node_List := Decl_Part.F_Decls;
-            Object_Count : Natural := 0;
+            Decls     : LAL.Ada_Node_List := Decl_Part.F_Decls;
+
+            DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
          begin
+            LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
+              (RH,
+               "AGC_Root_Count : Natural := GC.Root_Count;",
+               (1 .. 0 => <>),
+               LALCO.Object_Decl_Rule));
+
             for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
                declare
                   C : LAL.Ada_Node := LAL.Child (Decls, N);
                begin
                   if C.Kind = LALCO.Ada_Object_Decl then
                      if Utils.Is_Relevant_Root (C.As_Basic_Decl) then
-                        Push_Object (C.As_Object_Decl);
-                        Object_Count := Object_Count + 1;
+                        Push_Object (SH, C.As_Object_Decl);
                      end if;
                   end if;
                end;
             end loop;
-            if Object_Count > 0 then
-               LALRW.Append_Child (SH, LALRW.Create_From_Template
-                 (RH,
-                  "GC.Pop_Reachable (" & Object_Count'Wide_Wide_Image & ");",
-                  (1 .. 0 => <>),
-                  LALCO.Call_Stmt_Rule));
-            end if;
+            Pop_Objects (SH);
          end;
       end if;
    end Handle_Handled_Stmts;

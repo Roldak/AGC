@@ -3,9 +3,11 @@ with Ada.Containers;
 with System;
 
 package GC is
-   procedure Push_Reachable (X : System.Address);
+   function Root_Count return Natural;
 
-   procedure Pop_Reachable (Count : Ada.Containers.Count_Type);
+   procedure Push_Root (X : System.Address);
+
+   procedure Pop_Roots (X : Natural);
 
    function Register (X : access Integer) return access Integer;
 

@@ -1,11 +1,12 @@
 with GC;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
+   AGC_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    X : aliased Integer_Access := null;
    Y : Integer                := 12;
 begin
-   GC.Push_Reachable (X'Address);
+   GC.Push_Root (X'Address);
    null;
-   GC.Pop_Reachable (1);
+   GC.Pop_Roots (AGC_Root_Count);
 end Test;

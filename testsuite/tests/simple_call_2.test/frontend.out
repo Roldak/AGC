@@ -1,17 +1,20 @@
 with GC;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
+   AGC_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    procedure Inner (X : Integer_Access) is
+      AGC_Root_Count : Natural                := GC.Root_Count;
       Y : aliased Integer_Access := GC.Temp (0, GC.Register (new Integer'(2)));
    begin
       GC.Untemp (0);
-      GC.Push_Reachable (Y'Address);
+      GC.Push_Root (Y'Address);
       null;
-      GC.Pop_Reachable (1);
+      GC.Pop_Roots (AGC_Root_Count);
    end Inner;
 begin
    Inner (GC.Temp (1, GC.Register (new Integer'(1))));
    GC.Untemp (1);
    GC.Collect;
+   GC.Pop_Roots (AGC_Root_Count);
 end Test;
