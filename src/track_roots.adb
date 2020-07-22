@@ -9,6 +9,8 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
+with Utils;
+
 procedure Track_Roots
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
@@ -19,19 +21,12 @@ is
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
-   function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
-      Type_Expr : LAL.Type_Expr := Decl.P_Type_Expression;
-      Type_Decl : LAL.Base_Type_Decl := Type_Expr.P_Designated_Type_Decl;
-   begin
-      return Type_Decl.P_Is_Access_Type;
-   end Is_Relevant_Root;
-
    procedure Handle_Aliased_Annot (Node : LAL.Aliased_Absent'Class)
    is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
       if Node.Parent.Kind in LALCO.Ada_Object_Decl | LALCO.Ada_Param_Spec then
-         if Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
+         if Utils.Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
             LALRW.Replace
               (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
          end if;
@@ -71,7 +66,7 @@ is
                   C : LAL.Ada_Node := LAL.Child (Decls, N);
                begin
                   if C.Kind = LALCO.Ada_Object_Decl then
-                     if Is_Relevant_Root (C.As_Basic_Decl) then
+                     if Utils.Is_Relevant_Root (C.As_Basic_Decl) then
                         Push_Object (C.As_Object_Decl);
                         Object_Count := Object_Count + 1;
                      end if;
