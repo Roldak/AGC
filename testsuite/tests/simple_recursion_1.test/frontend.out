@@ -3,7 +3,8 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    type Integer_Access is access all Integer;
    procedure Foo (N : Natural) is
-      X : aliased Integer_Access := GC.Register (0, new Integer'(42));
+      X : aliased Integer_Access :=
+        GC.Temp (0, GC.Register (new Integer'(42)));
    begin
       GC.Untemp (0);
       GC.Push_Reachable (X'Address);

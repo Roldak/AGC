@@ -14,6 +14,7 @@ with Libadalang.Unparsing;
 
 with Add_With_Clause;
 with Track_Roots;
+with Handle_Temporaries;
 with Register_Allocs;
 with Output_Unit;
 
@@ -53,6 +54,7 @@ procedure AGC is
       else
          Add_With_Clause (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
+         Handle_Temporaries (Job_Ctx, Unit);
          Register_Allocs (Job_Ctx, Unit);
          Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
       end if;

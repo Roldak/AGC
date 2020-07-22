@@ -6,7 +6,7 @@ procedure Test is
 begin
    GC.Push_Reachable (X'Address);
    for I in 1 .. 10_000 loop
-      X := GC.Register (0, new Integer'(42));
+      X := GC.Temp (0, GC.Register (new Integer'(42)));
       GC.Untemp (0);
    end loop;
    GC.Pop_Reachable (1);

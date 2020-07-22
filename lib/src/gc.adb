@@ -27,13 +27,18 @@ package body GC is
 
    type Alloc_State is (Unknown, Reachable, Temporary);
 
+   type Temporary_Site is record
+      Site_Id : Natural;
+      Value   : Address;
+   end record;
+
    package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
    package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
-   package Alloc_Site_Maps is new Ada.Containers.Ordered_Maps (Natural, Address);
+   package Temp_Site_Vectors is new Ada.Containers.Vectors (Positive, Temporary_Site);
 
    Alloc_Set : Address_Maps.Map;
    Reach_Set : Address_Vectors.Vector;
-   Temps_Set  : Alloc_Site_Maps.Map;
+   Temps_Set : Temp_Site_Vectors.Vector;
 
    procedure Push_Reachable (X : Address) is
    begin
@@ -47,8 +52,7 @@ package body GC is
         (Reach_Set, Address_Vectors.Length (Reach_Set) - Count);
    end Pop_Reachable;
 
-   function Register
-     (Site_Id : Natural; X : access Integer) return access Integer
+   function Register (X : access Integer) return access Integer
    is
 		pragma Suppress (Accessibility_Check);
 
@@ -56,12 +60,36 @@ package body GC is
    begin
       Collect;
       Put_Line ("Adding " & Address_Image (Addr));
-      Address_Maps.Insert (Alloc_Set, Addr, Temporary);
-      Alloc_Site_Maps.Insert (Temps_Set, Site_Id, Addr);
+      Address_Maps.Insert (Alloc_Set, Addr, Unknown);
       return X;
    end Register;
 
+   function Temp
+     (Site_Id : Natural; X : access Integer) return access Integer
+   is
+		pragma Suppress (Accessibility_Check);
+
+      procedure Mark_Temp (A : Address; V : in out Alloc_State) is
+      begin
+         if V = Unknown then
+            V := Temporary;
+         end if;
+      end Mark_Temp;
+
+      Addr : Address := X.all'Address;
+
+		Alloc_Elem : Address_Maps.Cursor :=
+			Address_Maps.Find (Alloc_Set, Addr);
+   begin
+      Temp_Site_Vectors.Append (Temps_Set, (Site_Id, Addr));
+		Address_Maps.Update_Element
+ 		  (Alloc_Set, Alloc_Elem, Mark_Temp'Access);
+      return X;
+   end Temp;
+
    procedure Untemp (Site_Id : Natural) is
+      use type Temp_Site_Vectors.Cursor;
+
       procedure Mark_Unknown (A : Address; V : in out Alloc_State) is
       begin
          if V = Temporary then
@@ -69,18 +97,37 @@ package body GC is
          end if;
       end Mark_Unknown;
 
-      Site_Elem : Alloc_Site_Maps.Cursor :=
-         Alloc_Site_Maps.Find (Temps_Set, Site_Id);
-
-      Addr : Address := Alloc_Site_Maps.Element (Site_Elem);
-
-      Alloc_Elem : Address_Maps.Cursor :=
-         Address_Maps.Find (Alloc_Set, Addr);
+		Cursor  : Temp_Site_Vectors.Cursor := Temps_Set.Last;
+		Found   : Boolean := False;
    begin
-      Alloc_Site_Maps.Delete (Temps_Set, Site_Elem);
+		while Cursor /= Temp_Site_Vectors.No_Element loop
+         declare
+            Temp_Elem : Temporary_Site :=
+               Temp_Site_Vectors.Element (Cursor);
 
-      Address_Maps.Update_Element
-        (Alloc_Set, Alloc_Elem, Mark_Unknown'Access);
+            Matches_Site : Boolean := Temp_Elem.Site_Id = Site_Id;
+
+            Alloc_Elem : Address_Maps.Cursor :=
+               Address_Maps.Find (Alloc_Set, Temp_Elem.Value);
+         begin
+            if Matches_Site then
+               Found := True;
+            end if;
+            exit when Found and not Matches_Site;
+
+            Address_Maps.Update_Element
+              (Alloc_Set, Alloc_Elem, Mark_Unknown'Access);
+			   Cursor := Temp_Site_Vectors.Previous (Cursor);
+         end;
+		end loop;
+
+      if Cursor = Temp_Site_Vectors.No_Element then
+         Temps_Set.Set_Length (0);
+      else
+         Temps_Set.Set_Length
+           (Ada.Containers.Count_Type
+              (Temp_Site_Vectors.To_Index (Cursor) + 1));
+      end if;
    end Untemp;
 
    procedure Collect is
