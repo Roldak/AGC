@@ -10,5 +10,6 @@ begin
       X := GC.Temp (0, GC.Register (new Integer'(42)));
       GC.Untemp (0);
    end loop;
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

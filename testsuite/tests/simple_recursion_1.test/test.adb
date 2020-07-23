@@ -12,5 +12,5 @@ procedure Test is
    end Foo;
 begin
    Foo (0);
-   Foo (100);
+   GC.Collect;
 end Test;

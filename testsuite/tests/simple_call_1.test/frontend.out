@@ -17,5 +17,6 @@ begin
    GC.Untemp (1);
    GC.Push_Root (A'Address);
    Inner (A);
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

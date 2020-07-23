@@ -17,6 +17,6 @@ procedure Test is
    end Foo;
 begin
    Foo (0);
-   Foo (100);
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;
