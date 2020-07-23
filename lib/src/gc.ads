@@ -9,10 +9,13 @@ package GC is
 
    procedure Pop_Roots (X : Natural);
 
-   function Register (X : access Integer) return access Integer;
+   generic
+      type T is private;
+   function Register (X : access T) return access T;
 
-   function Temp
-     (Site_Id : Natural; X : access Integer) return access Integer;
+   generic
+      type T is private;
+   function Temp (Site_Id : Natural; X : access T) return access T;
 
    procedure Untemp (Site_Id : Natural);
 

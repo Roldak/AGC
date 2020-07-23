@@ -1,4 +1,5 @@
 with GC;
+with GC.Standard; use GC.Standard;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -11,8 +12,8 @@ procedure Test is
    end Inner;
 begin
    Inner
-     (GC.Temp (0, GC.Register (new Integer'(1))),
-      GC.Temp (0, GC.Register (new Integer'(2))));
+     (AGC_Temp (0, AGC_Register (new Integer'(1))),
+      AGC_Temp (0, AGC_Register (new Integer'(2))));
    GC.Untemp (0);
    GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);

@@ -28,7 +28,7 @@ is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
       LALRW.Replace (SH, LALRW.Create_From_Template
-        (RH, "GC.Register ({})",
+        (RH, "AGC_Register ({})",
          (1 => LALRW.Clone (SH)), LALCO.Expr_Rule));
    end Handle_Allocator;
 

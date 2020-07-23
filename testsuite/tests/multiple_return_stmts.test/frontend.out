@@ -1,4 +1,5 @@
 with GC;
+with GC.Standard; use GC.Standard;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -9,7 +10,7 @@ procedure Test is
       if B then
          return
            AGC_Ret : Integer_Access :=
-             GC.Temp (0, GC.Register (new Integer'(X + 1))) do
+             AGC_Temp (0, AGC_Register (new Integer'(X + 1))) do
             GC.Untemp (0);
             null;
             GC.Pop_Roots (AGC_Base_Root_Count);
@@ -17,7 +18,7 @@ procedure Test is
       else
          return
            AGC_Ret : Integer_Access :=
-             GC.Temp (1, GC.Register (new Integer'(X - 1))) do
+             AGC_Temp (1, AGC_Register (new Integer'(X - 1))) do
             GC.Untemp (1);
             null;
             GC.Pop_Roots (AGC_Base_Root_Count);
@@ -25,7 +26,7 @@ procedure Test is
       end if;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
-   A : Integer := GC.Temp (2, Inner (True, 42)).all;
+   A : Integer := AGC_Temp (2, Inner (True, 42)).all;
 begin
    GC.Untemp (2);
    GC.Collect;

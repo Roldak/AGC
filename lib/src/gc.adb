@@ -52,7 +52,7 @@ package body GC is
       Reach_Set.Set_Length (Ada.Containers.Count_Type (X));
    end Pop_Roots;
 
-   function Register (X : access Integer) return access Integer
+   function Register (X : access T) return access T
    is
       Addr : Address := X.all'Address;
    begin
@@ -62,8 +62,7 @@ package body GC is
       return X;
    end Register;
 
-   function Temp
-     (Site_Id : Natural; X : access Integer) return access Integer
+   function Temp (Site_Id : Natural; X : access T) return access T
    is
       Addr : Address := X.all'Address;
    begin

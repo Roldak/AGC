@@ -1,4 +1,5 @@
 with GC;
+with GC.Standard; use GC.Standard;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -7,7 +8,7 @@ procedure Test is
 begin
    GC.Push_Root (X'Address);
    for I in 1 .. 10_000 loop
-      X := GC.Temp (0, GC.Register (new Integer'(42)));
+      X := AGC_Temp (0, AGC_Register (new Integer'(42)));
       GC.Untemp (0);
    end loop;
    GC.Collect;

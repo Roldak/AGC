@@ -44,7 +44,7 @@ is
          Temp_Site_Id'Wide_Wide_Image;
    begin
       LALRW.Replace (SH, LALRW.Create_From_Template
-        (RH, "GC.Temp (" & Temp_Site & ", {})",
+        (RH, "AGC_Temp (" & Temp_Site & ", {})",
          (1 => LALRW.Clone (SH)), LALCO.Expr_Rule));
 
       if Temp_Site_Id /= Temp_Site_Count then

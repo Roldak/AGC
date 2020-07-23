@@ -9,7 +9,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
-procedure Add_With_Clause
+procedure Add_With_Clauses
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
@@ -25,12 +25,19 @@ begin
       raise Program_Error with "Unhandled multi compilation unit files";
    end if;
 
-   LALRW.Insert_Child
-     (LALRW.Handle (Unit.Root.As_Compilation_Unit.F_Prelude), 1,
-      LALRW.Create_From_Template
+   declare
+      WH : LALRW.Node_Rewriting_Handle :=
+         LALRW.Handle (Unit.Root.As_Compilation_Unit.F_Prelude);
+   begin
+      LALRW.Insert_Child (WH, 1, LALRW.Create_From_Template
         (RH, "with GC;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
+      LALRW.Insert_Child (WH, 2, LALRW.Create_From_Template
+        (RH, "with GC.Standard;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
+      LALRW.Insert_Child (WH, 3, LALRW.Create_From_Template
+        (RH, "use GC.Standard;", (1 .. 0 => <>), LALCO.Use_Clause_Rule));
+   end;
 
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "add_with_clause: could not apply rewritings";
    end if;
-end Add_With_Clause;
+end Add_With_Clauses;
