@@ -120,9 +120,9 @@ is
          when LALCO.Ada_Expr =>
             declare
                Expr      : LAL.Expr := Node.As_Expr;
-               Expr_Type : LAL.Base_Type_Decl :=
-                  Expr.P_Expression_Type;
+               Expr_Type : LAL.Base_Type_Decl;
             begin
+               Expr_Type := Expr.P_Expression_Type;
                if
                   not Expr_Type.Is_Null
                   and then Utils.Is_Relevant_Type (Expr_Type)
