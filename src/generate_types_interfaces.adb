@@ -25,7 +25,7 @@ is
    Decl_Part_Count : Node_Counters.Counter;
 
    procedure Handle_Type_Decl
-     (Decl : LAL.Type_Decl'Class)
+     (Decl : LAL.Base_Type_Decl'Class)
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
@@ -64,8 +64,8 @@ is
    is
    begin
       case Node.Kind is
-         when LALCO.Ada_Type_Decl =>
-            Handle_Type_Decl (Node.As_Type_Decl);
+         when LALCO.Ada_Base_Type_Decl =>
+            Handle_Type_Decl (Node.As_Base_Type_Decl);
          when others =>
             null;
       end case;
