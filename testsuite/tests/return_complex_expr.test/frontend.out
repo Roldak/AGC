@@ -9,27 +9,50 @@ procedure Test is
    function Inner (X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
-      return
-        AGC_Ret : Integer_Access :=
-          AGC_Temp (0, AGC_Register (new Integer'(X))) do
-         GC.Untemp (0);
-         null;
-         GC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
+      declare
+         AGC_Root_Count : Natural                     := GC.Root_Count;
+         AGC_Temp_0     : aliased Test.Integer_Access :=
+           AGC_Register (new Integer'(X));
+      begin
+         GC.Push_Root (AGC_Temp_0'Address);
+         return AGC_Ret : Integer_Access := AGC_Temp_0 do
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+         GC.Pop_Roots (AGC_Root_Count);
+      end;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
    function Add (A, B, C : Integer) return Integer is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
-      return
-        AGC_Ret : Integer :=
-          AGC_Temp (1, Inner (A)).all + AGC_Temp (1, Inner (B)).all +
-          AGC_Temp (1, Inner (C)).all
-      do
-         GC.Untemp (1);
-         null;
-         GC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
+      declare
+         AGC_Root_Count : Natural                     := GC.Root_Count;
+         AGC_Temp_2     : aliased Test.Integer_Access := Inner (C);
+      begin
+         GC.Push_Root (AGC_Temp_2'Address);
+         declare
+            AGC_Root_Count : Natural                     := GC.Root_Count;
+            AGC_Temp_1     : aliased Test.Integer_Access := Inner (B);
+         begin
+            GC.Push_Root (AGC_Temp_1'Address);
+            declare
+               AGC_Root_Count : Natural                     := GC.Root_Count;
+               AGC_Temp_0     : aliased Test.Integer_Access := Inner (A);
+            begin
+               GC.Push_Root (AGC_Temp_0'Address);
+               return
+                 AGC_Ret : Integer :=
+                   AGC_Temp_0.all + AGC_Temp_1.all + AGC_Temp_2.all do
+                  null;
+                  GC.Pop_Roots (AGC_Base_Root_Count);
+               end return;
+               GC.Pop_Roots (AGC_Root_Count);
+            end;
+            GC.Pop_Roots (AGC_Root_Count);
+         end;
+         GC.Pop_Roots (AGC_Root_Count);
+      end;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Add;
    A : Integer := Add (1, 2, 3);

@@ -10,27 +10,36 @@ procedure Test is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
       if B then
-         return
-           AGC_Ret : Integer_Access :=
-             AGC_Temp (0, AGC_Register (new Integer'(X + 1))) do
-            GC.Untemp (0);
-            null;
-            GC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
+         declare
+            AGC_Root_Count : Natural                     := GC.Root_Count;
+            AGC_Temp_0     : aliased Test.Integer_Access :=
+              AGC_Register (new Integer'(X + 1));
+         begin
+            GC.Push_Root (AGC_Temp_0'Address);
+            return AGC_Ret : Integer_Access := AGC_Temp_0 do
+               null;
+               GC.Pop_Roots (AGC_Base_Root_Count);
+            end return;
+            GC.Pop_Roots (AGC_Root_Count);
+         end;
       else
-         return
-           AGC_Ret : Integer_Access :=
-             AGC_Temp (1, AGC_Register (new Integer'(X - 1))) do
-            GC.Untemp (1);
-            null;
-            GC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
+         declare
+            AGC_Root_Count : Natural                     := GC.Root_Count;
+            AGC_Temp_0     : aliased Test.Integer_Access :=
+              AGC_Register (new Integer'(X - 1));
+         begin
+            GC.Push_Root (AGC_Temp_0'Address);
+            return AGC_Ret : Integer_Access := AGC_Temp_0 do
+               null;
+               GC.Pop_Roots (AGC_Base_Root_Count);
+            end return;
+            GC.Pop_Roots (AGC_Root_Count);
+         end;
       end if;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
-   A : Integer := AGC_Temp (2, Inner (True, 42)).all;
+   A : Integer := Inner (True, 42).all;
 begin
-   GC.Untemp (2);
    GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

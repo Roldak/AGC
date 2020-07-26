@@ -10,9 +10,8 @@ procedure Test is
    type T_Access is access all T;
    function AGC_Register is new GC.Register (T_Access);
    function AGC_Temp is new GC.Temp (T_Access);
-   X : aliased T_Access := AGC_Temp (0, AGC_Register (new T'(X => 2)));
+   X : aliased T_Access := AGC_Register (new T'(X => 2));
 begin
-   GC.Untemp (0);
    GC.Push_Root (X'Address);
    null;
    GC.Pop_Roots (AGC_Base_Root_Count);

@@ -8,10 +8,8 @@ procedure Test is
    type My_Nat_Access is access all My_Natural;
    function AGC_Register is new GC.Register (My_Nat_Access);
    function AGC_Temp is new GC.Temp (My_Nat_Access);
-   X : aliased My_Nat_Access :=
-     AGC_Temp (0, AGC_Register (new My_Natural'(2)));
+   X : aliased My_Nat_Access := AGC_Register (new My_Natural'(2));
 begin
-   GC.Untemp (0);
    GC.Push_Root (X'Address);
    null;
    GC.Pop_Roots (AGC_Base_Root_Count);

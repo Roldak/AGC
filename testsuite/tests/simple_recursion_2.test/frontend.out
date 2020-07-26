@@ -8,10 +8,8 @@ procedure Test is
    function AGC_Temp is new GC.Temp (Integer_Access);
    procedure Foo (N : Integer_Access) is
       AGC_Base_Root_Count : Natural                := GC.Root_Count;
-      X                   : aliased Integer_Access :=
-        AGC_Temp (0, AGC_Register (new Integer'(N.all + 1)));
+      X : aliased Integer_Access := AGC_Register (new Integer'(N.all + 1));
    begin
-      GC.Untemp (0);
       GC.Push_Root (X'Address);
       if X.all < 100 then
          Foo (X);
@@ -19,8 +17,15 @@ procedure Test is
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Foo;
 begin
-   Foo (AGC_Temp (1, AGC_Register (new Integer'(0))));
-   GC.Untemp (1);
+   declare
+      AGC_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Temp_0     : aliased Test.Integer_Access :=
+        AGC_Register (new Integer'(0));
+   begin
+      GC.Push_Root (AGC_Temp_0'Address);
+      Foo (AGC_Temp_0);
+      GC.Pop_Roots (AGC_Root_Count);
+   end;
    GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

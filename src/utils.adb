@@ -49,6 +49,29 @@ package body Utils is
       end if;
    end Enclosing_Subp_Body;
 
+   function Is_Actual_Expr (Expr : LAL.Expr'Class) return Boolean is
+      use LAL;
+   begin
+      if
+         Expr.Kind in LALCO.Ada_Name
+         and then Expr.Parent.Kind in LALCO.Ada_Call_Expr
+         and then Expr.Parent.As_Call_Expr.F_Name = Expr
+      then
+         declare
+            N : LAL.Name := Expr.As_Name;
+            P : LAL.Name := N.Parent.As_Name;
+         begin
+            if
+               N.P_Is_Call
+               and then N.P_Called_Subp_Spec = P.P_Called_Subp_Spec
+            then
+               return False;
+            end if;
+         end;
+      end if;
+      return True;
+   end Is_Actual_Expr;
+
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean is
    begin
       case Expr.Kind is
@@ -76,4 +99,14 @@ package body Utils is
             return False;
       end case;
    end Is_Named_Expr;
+
+   function Generate_Type_Reference
+     (RH  : LALRW.Rewriting_Handle;
+      Typ : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
+   is
+   begin
+      return LALRW.Create_From_Template
+        (RH, LAL.P_Fully_Qualified_Name (Typ),
+         (1 .. 0 => <>), LALCO.Type_Expr_Rule);
+   end Generate_Type_Reference;
 end Utils;

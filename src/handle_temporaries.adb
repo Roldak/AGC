@@ -24,90 +24,84 @@ is
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
-   Alloc_Count_Map : Node_Counters.Counter;
+   package Node_Maps is new Ada.Containers.Hashed_Maps
+     (LAL.Ada_Node,
+      LALRW.Node_Rewriting_Handle,
+      LAL.Hash,
+      LAL."=",
+      LALRW."=");
 
-   Temp_Count_Map  : Node_Counters.Counter;
-   Temp_Site_Count : Natural := 0;
+   Decl_Blocks : Node_Maps.Map;
+   Temp_Site   : Node_Counters.Counter;
+
+   function Get_Or_Create_Decl_Block
+     (Scope : LAL.Ada_Node) return LALRW.Node_Rewriting_Handle
+   is
+      use type Node_Maps.Cursor;
+
+      Cursor : Node_Maps.Cursor := Node_Maps.Find (Decl_Blocks, Scope);
+      Block  : LALRW.Node_Rewriting_Handle;
+   begin
+      if Cursor = Node_Maps.No_Element then
+         Block := LALRW.Create_From_Template
+           (RH,
+            "declare begin end;",
+            (1 .. 0 => <>),
+            LALCO.Block_Stmt_Rule);
+
+         LALRW.Replace (LALRW.Handle (Scope), Block);
+         LALRW.Append_Child
+           (LALRW.Child (LALRW.Child (Block, 2), 1),
+            LALRW.Handle (Scope));
+
+         Node_Maps.Insert (Decl_Blocks, Scope, Block);
+      else
+         Block := Node_Maps.Element (Cursor);
+      end if;
+
+      return LALRW.Child (LALRW.Child (Block, 1), 1);
+   end Get_Or_Create_Decl_Block;
 
    procedure Handle_Expr (Expr : LAL.Expr'Class) is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
 
-      SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Expr);
+      EH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Expr);
 
       Scope : LAL.Ada_Node'Class := Utils.Find_Scope (Expr);
-
-      Temp_Site_Id : Natural := Node_Counters.Get_Or_Set
-        (Temp_Count_Map, Scope.As_Ada_Node, Temp_Site_Count);
-
-      Temp_Site : Langkit_Support.Text.Text_Type :=
-         Temp_Site_Id'Wide_Wide_Image;
    begin
-      LALRW.Replace (SH, LALRW.Create_From_Template
-        (RH, "AGC_Temp (" & Temp_Site & ", {})",
-         (1 => LALRW.Clone (SH)), LALCO.Expr_Rule));
-
-      if Temp_Site_Id /= Temp_Site_Count then
-         --  Call to GC.Untemp already added by a previous iteration
-         return;
-      end if;
-
-      Temp_Site_Count := Temp_Site_Count + 1;
-
       if Scope.Is_Null then
-         raise Program_Error with "Could not find allocator's scope";
+         raise Program_Error with "Could not find expr's scope";
       end if;
 
-      if Scope.Kind = LALCO.Ada_Extended_Return_Stmt then
+      if Scope.Parent.Kind = LALCO.Ada_Stmt_List then
          declare
-            Stmts : LAL.Ada_Node :=
-               Scope.As_Extended_Return_Stmt.F_Stmts.F_Stmts.As_Ada_Node;
+            Temp_Id   : Langkit_Support.Text.Text_Type :=
+               Node_Counters.Get
+                 (Temp_Site, Scope.As_Ada_Node)'Wide_Wide_Image;
 
-            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
-         begin
-            if
-               Stmts.Children_Count = 1
-               and then Stmts.Child (1).Kind = LALCO.Ada_Null_Stmt
-            then
-               LALRW.Remove_Child (TH, 1);
-            end if;
-            LALRW.Insert_Child (TH, 1, LALRW.Create_From_Template
-              (RH, "GC.Untemp (" & Temp_Site & ");",
-               (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
+            Temp_Name : Langkit_Support.Text.Text_Type :=
+               "AGC_Temp_" & Temp_Id (Temp_Id'First + 1 .. Temp_Id'Last);
 
-            Node_Counters.Increase (Alloc_Count_Map, Stmts);
-         end;
-      elsif Scope.Parent.Parent.Kind = LALCO.Ada_Declarative_Part then
-         declare
-            Stmts : LAL.Ada_Node :=
-               Scope.Parent.Parent.Next_Sibling
-                  .As_Handled_Stmts.F_Stmts.As_Ada_Node;
+            Decls : LALRW.Node_Rewriting_Handle :=
+               Get_Or_Create_Decl_Block (Scope.As_Ada_Node);
 
-            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
-         begin
-            LALRW.Insert_Child (TH, 1, LALRW.Create_From_Template
-              (RH, "GC.Untemp (" & Temp_Site & ");",
-               (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
-
-            Node_Counters.Increase (Alloc_Count_Map, Stmts);
-         end;
-      else
-         declare
-            Stmts : LAL.Ada_Node := Scope.Parent;
-
-            TH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmts);
-
-            Index : Positive :=
-               LAL.Child_Index (Scope)
-               + Node_Counters.Get (Alloc_Count_Map, Stmts)
-               + 2;
-         begin
-            LALRW.Insert_Child (TH, Index,
+            Obj_Decl : LALRW.Node_Rewriting_Handle :=
                LALRW.Create_From_Template
-                 (RH, "GC.Untemp (" & Temp_Site & ");",
-                  (1 .. 0 => <>), LALCO.Call_Stmt_Rule));
+                 (RH,
+                  Temp_Name & " : {} := null;",
+                  (1 => Utils.Generate_Type_Reference
+                          (RH, Expr.P_Expression_Type)),
+                  LALCO.Object_Decl_Rule);
+         begin
+            LALRW.Replace (EH, LALRW.Create_From_Template
+              (RH, Temp_Name, (1 .. 0 => <>), LALCO.Identifier_Rule));
 
-            Node_Counters.Increase (Alloc_Count_Map, Stmts);
+            LALRW.Set_Child (Obj_Decl, 6, EH);
+
+            LALRW.Insert_Child (Decls, 1, Obj_Decl);
+
+            Node_Counters.Increase (Temp_Site, Scope.As_Ada_Node);
          end;
       end if;
    end Handle_Expr;
@@ -126,6 +120,7 @@ is
                if
                   not Expr_Type.Is_Null
                   and then Utils.Is_Relevant_Type (Expr_Type)
+                  and then Utils.Is_Actual_Expr (Expr)
                   and then not Utils.Is_Named_Expr (Expr)
                then
                   Handle_Expr (Expr);

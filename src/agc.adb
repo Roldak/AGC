@@ -57,10 +57,10 @@ procedure AGC is
       else
          Add_With_Clauses (Job_Ctx, Unit);
          Extend_Return_Stmts (Job_Ctx, Unit);
+         Handle_Temporaries (Job_Ctx, Unit);
          Nest_Declare_Blocks (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
-         Handle_Temporaries (Job_Ctx, Unit);
          Register_Allocs (Job_Ctx, Unit);
          Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
       end if;
