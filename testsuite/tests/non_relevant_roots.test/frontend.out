@@ -13,12 +13,7 @@ begin
       AGC_Root_Count : Natural := GC.Root_Count;
       Y              : Integer := 12;
    begin
-      declare
-         AGC_Root_Count : Natural := GC.Root_Count;
-      begin
-         null;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
+      null;
       GC.Pop_Roots (AGC_Root_Count);
    end;
    GC.Pop_Roots (AGC_Base_Root_Count);

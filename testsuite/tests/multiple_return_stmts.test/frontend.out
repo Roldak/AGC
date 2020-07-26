@@ -31,11 +31,6 @@ procedure Test is
    A : Integer := AGC_Temp (2, Inner (True, 42)).all;
 begin
    GC.Untemp (2);
-   declare
-      AGC_Root_Count : Natural := GC.Root_Count;
-   begin
-      GC.Collect;
-      GC.Pop_Roots (AGC_Root_Count);
-   end;
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

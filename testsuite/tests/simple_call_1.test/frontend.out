@@ -13,24 +13,14 @@ procedure Test is
    begin
       GC.Untemp (0);
       GC.Push_Root (Y'Address);
-      declare
-         AGC_Root_Count : Natural := GC.Root_Count;
-      begin
-         null;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
+      null;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
    A : aliased Integer_Access := AGC_Temp (1, AGC_Register (new Integer'(1)));
 begin
    GC.Untemp (1);
    GC.Push_Root (A'Address);
-   declare
-      AGC_Root_Count : Natural := GC.Root_Count;
-   begin
-      Inner (A);
-      GC.Collect;
-      GC.Pop_Roots (AGC_Root_Count);
-   end;
+   Inner (A);
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

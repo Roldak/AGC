@@ -24,37 +24,27 @@ begin
          GC.Untemp (2);
          GC.Push_Root (Z'Address);
          declare
-            AGC_Root_Count : Natural := GC.Root_Count;
+            AGC_Root_Count : Natural                := GC.Root_Count;
+            A              : aliased Integer_Access :=
+              AGC_Temp (3, AGC_Register (new Integer'(4)));
          begin
+            GC.Untemp (3);
+            GC.Push_Root (A'Address);
             declare
                AGC_Root_Count : Natural                := GC.Root_Count;
-               A              : aliased Integer_Access :=
-                 AGC_Temp (3, AGC_Register (new Integer'(4)));
+               B              : aliased Integer_Access :=
+                 AGC_Temp (4, AGC_Register (new Integer'(5)));
             begin
-               GC.Untemp (3);
-               GC.Push_Root (A'Address);
+               GC.Untemp (4);
+               GC.Push_Root (B'Address);
                declare
                   AGC_Root_Count : Natural                := GC.Root_Count;
-                  B              : aliased Integer_Access :=
-                    AGC_Temp (4, AGC_Register (new Integer'(5)));
+                  C              : aliased Integer_Access :=
+                    AGC_Temp (5, AGC_Register (new Integer'(6)));
                begin
-                  GC.Untemp (4);
-                  GC.Push_Root (B'Address);
-                  declare
-                     AGC_Root_Count : Natural                := GC.Root_Count;
-                     C              : aliased Integer_Access :=
-                       AGC_Temp (5, AGC_Register (new Integer'(6)));
-                  begin
-                     GC.Untemp (5);
-                     GC.Push_Root (C'Address);
-                     declare
-                        AGC_Root_Count : Natural := GC.Root_Count;
-                     begin
-                        null;
-                        GC.Pop_Roots (AGC_Root_Count);
-                     end;
-                     GC.Pop_Roots (AGC_Root_Count);
-                  end;
+                  GC.Untemp (5);
+                  GC.Push_Root (C'Address);
+                  null;
                   GC.Pop_Roots (AGC_Root_Count);
                end;
                GC.Pop_Roots (AGC_Root_Count);

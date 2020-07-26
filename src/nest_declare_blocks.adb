@@ -32,48 +32,52 @@ is
       Decl_Index   : Natural)
    is
       Index : Natural := Decl_Index;
+      Defined_Objs : Natural := 0;
    begin
       while Index <= Decl_Content.Last_Child_Index loop
          declare
             Child : LAL.Ada_Node := LAL.Child (Decl_Content, Index);
          begin
+            if Child.Kind in LALCO.Ada_Object_Decl then
+               if Defined_Objs = 1 then
+                  declare
+                     New_Decls : LALRW.Node_Rewriting_Handle :=
+                        LALRW.Create_Regular_Node
+                          (RH, LALCO.Ada_Ada_Node_List, (1 .. 0 => <>));
+
+                     New_Decl_Part : LALRW.Node_Rewriting_Handle :=
+                        LALRW.Create_Declarative_Part (RH, New_Decls);
+
+                     New_Stmts : LALRW.Node_Rewriting_Handle :=
+                        LALRW.Create_Regular_Node
+                          (RH, LALCO.Ada_Stmt_List, (1 .. 0 => <>));
+
+                     New_Handled_Stmts : LALRW.Node_Rewriting_Handle :=
+                        LALRW.Create_Handled_Stmts
+                          (RH, New_Stmts, LALRW.Create_Regular_Node
+                             (RH, LALCO.Ada_Ada_Node_List, (1 .. 0 => <>)));
+                  begin
+                     LALRW.Append_Child (Stmts_Block, LALRW.Create_Decl_Block
+                       (RH,
+                        New_Decl_Part,
+                        New_Handled_Stmts,
+                        LALRW.No_Node_Rewriting_Handle));
+
+                     Populate_Block
+                       (New_Decls,
+                        New_Stmts,
+                        Decl_Content,
+                        Stmt_Content,
+                        Index);
+                  end;
+                  return;
+               end if;
+               Defined_Objs := Defined_Objs + 1;
+            end if;
             LALRW.Replace
               (LALRW.Handle (Child), LALRW.No_Node_Rewriting_Handle);
             LALRW.Append_Child (Decls_Block, LALRW.Handle (Child));
             Index := Index + 1;
-            if Child.Kind in LALCO.Ada_Object_Decl then
-               declare
-                  New_Decls : LALRW.Node_Rewriting_Handle :=
-                     LALRW.Create_Regular_Node
-                       (RH, LALCO.Ada_Ada_Node_List, (1 .. 0 => <>));
-
-                  New_Decl_Part : LALRW.Node_Rewriting_Handle :=
-                     LALRW.Create_Declarative_Part (RH, New_Decls);
-
-                  New_Stmts : LALRW.Node_Rewriting_Handle :=
-                     LALRW.Create_Regular_Node
-                       (RH, LALCO.Ada_Stmt_List, (1 .. 0 => <>));
-
-                  New_Handled_Stmts : LALRW.Node_Rewriting_Handle :=
-                     LALRW.Create_Handled_Stmts
-                       (RH, New_Stmts, LALRW.Create_Regular_Node
-                          (RH, LALCO.Ada_Ada_Node_List, (1 .. 0 => <>)));
-               begin
-                  LALRW.Append_Child (Stmts_Block, LALRW.Create_Decl_Block
-                    (RH,
-                     New_Decl_Part,
-                     New_Handled_Stmts,
-                     LALRW.No_Node_Rewriting_Handle));
-
-                  Populate_Block
-                    (New_Decls,
-                     New_Stmts,
-                     Decl_Content,
-                     Stmt_Content,
-                     Index);
-               end;
-               return;
-            end if;
          end;
       end loop;
       LALRW.Replace (Stmts_Block, Stmt_Content);

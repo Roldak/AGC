@@ -13,14 +13,9 @@ procedure Test is
    begin
       GC.Untemp (0);
       GC.Push_Root (X'Address);
-      declare
-         AGC_Root_Count : Natural := GC.Root_Count;
-      begin
-         if X.all < 100 then
-            Foo (X);
-         end if;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
+      if X.all < 100 then
+         Foo (X);
+      end if;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Foo;
 begin

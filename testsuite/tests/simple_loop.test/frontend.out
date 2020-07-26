@@ -9,15 +9,10 @@ procedure Test is
    X : aliased Integer_Access := null;
 begin
    GC.Push_Root (X'Address);
-   declare
-      AGC_Root_Count : Natural := GC.Root_Count;
-   begin
-      for I in 1 .. 10_000 loop
-         X := AGC_Temp (0, AGC_Register (new Integer'(42)));
-         GC.Untemp (0);
-      end loop;
-      GC.Collect;
-      GC.Pop_Roots (AGC_Root_Count);
-   end;
+   for I in 1 .. 10_000 loop
+      X := AGC_Temp (0, AGC_Register (new Integer'(42)));
+      GC.Untemp (0);
+   end loop;
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

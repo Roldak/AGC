@@ -30,11 +30,6 @@ procedure Test is
    A : Integer := Add (AGC_Temp (1, Inner (1)), AGC_Temp (1, Inner (2)));
 begin
    GC.Untemp (1);
-   declare
-      AGC_Root_Count : Natural := GC.Root_Count;
-   begin
-      GC.Collect;
-      GC.Pop_Roots (AGC_Root_Count);
-   end;
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;
