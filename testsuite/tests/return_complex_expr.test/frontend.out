@@ -34,6 +34,11 @@ procedure Test is
    end Add;
    A : Integer := Add (1, 2, 3);
 begin
-   GC.Collect;
+   declare
+      AGC_Root_Count : Natural := GC.Root_Count;
+   begin
+      GC.Collect;
+      GC.Pop_Roots (AGC_Root_Count);
+   end;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

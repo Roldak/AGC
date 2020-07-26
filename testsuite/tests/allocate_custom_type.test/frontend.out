@@ -14,6 +14,11 @@ procedure Test is
 begin
    GC.Untemp (0);
    GC.Push_Root (X'Address);
-   null;
+   declare
+      AGC_Root_Count : Natural := GC.Root_Count;
+   begin
+      null;
+      GC.Pop_Roots (AGC_Root_Count);
+   end;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

@@ -7,9 +7,19 @@ procedure Test is
    function AGC_Register is new GC.Register (Integer_Access);
    function AGC_Temp is new GC.Temp (Integer_Access);
    X : aliased Integer_Access := null;
-   Y : Integer                := 12;
 begin
    GC.Push_Root (X'Address);
-   null;
+   declare
+      AGC_Root_Count : Natural := GC.Root_Count;
+      Y              : Integer := 12;
+   begin
+      declare
+         AGC_Root_Count : Natural := GC.Root_Count;
+      begin
+         null;
+         GC.Pop_Roots (AGC_Root_Count);
+      end;
+      GC.Pop_Roots (AGC_Root_Count);
+   end;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

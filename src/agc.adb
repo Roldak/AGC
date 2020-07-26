@@ -14,6 +14,7 @@ with Libadalang.Unparsing;
 
 with Add_With_Clauses;
 with Extend_Return_Stmts;
+with Nest_Declare_Blocks;
 with Generate_Types_Interfaces;
 with Track_Roots;
 with Handle_Temporaries;
@@ -56,6 +57,7 @@ procedure AGC is
       else
          Add_With_Clauses (Job_Ctx, Unit);
          Extend_Return_Stmts (Job_Ctx, Unit);
+         Nest_Declare_Blocks (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Handle_Temporaries (Job_Ctx, Unit);
