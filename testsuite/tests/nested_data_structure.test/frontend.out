@@ -6,25 +6,31 @@ procedure Test is
       X : Integer;
    end record;
    function AGC_Register is new GC.Register (T);
+   procedure Visitor_Test_T is new GC.No_Op (T);
    type T_Access is access all T;
    function AGC_Register is new GC.Register (T_Access);
+   procedure Visitor_Test_T_Access is new GC.Visit_Access_Type
+     (T, T_Access, Visitor_Test_T);
    type U is record
       A : T_Access;
    end record;
    function AGC_Register is new GC.Register (U);
+   procedure Visitor_Test_U is new GC.No_Op (U);
    type U_Access is access all U;
    function AGC_Register is new GC.Register (U_Access);
+   procedure Visitor_Test_U_Access is new GC.Visit_Access_Type
+     (U, U_Access, Visitor_Test_U);
    function AGC_Func_0 return U_Access is
       AGC_Base_Root_Count : Natural               := GC.Root_Count;
       AGC_Temp_1 : aliased Test.T_Access := AGC_Register (new T'(X => 1));
    begin
-      GC.Push_Root (AGC_Temp_1'Address);
+      GC.Push_Root (AGC_Temp_1'Address, Visitor_Test_T_Access'Address);
       declare
          AGC_Root_Count : Natural               := GC.Root_Count;
          AGC_Temp_0     : aliased Test.U_Access :=
            AGC_Register (new U'(A => AGC_Temp_1));
       begin
-         GC.Push_Root (AGC_Temp_0'Address);
+         GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_U_Access'Address);
          return AGC_Ret : U_Access := AGC_Temp_0 do
             null;
             GC.Pop_Roots (AGC_Base_Root_Count);
@@ -35,7 +41,7 @@ procedure Test is
    end AGC_Func_0;
    X : aliased U_Access := AGC_Func_0;
 begin
-   GC.Push_Root (X'Address);
+   GC.Push_Root (X'Address, Visitor_Test_U_Access'Address);
    GC.Collect;
    X.A.X := 2;
    GC.Pop_Roots (AGC_Base_Root_Count);

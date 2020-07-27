@@ -5,6 +5,8 @@ procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    function AGC_Register is new GC.Register (Integer_Access);
+   procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
+     (Integer, Integer_Access, Visitor_Standard_Integer);
    function Inner (X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
@@ -13,7 +15,8 @@ procedure Test is
          AGC_Temp_0     : aliased Test.Integer_Access :=
            AGC_Register (new Integer'(X));
       begin
-         GC.Push_Root (AGC_Temp_0'Address);
+         GC.Push_Root
+           (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
          return AGC_Ret : Integer_Access := AGC_Temp_0 do
             null;
             GC.Pop_Roots (AGC_Base_Root_Count);
@@ -29,17 +32,20 @@ procedure Test is
          AGC_Root_Count : Natural                     := GC.Root_Count;
          AGC_Temp_2     : aliased Test.Integer_Access := Inner (C);
       begin
-         GC.Push_Root (AGC_Temp_2'Address);
+         GC.Push_Root
+           (AGC_Temp_2'Address, Visitor_Test_Integer_Access'Address);
          declare
             AGC_Root_Count : Natural                     := GC.Root_Count;
             AGC_Temp_1     : aliased Test.Integer_Access := Inner (B);
          begin
-            GC.Push_Root (AGC_Temp_1'Address);
+            GC.Push_Root
+              (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
             declare
                AGC_Root_Count : Natural                     := GC.Root_Count;
                AGC_Temp_0     : aliased Test.Integer_Access := Inner (A);
             begin
-               GC.Push_Root (AGC_Temp_0'Address);
+               GC.Push_Root
+                 (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
                return
                  AGC_Ret : Integer :=
                    AGC_Temp_0.all + AGC_Temp_1.all + AGC_Temp_2.all do

@@ -24,6 +24,51 @@ is
 
    Decl_Part_Count : Node_Counters.Counter;
 
+   function Generate_Access_Type_Visitor
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class)
+      return LALRW.Node_Rewriting_Handle
+   is
+      Element_Type : LAL.Base_Type_Decl'Class :=
+         Decl.P_Accessed_Type;
+
+      Element_Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Element_Type.F_Name);
+
+      Access_Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.F_Name);
+   begin
+      return LALRW.Create_From_Template
+        (RH,
+        "procedure " & Visit_Name & " is new GC.Visit_Access_Type ("
+        & Element_Type_Name & ", "
+        & Access_Type_Name & ", "
+        & Utils.Visitor_Name (Element_Type) & ");",
+        (1 .. 0 => <>),
+        LALCO.Basic_Decl_Rule);
+   end Generate_Access_Type_Visitor;
+
+   function Generate_Visitor
+     (Decl       : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
+   is
+      Visit_Name : Langkit_Support.Text.Text_Type :=
+         Utils.Visitor_Name (Decl);
+
+      Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.F_Name);
+   begin
+      if Decl.P_Is_Access_Type then
+         return Generate_Access_Type_Visitor (Visit_Name, Decl);
+      else
+         return LALRW.Create_From_Template
+           (RH,
+           "procedure " & Visit_Name & " is new GC.No_Op ("
+           & Type_Name & ");",
+           (1 .. 0 => <>),
+           LALCO.Basic_Decl_Rule);
+      end if;
+   end Generate_Visitor;
+
    procedure Handle_Type_Decl
      (Decl : LAL.Base_Type_Decl'Class)
    is
@@ -46,6 +91,10 @@ is
            & ");",
            (1 .. 0 => <>),
            LALCO.Basic_Decl_Rule));
+      Node_Counters.Increase (Decl_Part_Count, Decl_Part);
+
+      LALRW.Insert_Child
+        (DH, Index + 3, Generate_Visitor (Decl));
       Node_Counters.Increase (Decl_Part_Count, Decl_Part);
    end Handle_Type_Decl;
 

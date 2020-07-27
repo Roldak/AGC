@@ -109,4 +109,24 @@ package body Utils is
         (RH, LAL.P_Fully_Qualified_Name (Typ),
          (1 .. 0 => <>), LALCO.Type_Expr_Rule);
    end Generate_Type_Reference;
+
+   function Unique_Identifier
+     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
+   is
+      Name : Langkit_Support.Text.Text_Type := Decl.P_Fully_Qualified_Name;
+   begin
+      for C of Name loop
+         if C = '.' then
+            C := '_';
+         end if;
+      end loop;
+      return Name;
+   end Unique_Identifier;
+
+   function Visitor_Name
+     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+   is
+   begin
+      return "Visitor_" & Unique_Identifier (Typ);
+   end Visitor_Name;
 end Utils;

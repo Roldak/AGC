@@ -1,3 +1,5 @@
+with Langkit_Support.Text;
+
 with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Rewriting;
@@ -24,4 +26,10 @@ package Utils is
    function Generate_Type_Reference
      (RH  : LALRW.Rewriting_Handle;
       Typ : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle;
+
+   function Unique_Identifier
+     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type;
+
+   function Visitor_Name
+     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
 end Utils;

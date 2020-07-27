@@ -5,9 +5,11 @@ procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    function AGC_Register is new GC.Register (Integer_Access);
+   procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
+     (Integer, Integer_Access, Visitor_Standard_Integer);
    X : aliased Integer_Access := null;
 begin
-   GC.Push_Root (X'Address);
+   GC.Push_Root (X'Address, Visitor_Test_Integer_Access'Address);
    declare
       AGC_Root_Count : Natural := GC.Root_Count;
       Y              : Integer := 12;

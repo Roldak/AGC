@@ -12,9 +12,13 @@ with System.Storage_Elements; use System.Storage_Elements;
 
 package body GC is
    type Address_Access is access all Address;
+   type Address_Visitor is access procedure (X : Address);
 
    function As_Address_Access is new Ada.Unchecked_Conversion
      (Address, Address_Access);
+
+   function As_Address_Visitor is new Ada.Unchecked_Conversion
+     (Address, Address_Visitor);
 
    procedure Free is new Ada.Unchecked_Deallocation
      (Address, Address_Access);
@@ -26,18 +30,22 @@ package body GC is
    end Collect;
 
    type Alloc_State is (Unknown, Reachable);
+   type Root is record
+      Addr    : Address;
+      Visitor : Address;
+   end record;
 
    package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
-   package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
+   package Root_Vectors is new Ada.Containers.Vectors (Positive, Root);
 
    Alloc_Set : Address_Maps.Map;
-   Reach_Set : Address_Vectors.Vector;
+   Reach_Set : Root_Vectors.Vector;
 
    function Root_Count return Natural is (Natural (Reach_Set.Length));
 
-   procedure Push_Root (X : Address) is
+   procedure Push_Root (X, Visitor : Address) is
    begin
-      Reach_Set.Append (X);
+      Reach_Set.Append ((X, Visitor));
    end Push_Root;
 
    procedure Pop_Roots (X : Natural) is
@@ -55,24 +63,36 @@ package body GC is
       return X;
    end Register;
 
-   procedure Collect is
+   procedure Mark (Addr : Address) is
       use type Address_Maps.Cursor;
 
-      procedure Mark_Reached (Addr : Address) is
-         Cursor : Address_Maps.Cursor :=
-            Address_Maps.Find (Alloc_Set, Addr);
-      begin
-         if Cursor /= Address_Maps.No_Element then
-            Address_Maps.Replace_Element
-              (Alloc_Set, Cursor, Reachable);
-         end if;
-      end Mark_Reached;
+      Cursor : Address_Maps.Cursor :=
+         Address_Maps.Find (Alloc_Set, Addr);
    begin
-      for Addr of Reach_Set loop
+      if Cursor /= Address_Maps.No_Element then
+         Address_Maps.Replace_Element
+           (Alloc_Set, Cursor, Reachable);
+      end if;
+   end Mark;
+
+   procedure No_Op (X : T) is null;
+
+   procedure Visit_Access_Type (X : T_Access) is
+   begin
+      if X /= null then
+         Mark (X.all'Address);
+         Visit_Element (X.all);
+      end if;
+   end Visit_Access_Type;
+
+   procedure Collect is
+      use type Address_Maps.Cursor;
+   begin
+      for Root of Reach_Set loop
          declare
-            Ref  : Address := As_Address_Access (Addr).all;
+            Ref  : Address := As_Address_Access (Root.Addr).all;
          begin
-            Mark_Reached (Ref);
+            As_Address_Visitor (Root.Visitor) (Ref);
          end;
       end loop;
 

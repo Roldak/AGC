@@ -26,14 +26,20 @@ is
    is
       Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (X.P_Defining_Name);
+
+      Obj_Type : LAL.Base_Type_Decl'Class :=
+         X.P_Type_Expression.P_Designated_Type_Decl;
    begin
       LALRW.Insert_Child
         (Stmts, 1,
          LALRW.Create_From_Template
            (RH,
-            "GC.Push_Root ({}'Address);",
+            "GC.Push_Root ({}'Address, {}'Address);",
             (1 => LALRW.Create_Token_Node
-                    (RH, LALCO.Ada_Identifier, Name)),
+                    (RH, LALCO.Ada_Identifier, Name),
+             2 => LALRW.Create_Token_Node
+                    (RH, LALCO.Ada_Identifier,
+                     Utils.Visitor_Name (Obj_Type))),
             LALCO.Call_Stmt_Rule));
    end Push_Object;
 
