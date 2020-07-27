@@ -6,7 +6,9 @@ package body Utils is
      (Typ  : LAL.Base_Type_Decl'Class) return Boolean
    is
    begin
-      return Typ.P_Is_Access_Type;
+      return
+         Typ.P_Is_Access_Type
+         or else Typ.P_Is_Record_Type;
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
@@ -68,6 +70,11 @@ package body Utils is
                return False;
             end if;
          end;
+      elsif
+         Expr.Kind in LALCO.Ada_Qual_Expr
+         or else Expr.Parent.Kind in LALCO.Ada_Qual_Expr
+      then
+         return False;
       end if;
       return True;
    end Is_Actual_Expr;

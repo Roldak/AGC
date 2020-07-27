@@ -1,0 +1,12 @@
+procedure Test is
+   type Integer_Access is access all Integer;
+
+   type Rec is record
+      Value : Integer_Access;
+   end record;
+
+   X : Rec := (Value => new Integer'(2));
+begin
+   GC.Collect;
+   X.Value.all := 3;
+end Test;
