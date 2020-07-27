@@ -6,10 +6,8 @@ procedure Test is
       X : Integer;
    end record;
    function AGC_Register is new GC.Register (T);
-   function AGC_Temp is new GC.Temp (T);
    type T_Access is access all T;
    function AGC_Register is new GC.Register (T_Access);
-   function AGC_Temp is new GC.Temp (T_Access);
    function AGC_Func_0 return T_Access is
       AGC_Base_Root_Count : Natural               := GC.Root_Count;
       AGC_Temp_0 : aliased Test.T_Access := AGC_Register (new T'(X => 2));

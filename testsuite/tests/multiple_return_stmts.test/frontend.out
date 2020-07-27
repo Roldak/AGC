@@ -5,7 +5,6 @@ procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
    function AGC_Register is new GC.Register (Integer_Access);
-   function AGC_Temp is new GC.Temp (Integer_Access);
    function Inner (B : Boolean; X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin

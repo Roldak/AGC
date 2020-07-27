@@ -27,18 +27,11 @@ package body GC is
 
    type Alloc_State is (Unknown, Reachable);
 
-   type Temporary_Site is record
-      Site_Id : Natural;
-      Value   : Address;
-   end record;
-
    package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
    package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
-   package Temp_Site_Vectors is new Ada.Containers.Vectors (Positive, Temporary_Site);
 
    Alloc_Set : Address_Maps.Map;
    Reach_Set : Address_Vectors.Vector;
-   Temps_Set : Temp_Site_Vectors.Vector;
 
    function Root_Count return Natural is (Natural (Reach_Set.Length));
 
@@ -62,45 +55,6 @@ package body GC is
       return X;
    end Register;
 
-   function Temp (Site_Id : Natural; X : access T) return access T
-   is
-      Addr : Address := X.all'Address;
-   begin
-      Temp_Site_Vectors.Append (Temps_Set, (Site_Id, Addr));
-      return X;
-   end Temp;
-
-   procedure Untemp (Site_Id : Natural) is
-      use type Temp_Site_Vectors.Cursor;
-
-		Cursor  : Temp_Site_Vectors.Cursor := Temps_Set.Last;
-		Found   : Boolean := False;
-   begin
-		while Cursor /= Temp_Site_Vectors.No_Element loop
-         declare
-            Temp_Elem : Temporary_Site :=
-               Temp_Site_Vectors.Element (Cursor);
-
-            Matches_Site : Boolean := Temp_Elem.Site_Id = Site_Id;
-         begin
-            if Matches_Site then
-               Found := True;
-            end if;
-            exit when Found and not Matches_Site;
-
-			   Cursor := Temp_Site_Vectors.Previous (Cursor);
-         end;
-		end loop;
-
-      if Cursor = Temp_Site_Vectors.No_Element then
-         Temps_Set.Set_Length (0);
-      else
-         Temps_Set.Set_Length
-           (Ada.Containers.Count_Type
-              (Temp_Site_Vectors.To_Index (Cursor)));
-      end if;
-   end Untemp;
-
    procedure Collect is
       use type Address_Maps.Cursor;
 
@@ -114,10 +68,6 @@ package body GC is
          end if;
       end Mark_Reached;
    begin
-      for Temp of Temps_Set loop
-         Mark_Reached (Temp.Value);
-      end loop;
-
       for Addr of Reach_Set loop
          declare
             Ref  : Address := As_Address_Access (Addr).all;

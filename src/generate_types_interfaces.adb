@@ -47,16 +47,6 @@ is
            (1 .. 0 => <>),
            LALCO.Basic_Decl_Rule));
       Node_Counters.Increase (Decl_Part_Count, Decl_Part);
-
-      LALRW.Insert_Child
-        (DH, Index + 3, LALRW.Create_From_Template
-          (RH,
-           "function AGC_Temp is new GC.Temp ("
-           & Type_Name
-           & ");",
-           (1 .. 0 => <>),
-           LALCO.Basic_Decl_Rule));
-      Node_Counters.Increase (Decl_Part_Count, Decl_Part);
    end Handle_Type_Decl;
 
    function Process_Node

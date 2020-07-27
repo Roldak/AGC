@@ -13,12 +13,6 @@ package GC is
       type T is private;
    function Register (X : access T) return access T;
 
-   generic
-      type T is private;
-   function Temp (Site_Id : Natural; X : access T) return access T;
-
-   procedure Untemp (Site_Id : Natural);
-
    procedure Collect;
 
    procedure Print_Stats;

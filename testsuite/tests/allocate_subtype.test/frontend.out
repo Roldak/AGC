@@ -4,10 +4,8 @@ procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    subtype My_Natural is Integer range 0 .. Integer'Last;
    function AGC_Register is new GC.Register (My_Natural);
-   function AGC_Temp is new GC.Temp (My_Natural);
    type My_Nat_Access is access all My_Natural;
    function AGC_Register is new GC.Register (My_Nat_Access);
-   function AGC_Temp is new GC.Temp (My_Nat_Access);
    function AGC_Func_0 return My_Nat_Access is
       AGC_Base_Root_Count : Natural                    := GC.Root_Count;
       AGC_Temp_0          : aliased Test.My_Nat_Access :=
