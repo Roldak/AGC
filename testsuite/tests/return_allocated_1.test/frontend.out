@@ -32,7 +32,25 @@ procedure Test is
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Add;
-   A : Integer := Add (Inner (1), Inner (2));
+   function AGC_Func_0 return Integer is
+      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Temp_1          : aliased Test.Integer_Access := Inner (2);
+   begin
+      GC.Push_Root (AGC_Temp_1'Address);
+      declare
+         AGC_Root_Count : Natural                     := GC.Root_Count;
+         AGC_Temp_0     : aliased Test.Integer_Access := Inner (1);
+      begin
+         GC.Push_Root (AGC_Temp_0'Address);
+         return AGC_Ret : Integer := Add (AGC_Temp_0, AGC_Temp_1) do
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+         GC.Pop_Roots (AGC_Root_Count);
+      end;
+      GC.Pop_Roots (AGC_Base_Root_Count);
+   end AGC_Func_0;
+   A : Integer := AGC_Func_0;
 begin
    GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);

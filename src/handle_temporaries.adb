@@ -33,6 +33,7 @@ is
 
    Decl_Blocks : Node_Maps.Map;
    Temp_Site   : Node_Counters.Counter;
+   Decl_Site   : Node_Counters.Counter;
 
    function Get_Or_Create_Decl_Block
      (Scope : LAL.Ada_Node) return LALRW.Node_Rewriting_Handle
@@ -62,6 +63,54 @@ is
       return LALRW.Child (LALRW.Child (Block, 1), 1);
    end Get_Or_Create_Decl_Block;
 
+   function Get_Or_Create_Function
+     (Scope : LAL.Object_Decl) return LALRW.Node_Rewriting_Handle
+   is
+      use type Node_Maps.Cursor;
+
+      Node   : LAL.Ada_Node := Scope.As_Ada_Node;
+      Cursor : Node_Maps.Cursor := Node_Maps.Find (Decl_Blocks, Node);
+      Func   : LALRW.Node_Rewriting_Handle;
+
+      DH  : LALRW.Node_Rewriting_Handle :=
+         LALRW.Handle (Scope.F_Default_Expr);
+
+      Func_Id   : Langkit_Support.Text.Text_Type :=
+         Node_Counters.Get (Decl_Site, Node.Parent)'Wide_Wide_Image;
+
+      Func_Name : Langkit_Support.Text.Text_Type :=
+         "AGC_Func_" & Func_Id (Func_Id'First + 1 .. Func_Id'Last);
+   begin
+      if Cursor = Node_Maps.No_Element then
+         Func := LALRW.Create_From_Template
+           (RH,
+            "function " & Func_Name & " return {} "
+            & "is begin return null; end " & Func_Name & ";",
+            (1 => LALRW.Clone (LALRW.Handle (Scope.F_Type_Expr))),
+            LALCO.Subp_Body_Rule);
+
+         LALRW.Replace
+            (DH,
+             LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, Func_Name));
+         LALRW.Set_Child
+           (LALRW.Child (LALRW.Child (LALRW.Child (Func, 5), 1), 1),
+            1,
+            DH);
+         LALRW.Insert_Child
+           (LALRW.Handle (Scope.Parent),
+            Scope.Child_Index
+            + Node_Counters.Get (Decl_Site, Node.Parent) + 1,
+            Func);
+
+         Node_Maps.Insert (Decl_Blocks, Node, Func);
+         Node_Counters.Increase (Decl_Site, Node.Parent);
+      else
+         Func := Node_Maps.Element (Cursor);
+      end if;
+
+      return LALRW.Child (LALRW.Child (Func, 4), 1);
+   end Get_Or_Create_Function;
+
    procedure Handle_Expr (Expr : LAL.Expr'Class) is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
@@ -74,36 +123,37 @@ is
          raise Program_Error with "Could not find expr's scope";
       end if;
 
-      if Scope.Parent.Kind = LALCO.Ada_Stmt_List then
-         declare
-            Temp_Id   : Langkit_Support.Text.Text_Type :=
-               Node_Counters.Get
-                 (Temp_Site, Scope.As_Ada_Node)'Wide_Wide_Image;
+      declare
+         Temp_Id   : Langkit_Support.Text.Text_Type :=
+            Node_Counters.Get
+              (Temp_Site, Scope.As_Ada_Node)'Wide_Wide_Image;
 
-            Temp_Name : Langkit_Support.Text.Text_Type :=
-               "AGC_Temp_" & Temp_Id (Temp_Id'First + 1 .. Temp_Id'Last);
+         Temp_Name : Langkit_Support.Text.Text_Type :=
+            "AGC_Temp_" & Temp_Id (Temp_Id'First + 1 .. Temp_Id'Last);
 
-            Decls : LALRW.Node_Rewriting_Handle :=
-               Get_Or_Create_Decl_Block (Scope.As_Ada_Node);
+         Decls : LALRW.Node_Rewriting_Handle :=
+           (if Scope.Kind = LALCO.Ada_Object_Decl then
+               Get_Or_Create_Function (Scope.As_Object_Decl)
+            else
+               Get_Or_Create_Decl_Block (Scope.As_Ada_Node));
 
-            Obj_Decl : LALRW.Node_Rewriting_Handle :=
-               LALRW.Create_From_Template
-                 (RH,
-                  Temp_Name & " : {} := null;",
-                  (1 => Utils.Generate_Type_Reference
-                          (RH, Expr.P_Expression_Type)),
-                  LALCO.Object_Decl_Rule);
-         begin
-            LALRW.Replace (EH, LALRW.Create_From_Template
-              (RH, Temp_Name, (1 .. 0 => <>), LALCO.Identifier_Rule));
+         Obj_Decl : LALRW.Node_Rewriting_Handle :=
+            LALRW.Create_From_Template
+              (RH,
+               Temp_Name & " : {} := null;",
+               (1 => Utils.Generate_Type_Reference
+                       (RH, Expr.P_Expression_Type)),
+               LALCO.Object_Decl_Rule);
+      begin
+         LALRW.Replace (EH, LALRW.Create_From_Template
+           (RH, Temp_Name, (1 .. 0 => <>), LALCO.Identifier_Rule));
 
-            LALRW.Set_Child (Obj_Decl, 6, EH);
+         LALRW.Set_Child (Obj_Decl, 6, EH);
 
-            LALRW.Insert_Child (Decls, 1, Obj_Decl);
+         LALRW.Insert_Child (Decls, 1, Obj_Decl);
 
-            Node_Counters.Increase (Temp_Site, Scope.As_Ada_Node);
-         end;
-      end if;
+         Node_Counters.Increase (Temp_Site, Scope.As_Ada_Node);
+      end;
    end Handle_Expr;
 
    function Process_Node
