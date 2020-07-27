@@ -1,31 +1,14 @@
-    at 0x404C21: _ada_test (in /tmp/tmpinlzlhtn/test)
-    by 0x4056C0: main (in /tmp/tmpinlzlhtn/test)
-  Address 0x4a8bf20 is 0 bytes inside a block of size 4 free'd
-    at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-    by 0x438E18: __gnat_free (in /tmp/tmpinlzlhtn/test)
-    by 0x4174BC: gc__collect__2 (in /tmp/tmpinlzlhtn/test)
-    by 0x41BA13: gc__collect (in /tmp/tmpinlzlhtn/test)
-    by 0x404BE6: _ada_test (in /tmp/tmpinlzlhtn/test)
-    by 0x4056C0: main (in /tmp/tmpinlzlhtn/test)
-  Block was alloc'd at
-    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-    by 0x438DBE: __gnat_malloc (in /tmp/tmpinlzlhtn/test)
-    by 0x404F4F: test__agc_func_0.4600 (in /tmp/tmpinlzlhtn/test)
-    by 0x404BC7: _ada_test (in /tmp/tmpinlzlhtn/test)
-    by 0x4056C0: main (in /tmp/tmpinlzlhtn/test)
- 
- 
  HEAP SUMMARY:
-     in use at exit: 3,600 bytes in 4 blocks
-   total heap usage: 9 allocs, 5 frees, 3,764 bytes allocated
+     in use at exit: 3,604 bytes in 5 blocks
+   total heap usage: 9 allocs, 4 frees, 3,764 bytes allocated
  
  LEAK SUMMARY:
     definitely lost: 8 bytes in 1 blocks
-    indirectly lost: 0 bytes in 0 blocks
+    indirectly lost: 4 bytes in 1 blocks
       possibly lost: 0 bytes in 0 blocks
     still reachable: 3,592 bytes in 3 blocks
          suppressed: 0 bytes in 0 blocks
 full to see details of leaked memory
  
  For lists of detected and suppressed errors, rerun with: -s
- ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)
+ ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

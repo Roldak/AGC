@@ -6,7 +6,10 @@ procedure Test is
       X : Integer;
    end record;
    function AGC_Register is new GC.Register (T);
-   procedure Visitor_Test_T is new GC.No_Op (T);
+   procedure Visitor_Test_T (X : T) is
+   begin
+      Visitor_Standard_Integer (X.X);
+   end Visitor_Test_T;
    type T_Access is access all T;
    function AGC_Register is new GC.Register (T_Access);
    procedure Visitor_Test_T_Access is new GC.Visit_Access_Type

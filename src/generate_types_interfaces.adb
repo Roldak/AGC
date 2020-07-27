@@ -48,6 +48,57 @@ is
         LALCO.Basic_Decl_Rule);
    end Generate_Access_Type_Visitor;
 
+   function Generate_Record_Type_Visitor
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class)
+      return LALRW.Node_Rewriting_Handle
+   is
+      use type Langkit_Support.Text.Unbounded_Text_Type;
+
+      Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.F_Name);
+
+      Rec_Def : LAL.Base_Record_Def'Class :=
+         Decl.As_Type_Decl.F_Type_Def.As_Record_Type_Def.F_Record_Def;
+
+      Comps : LAL.Ada_Node_List'Class :=
+         Rec_Def.F_Components.F_Components;
+
+      Holes : Langkit_Support.Text.Unbounded_Text_Type;
+      Fills : LALRW.Node_Rewriting_Handle_Array (1 .. Comps.Children_Count);
+   begin
+      for I in 1 .. Comps.Children_Count loop
+         Holes := Holes & "{}";
+         declare
+            Comp : LAL.Base_Formal_Param_Decl'Class :=
+               Comps.Child (I).As_Base_Formal_Param_Decl;
+
+            Comp_Type : LAL.Base_Type_Decl'Class :=
+               Comp.P_Formal_Type;
+
+            Comp_Name : LAL.Defining_Name :=
+               Comp.P_Defining_Name;
+
+            Comp_Text : Langkit_Support.Text.Text_Type :=
+               LAL.Text (Comp_Name);
+         begin
+            Fills (I) := LALRW.Create_From_Template
+              (RH, Utils.Visitor_Name (Comp_Type)
+                & " (X." & Comp_Text & ");",
+               (1 .. 0 => <>), LALCO.Call_Stmt_Rule);
+         end;
+      end loop;
+      return LALRW.Create_From_Template
+        (RH,
+        "procedure " & Visit_Name
+        & "(X : " & Type_Name & ") is "
+        &" begin "
+        & Langkit_Support.Text.To_Text (Holes)
+        & " end;",
+        Fills,
+        LALCO.Basic_Decl_Rule);
+   end Generate_Record_Type_Visitor;
+
    function Generate_Visitor
      (Decl       : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
    is
@@ -59,6 +110,8 @@ is
    begin
       if Decl.P_Is_Access_Type then
          return Generate_Access_Type_Visitor (Visit_Name, Decl);
+      elsif Decl.P_Is_Record_Type then
+         return Generate_Record_Type_Visitor (Visit_Name, Decl);
       else
          return LALRW.Create_From_Template
            (RH,
