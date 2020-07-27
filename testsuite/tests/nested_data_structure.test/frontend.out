@@ -1,0 +1,42 @@
+with GC;
+with GC.Standard; use GC.Standard;
+procedure Test is
+   AGC_Base_Root_Count : Natural := GC.Root_Count;
+   type T is record
+      X : Integer;
+   end record;
+   function AGC_Register is new GC.Register (T);
+   type T_Access is access all T;
+   function AGC_Register is new GC.Register (T_Access);
+   type U is record
+      A : T_Access;
+   end record;
+   function AGC_Register is new GC.Register (U);
+   type U_Access is access all U;
+   function AGC_Register is new GC.Register (U_Access);
+   function AGC_Func_0 return U_Access is
+      AGC_Base_Root_Count : Natural               := GC.Root_Count;
+      AGC_Temp_1 : aliased Test.T_Access := AGC_Register (new T'(X => 1));
+   begin
+      GC.Push_Root (AGC_Temp_1'Address);
+      declare
+         AGC_Root_Count : Natural               := GC.Root_Count;
+         AGC_Temp_0     : aliased Test.U_Access :=
+           AGC_Register (new U'(A => AGC_Temp_1));
+      begin
+         GC.Push_Root (AGC_Temp_0'Address);
+         return AGC_Ret : U_Access := AGC_Temp_0 do
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+         GC.Pop_Roots (AGC_Root_Count);
+      end;
+      GC.Pop_Roots (AGC_Base_Root_Count);
+   end AGC_Func_0;
+   X : aliased U_Access := AGC_Func_0;
+begin
+   GC.Push_Root (X'Address);
+   GC.Collect;
+   X.A.X := 2;
+   GC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
