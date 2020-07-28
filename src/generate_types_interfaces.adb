@@ -76,6 +76,9 @@ is
             Comp_Type : LAL.Base_Type_Decl'Class :=
                Comp.P_Formal_Type;
 
+            Comp_Type_Ref : LALRW.Node_Rewriting_Handle :=
+               Utils.Generate_Type_Reference (RH, Comp_Type);
+
             Comp_Name : LAL.Defining_Name :=
                Comp.P_Defining_Name;
 
@@ -83,15 +86,25 @@ is
                LAL.Text (Comp_Name);
          begin
             Fills (I) := LALRW.Create_From_Template
-              (RH, Utils.Visitor_Name (Comp_Type)
-                & " (X." & Comp_Text & ");",
-               (1 .. 0 => <>), LALCO.Call_Stmt_Rule);
+              (RH,
+               "declare"
+               & "   C : aliased {} := R." & Comp_Text & ";"
+               & "begin "
+               & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
+               & "end;",
+               (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule);
          end;
       end loop;
       return LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name
-        & "(X : " & Type_Name & ") is "
+        & "(X : System.Address) is "
+        & "pragma Suppress (Accessibility_Check);"
+        & "type Rec_Access is access all " & Type_Name & ";"
+        & "for Rec_Access'Size use Standard'Address_Size;"
+        & "function Conv is new Ada.Unchecked_Conversion"
+        & "  (System.Address, Rec_Access);"
+        & "R : aliased " & Type_Name & " := Conv (X).all;"
         &" begin "
         & Langkit_Support.Text.To_Text (Holes)
         & " end;",

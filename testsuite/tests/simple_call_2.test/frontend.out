@@ -1,5 +1,7 @@
 with GC;
 with GC.Standard; use GC.Standard;
+with System;
+with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;

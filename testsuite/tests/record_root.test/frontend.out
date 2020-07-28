@@ -1,5 +1,7 @@
 with GC;
 with GC.Standard; use GC.Standard;
+with System;
+with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    type Integer_Access is access all Integer;
@@ -10,9 +12,19 @@ procedure Test is
       Value : Integer_Access;
    end record;
    function AGC_Register is new GC.Register (Rec);
-   procedure Visitor_Test_Rec (X : Rec) is
+   procedure Visitor_Test_Rec (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all Rec;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased Rec := Conv (X).all;
    begin
-      Visitor_Test_Integer_Access (X.Value);
+      declare
+         C : aliased Test.Integer_Access := R.Value;
+      begin
+         Visitor_Test_Integer_Access (C'Address);
+      end;
    end Visitor_Test_Rec;
    function AGC_Func_0 return Rec is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;

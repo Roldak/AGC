@@ -1,14 +1,26 @@
 with GC;
 with GC.Standard; use GC.Standard;
+with System;
+with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    type T is record
       X : Integer;
    end record;
    function AGC_Register is new GC.Register (T);
-   procedure Visitor_Test_T (X : T) is
+   procedure Visitor_Test_T (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all T;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased T := Conv (X).all;
    begin
-      Visitor_Standard_Integer (X.X);
+      declare
+         C : aliased Standard.Integer := R.X;
+      begin
+         Visitor_Standard_Integer (C'Address);
+      end;
    end Visitor_Test_T;
    type T_Access is access all T;
    function AGC_Register is new GC.Register (T_Access);
@@ -18,9 +30,19 @@ procedure Test is
       A : T_Access;
    end record;
    function AGC_Register is new GC.Register (U);
-   procedure Visitor_Test_U (X : U) is
+   procedure Visitor_Test_U (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all U;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased U := Conv (X).all;
    begin
-      Visitor_Test_T_Access (X.A);
+      declare
+         C : aliased Test.T_Access := R.A;
+      begin
+         Visitor_Test_T_Access (C'Address);
+      end;
    end Visitor_Test_U;
    type U_Access is access all U;
    function AGC_Register is new GC.Register (U_Access);

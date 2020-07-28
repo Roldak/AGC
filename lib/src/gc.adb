@@ -75,13 +75,22 @@ package body GC is
       end if;
    end Mark;
 
-   procedure No_Op (X : T) is null;
+   procedure No_Op (X : Address) is null;
 
-   procedure Visit_Access_Type (X : T_Access) is
+   procedure Visit_Access_Type (X : Address) is
+      pragma Suppress (Accessibility_Check);
+
+      type T_Access_Access is access all T_Access;
+      for T_Access_Access'Size use Standard'Address_Size;
+
+      function Conv is new Ada.Unchecked_Conversion
+        (Address, T_Access_Access);
+
+      Acc : aliased T_Access := Conv (X).all;
    begin
-      if X /= null then
-         Mark (X.all'Address);
-         Visit_Element (X.all);
+      if Acc /= null then
+         Mark (Acc.all'Address);
+         Visit_Element (Acc.all'Address);
       end if;
    end Visit_Access_Type;
 
@@ -89,11 +98,7 @@ package body GC is
       use type Address_Maps.Cursor;
    begin
       for Root of Reach_Set loop
-         declare
-            Ref  : Address := As_Address_Access (Root.Addr).all;
-         begin
-            As_Address_Visitor (Root.Visitor) (Ref);
-         end;
+         As_Address_Visitor (Root.Visitor).all (Root.Addr);
       end loop;
 
       declare
