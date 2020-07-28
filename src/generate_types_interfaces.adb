@@ -100,6 +100,19 @@ is
         LALCO.Basic_Decl_Rule);
    end Generate_No_Op_Visitor;
 
+   function Generate_Visitor_Prototype
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class)
+      return LALRW.Node_Rewriting_Handle
+   is
+   begin
+      return LALRW.Create_From_Template
+        (RH,
+        "procedure " & Visit_Name & " (X : System.Address);",
+        (1 .. 0 => <>),
+        LALCO.Basic_Decl_Rule);
+   end Generate_Visitor_Prototype;
+
    function Generate_Access_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class)
@@ -145,6 +158,9 @@ is
    begin
       if Comps.Children_Count = 0 then
          return Generate_No_Op_Visitor (Visit_Name, Decl);
+      elsif not Is_Handled (Decl) then
+         Insert (Delayed_Types, Decl.As_Ada_Node, Decl.As_Ada_Node);
+         return Generate_Visitor_Prototype (Visit_Name, Decl);
       end if;
 
       for I in 1 .. Comps.Children_Count loop
@@ -277,24 +293,29 @@ is
       end if;
 
       LALRW.Insert_Child
-        (DH, Index + 2, LALRW.Create_From_Template
-          (RH,
-           "function AGC_Register is new GC.Register ("
-           & Type_Name
-           & ");",
-           (1 .. 0 => <>),
-           LALCO.Basic_Decl_Rule));
+        (DH, Index + 2, Generate_Visitor (Decl));
       Node_Counters.Increase (Decl_Part_Count, Decl_Part);
 
-      LALRW.Insert_Child
-        (DH, Index + 3, Generate_Visitor (Decl));
-      Node_Counters.Increase (Decl_Part_Count, Decl_Part);
+      if not Handled_Types.Contains (Decl.As_Ada_Node) then
+         Handled_Types.Insert (Decl.As_Ada_Node);
 
-      Handled_Types.Insert (Decl.As_Ada_Node);
+         LALRW.Insert_Child
+           (DH, Index + 2, LALRW.Create_From_Template
+             (RH,
+              "function AGC_Register is new GC.Register ("
+              & Type_Name
+              & ");",
+              (1 .. 0 => <>),
+              LALCO.Basic_Decl_Rule));
+         Node_Counters.Increase (Decl_Part_Count, Decl_Part);
 
-      for Delayed of Get_All (Delayed_Types, Decl.As_Ada_Node) loop
-         Handle_Type_Decl (Delayed.As_Type_Decl, Decl.Child_Index);
-      end loop;
+
+         for Delayed of Get_All (Delayed_Types, Decl.As_Ada_Node) loop
+            Handle_Type_Decl
+              (Delayed.As_Type_Decl,
+               (if Base_Index = -1 then Decl.Child_Index else Base_Index));
+         end loop;
+      end if;
    end Handle_Type_Decl;
 
    function Process_Node

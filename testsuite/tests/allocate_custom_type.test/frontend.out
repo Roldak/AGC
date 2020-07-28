@@ -8,6 +8,7 @@ procedure Test is
       X : Integer;
    end record;
    function AGC_Register is new GC.Register (T);
+   procedure Visitor_Test_T (X : System.Address);
    procedure Visitor_Test_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all T;
