@@ -105,9 +105,9 @@ package body GC is
 
       Arr : T_Array_Access := Conv (X);
    begin
-      for E of Arr.all loop
+      for I in Arr.all'Range loop
          declare
-            C : aliased T := E;
+            C : aliased T := Arr.all (I);
          begin
             Visit_Element (C'Address);
          end;
