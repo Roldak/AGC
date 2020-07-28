@@ -39,42 +39,37 @@ is
    Handled_Types : Node_Sets.Set;
    Delayed_Types : Node_Multi_Maps.Map;
 
-   procedure Insert
-     (M : in out Node_Multi_Maps.Map;
-      K : LAL.Ada_Node;
-      E : LAL.Ada_Node)
+   procedure Delay_Handling (K, E : LAL.Ada_Node)
    is
       use type Node_Multi_Maps.Cursor;
 
-      Cursor : Node_Multi_Maps.Cursor := M.Find (K);
+      Cursor : Node_Multi_Maps.Cursor := Delayed_Types.Find (K);
    begin
       if Cursor = Node_Multi_Maps.No_Element then
-         M.Insert
+         Delayed_Types.Insert
            (K, Node_Vectors.To_Vector (E, 1));
       else
          declare
             V : Node_Vectors.Vector := Node_Multi_Maps.Element (Cursor);
          begin
             V.Append (E);
-            M.Replace_Element (Cursor, V);
+            Delayed_Types.Replace_Element (Cursor, V);
          end;
       end if;
-   end Insert;
+   end Delay_Handling;
 
-   function Get_All
-     (M : Node_Multi_Maps.Map;
-      K : LAL.Ada_Node) return Node_Vectors.Vector
+   function Get_Delayed_Types (K : LAL.Ada_Node) return Node_Vectors.Vector
    is
       use type Node_Multi_Maps.Cursor;
 
-      Cursor : Node_Multi_Maps.Cursor := M.Find (K);
+      Cursor : Node_Multi_Maps.Cursor := Delayed_Types.Find (K);
    begin
       if Cursor = Node_Multi_Maps.No_Element then
          return Node_Vectors.Empty_Vector;
       else
          return Node_Multi_Maps.Element (Cursor);
       end if;
-   end Get_All;
+   end Get_Delayed_Types;
 
    function Is_Handled (Decl : LAL.Base_Type_Decl'Class) return Boolean is
       use type LAL.Analysis_Unit;
@@ -159,7 +154,7 @@ is
       if Comps.Children_Count = 0 then
          return Generate_No_Op_Visitor (Visit_Name, Decl);
       elsif not Is_Handled (Decl) then
-         Insert (Delayed_Types, Decl.As_Ada_Node, Decl.As_Ada_Node);
+         Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
          return Generate_Visitor_Prototype (Visit_Name, Decl);
       end if;
 
@@ -277,17 +272,15 @@ is
       elsif
          Decl.P_Is_Access_Type and then not Is_Handled (Decl.P_Accessed_Type)
       then
-         Insert
-           (Delayed_Types,
-            Decl.P_Accessed_Type.As_Ada_Node,
+         Delay_Handling
+           (Decl.P_Accessed_Type.As_Ada_Node,
             Decl.As_Ada_Node);
          return;
       elsif
          Decl.P_Is_Array_Type and then not Is_Handled (Decl.P_Comp_Type)
       then
-         Insert
-           (Delayed_Types,
-            Decl.P_Comp_Type.As_Ada_Node,
+         Delay_Handling
+           (Decl.P_Comp_Type.As_Ada_Node,
             Decl.As_Ada_Node);
          return;
       end if;
@@ -310,7 +303,7 @@ is
          Node_Counters.Increase (Decl_Part_Count, Decl_Part);
 
 
-         for Delayed of Get_All (Delayed_Types, Decl.As_Ada_Node) loop
+         for Delayed of Get_Delayed_Types (Decl.As_Ada_Node) loop
             Handle_Type_Decl
               (Delayed.As_Type_Decl,
                (if Base_Index = -1 then Decl.Child_Index else Base_Index));
