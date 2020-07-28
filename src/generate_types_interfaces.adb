@@ -145,63 +145,63 @@ is
       Rec_Def : LAL.Base_Record_Def'Class :=
          Decl.As_Type_Decl.F_Type_Def.As_Record_Type_Def.F_Record_Def;
 
-      Comps : LAL.Ada_Node_List'Class :=
-         Rec_Def.F_Components.F_Components;
+      procedure Handle_Component_List
+        (Stmts : LALRW.Node_Rewriting_Handle; List : LAL.Component_List'Class)
+      is
+         Comps : LAL.Ada_Node_List := List.F_Components;
+      begin
+         for I in 1 .. Comps.Children_Count loop
+            declare
+               Comp : LAL.Base_Formal_Param_Decl'Class :=
+                  Comps.Child (I).As_Base_Formal_Param_Decl;
 
-      Holes : Langkit_Support.Text.Unbounded_Text_Type;
-      Fills : LALRW.Node_Rewriting_Handle_Array (1 .. Comps.Children_Count);
+               Comp_Type : LAL.Base_Type_Decl'Class :=
+                  Comp.P_Formal_Type;
+
+               Comp_Type_Ref : LALRW.Node_Rewriting_Handle :=
+                  Utils.Generate_Type_Reference (RH, Comp_Type);
+
+               Comp_Name : LAL.Defining_Name :=
+                  Comp.P_Defining_Name;
+
+               Comp_Text : Langkit_Support.Text.Text_Type :=
+                  LAL.Text (Comp_Name);
+            begin
+               LALRW.Append_Child (Stmts, LALRW.Create_From_Template
+                 (RH,
+                  "declare"
+                  & "   C : aliased {} := R." & Comp_Text & ";"
+                  & "begin "
+                  & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
+                  & "end;",
+                  (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule));
+            end;
+         end loop;
+      end Handle_Component_List;
    begin
-      if Comps.Children_Count = 0 then
-         return Generate_No_Op_Visitor (Visit_Name, Decl);
-      elsif not Is_Handled (Decl) then
+      if not Is_Handled (Decl) then
          Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
          return Generate_Visitor_Prototype (Visit_Name, Decl);
       end if;
 
-      for I in 1 .. Comps.Children_Count loop
-         Holes := Holes & "{}";
-         declare
-            Comp : LAL.Base_Formal_Param_Decl'Class :=
-               Comps.Child (I).As_Base_Formal_Param_Decl;
-
-            Comp_Type : LAL.Base_Type_Decl'Class :=
-               Comp.P_Formal_Type;
-
-            Comp_Type_Ref : LALRW.Node_Rewriting_Handle :=
-               Utils.Generate_Type_Reference (RH, Comp_Type);
-
-            Comp_Name : LAL.Defining_Name :=
-               Comp.P_Defining_Name;
-
-            Comp_Text : Langkit_Support.Text.Text_Type :=
-               LAL.Text (Comp_Name);
-         begin
-            Fills (I) := LALRW.Create_From_Template
-              (RH,
-               "declare"
-               & "   C : aliased {} := R." & Comp_Text & ";"
-               & "begin "
-               & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
-               & "end;",
-               (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule);
-         end;
-      end loop;
-
-      return LALRW.Create_From_Template
+      return Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name
-        & "(X : System.Address) is "
-        & "pragma Suppress (Accessibility_Check);"
-        & "type Rec_Access is access all " & Type_Name & ";"
-        & "for Rec_Access'Size use Standard'Address_Size;"
-        & "function Conv is new Ada.Unchecked_Conversion"
-        & "  (System.Address, Rec_Access);"
-        & "R : aliased " & Type_Name & " := Conv (X).all;"
-        &" begin "
-        & Langkit_Support.Text.To_Text (Holes)
-        & " end;",
-        Fills,
-        LALCO.Basic_Decl_Rule);
+         "procedure " & Visit_Name
+         & "(X : System.Address) is "
+         & "pragma Suppress (Accessibility_Check);"
+         & "type Rec_Access is access all " & Type_Name & ";"
+         & "for Rec_Access'Size use Standard'Address_Size;"
+         & "function Conv is new Ada.Unchecked_Conversion"
+         & "  (System.Address, Rec_Access);"
+         & "R : aliased " & Type_Name & " := Conv (X).all;"
+         &" begin null; end;",
+         (1 .. 0 => <>),
+         LALCO.Basic_Decl_Rule)
+      do
+         Handle_Component_List
+           (LALRW.Child (LALRW.Child (Res, 5), 1),
+            Rec_Def.F_Components);
+      end return;
    end Generate_Record_Type_Visitor;
 
    function Generate_Array_Type_Visitor

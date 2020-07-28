@@ -17,6 +17,7 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased T := Conv (X).all;
    begin
+      null;
       declare
          C : aliased Standard.Integer := R.X;
       begin
@@ -40,6 +41,7 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased U := Conv (X).all;
    begin
+      null;
       declare
          C : aliased Test.T_Access := R.A;
       begin

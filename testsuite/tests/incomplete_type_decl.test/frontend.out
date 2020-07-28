@@ -8,10 +8,20 @@ procedure Test is
    type T_Access is access all T;
    type T is null record;
    function AGC_Register is new GC.Register (T);
-   procedure Visitor_Test_T is new GC.No_Op (T);
+   procedure Visitor_Test_T (X : System.Address);
    function AGC_Register is new GC.Register (T_Access);
    procedure Visitor_Test_T_Access is new GC.Visit_Access_Type
      (T, T_Access, Visitor_Test_T);
+   procedure Visitor_Test_T (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all T;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased T := Conv (X).all;
+   begin
+      null;
+   end Visitor_Test_T;
 begin
    null;
    GC.Pop_Roots (AGC_Base_Root_Count);
