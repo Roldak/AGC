@@ -8,7 +8,8 @@ package body Utils is
    begin
       return
          Typ.P_Is_Access_Type
-         or else Typ.P_Is_Record_Type;
+         or else Typ.P_Is_Record_Type
+         or else Typ.P_Is_Array_Type;
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
@@ -100,7 +101,8 @@ package body Utils is
          when LALCO.Ada_Null_Literal =>
             return True;
 
-         --  TODO: handle arrays
+         when LALCO.Ada_Call_Expr =>
+            return Expr.As_Call_Expr.F_Name.P_Expression_Type.P_Is_Array_Type;
 
          when others =>
             return False;

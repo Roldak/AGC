@@ -23,6 +23,13 @@ package GC is
       with procedure Visit_Element (X : System.Address);
    procedure Visit_Access_Type (X : System.Address);
 
+   generic
+      type T is private;
+      type I is (<>);
+      type T_Array is array (I range <>) of T;
+      with procedure Visit_Element (X : System.Address);
+   procedure Visit_Array_Type (X : System.Address);
+
    procedure Collect;
 
    procedure Print_Stats;

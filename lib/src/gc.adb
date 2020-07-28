@@ -94,6 +94,26 @@ package body GC is
       end if;
    end Visit_Access_Type;
 
+   procedure Visit_Array_Type (X : Address) is
+      pragma Suppress (Accessibility_Check);
+
+      type T_Array_Access is access all T_Array;
+      for T_Array_Access'Size use Standard'Address_Size;
+
+      function Conv is new Ada.Unchecked_Conversion
+        (Address, T_Array_Access);
+
+      Arr : T_Array_Access := Conv (X);
+   begin
+      for E of Arr.all loop
+         declare
+            C : aliased T := E;
+         begin
+            Visit_Element (C'Address);
+         end;
+      end loop;
+   end Visit_Array_Type;
+
    procedure Collect is
       use type Address_Maps.Cursor;
    begin
