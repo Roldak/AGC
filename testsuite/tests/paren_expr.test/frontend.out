@@ -1,0 +1,28 @@
+with GC;
+with GC.Standard; use GC.Standard;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : Natural := GC.Root_Count;
+   type Integer_Access is access all Integer;
+   function AGC_Register is new GC.Register (Integer_Access);
+   procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
+     (Integer, Integer_Access, Visitor_Standard_Integer);
+   function AGC_Func_0 return Integer_Access is
+      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Temp_0          : aliased Test.Integer_Access :=
+        (AGC_Register (new Integer'(3)));
+   begin
+      GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
+      return AGC_Ret : Integer_Access := AGC_Temp_0 do
+         null;
+         GC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+      GC.Pop_Roots (AGC_Base_Root_Count);
+   end AGC_Func_0;
+   X : aliased Integer_Access := AGC_Func_0;
+begin
+   GC.Push_Root (X'Address, Visitor_Test_Integer_Access'Address);
+   null;
+   GC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
