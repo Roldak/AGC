@@ -24,6 +24,22 @@ is
 
    Decl_Part_Count : Node_Counters.Counter;
 
+   function Generate_No_Op_Visitor
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class)
+      return LALRW.Node_Rewriting_Handle
+   is
+      Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.F_Name);
+   begin
+      return LALRW.Create_From_Template
+        (RH,
+        "procedure " & Visit_Name & " is new GC.No_Op ("
+        & Type_Name & ");",
+        (1 .. 0 => <>),
+        LALCO.Basic_Decl_Rule);
+   end Generate_No_Op_Visitor;
+
    function Generate_Access_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class)
@@ -67,6 +83,10 @@ is
       Holes : Langkit_Support.Text.Unbounded_Text_Type;
       Fills : LALRW.Node_Rewriting_Handle_Array (1 .. Comps.Children_Count);
    begin
+      if Comps.Children_Count = 0 then
+         return Generate_No_Op_Visitor (Visit_Name, Decl);
+      end if;
+
       for I in 1 .. Comps.Children_Count loop
          Holes := Holes & "{}";
          declare
@@ -95,6 +115,7 @@ is
                (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule);
          end;
       end loop;
+
       return LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name
@@ -148,9 +169,6 @@ is
    is
       Visit_Name : Langkit_Support.Text.Text_Type :=
          Utils.Visitor_Name (Decl);
-
-      Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Decl.F_Name);
    begin
       if Decl.P_Is_Access_Type then
          return Generate_Access_Type_Visitor (Visit_Name, Decl);
@@ -159,12 +177,7 @@ is
       elsif Decl.P_Is_Array_Type then
          return Generate_Array_Type_Visitor (Visit_Name, Decl);
       else
-         return LALRW.Create_From_Template
-           (RH,
-           "procedure " & Visit_Name & " is new GC.No_Op ("
-           & Type_Name & ");",
-           (1 .. 0 => <>),
-           LALCO.Basic_Decl_Rule);
+         return Generate_No_Op_Visitor (Visit_Name, Decl);
       end if;
    end Generate_Visitor;
 
