@@ -151,32 +151,81 @@ is
          Comps : LAL.Ada_Node_List := List.F_Components;
       begin
          for I in 1 .. Comps.Children_Count loop
-            declare
-               Comp : LAL.Base_Formal_Param_Decl'Class :=
-                  Comps.Child (I).As_Base_Formal_Param_Decl;
+            if Comps.Child (I).Kind in LALCO.Ada_Base_Formal_Param_Decl then
+               declare
+                  Comp : LAL.Base_Formal_Param_Decl'Class :=
+                     Comps.Child (I).As_Base_Formal_Param_Decl;
 
-               Comp_Type : LAL.Base_Type_Decl'Class :=
-                  Comp.P_Formal_Type;
+                  Comp_Type : LAL.Base_Type_Decl'Class :=
+                     Comp.P_Formal_Type;
 
-               Comp_Type_Ref : LALRW.Node_Rewriting_Handle :=
-                  Utils.Generate_Type_Reference (RH, Comp_Type);
+                  Comp_Type_Ref : LALRW.Node_Rewriting_Handle :=
+                     Utils.Generate_Type_Reference (RH, Comp_Type);
 
-               Comp_Name : LAL.Defining_Name :=
-                  Comp.P_Defining_Name;
+                  Comp_Name : LAL.Defining_Name :=
+                     Comp.P_Defining_Name;
 
-               Comp_Text : Langkit_Support.Text.Text_Type :=
-                  LAL.Text (Comp_Name);
-            begin
-               LALRW.Append_Child (Stmts, LALRW.Create_From_Template
-                 (RH,
-                  "declare"
-                  & "   C : aliased {} := R." & Comp_Text & ";"
-                  & "begin "
-                  & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
-                  & "end;",
-                  (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule));
-            end;
+                  Comp_Text : Langkit_Support.Text.Text_Type :=
+                     LAL.Text (Comp_Name);
+               begin
+                  LALRW.Append_Child (Stmts, LALRW.Create_From_Template
+                    (RH,
+                     "declare"
+                     & "   C : aliased {} := R." & Comp_Text & ";"
+                     & "begin "
+                     & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
+                     & "end;",
+                     (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule));
+               end;
+            else
+               LALRW.Append_Child (Stmts, LALRW.Create_Regular_Node
+                 (RH, LALCO.Ada_Null_Stmt, (1 .. 0 => <>)));
+            end if;
          end loop;
+
+         if not List.F_Variant_Part.Is_Null then
+            declare
+               Var_Part : LAL.Variant_Part := List.F_Variant_Part;
+               Variants : LAL.Variant_List := Var_Part.F_Variant;
+
+               Discr_Name : Langkit_Support.Text.Text_Type :=
+                  LAL.Text (Var_Part.F_Discr_Name);
+
+               Case_Stmt : LALRW.Node_Rewriting_Handle :=
+                  LALRW.Create_From_Template
+                    (RH,
+                     "case R." & Discr_Name & " is "
+                     & "   when others => null;"
+                     & "end case;",
+                     (1 .. 0 => <>),
+                     LALCO.Case_Stmt_Rule);
+
+               Alts : LALRW.Node_Rewriting_Handle :=
+                  LALRW.Child (Case_Stmt, 2);
+            begin
+               LALRW.Remove_Child (Alts, 1);
+               for J in 1 .. Variants.Children_Count loop
+                  declare
+                     Variant : LAL.Variant := Variants.Child (J).As_Variant;
+
+                     Alt_Stmts : LALRW.Node_Rewriting_Handle :=
+                        LALRW.Create_Regular_Node
+                          (RH, LALCO.Ada_Stmt_List, (1 .. 0 => <>));
+
+                     Alt : LALRW.Node_Rewriting_Handle :=
+                        LALRW.Create_Case_Stmt_Alternative
+                          (RH,
+                           LALRW.Clone (LALRW.Handle (Variant.F_Choices)),
+                           Alt_Stmts);
+                  begin
+                     Handle_Component_List (Alt_Stmts, Variant.F_Components);
+                     LALRW.Append_Child (Alts, Alt);
+                  end;
+               end loop;
+
+               LALRW.Append_Child (Stmts, Case_Stmt);
+            end;
+         end if;
       end Handle_Component_List;
    begin
       if not Is_Handled (Decl) then
