@@ -1,0 +1,18 @@
+with GC;
+with GC.Standard; use GC.Standard;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : Natural := GC.Root_Count;
+   type T;
+   type T_Access is access all T;
+   type T is null record;
+   function AGC_Register is new GC.Register (T);
+   procedure Visitor_Test_T is new GC.No_Op (T);
+   function AGC_Register is new GC.Register (T_Access);
+   procedure Visitor_Test_T_Access is new GC.Visit_Access_Type
+     (T, T_Access, Visitor_Test_T);
+begin
+   null;
+   GC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

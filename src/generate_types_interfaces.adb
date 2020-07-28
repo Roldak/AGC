@@ -1,4 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Containers.Hashed_Sets;
+with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Vectors;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -23,6 +26,63 @@ is
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
    Decl_Part_Count : Node_Counters.Counter;
+
+   package Node_Vectors is new Ada.Containers.Vectors
+     (Positive, LAL.Ada_Node, LAL."=");
+
+   package Node_Sets is new Ada.Containers.Hashed_Sets
+     (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
+
+   package Node_Multi_Maps is new Ada.Containers.Hashed_Maps
+     (LAL.Ada_Node, Node_Vectors.Vector, LAL.Hash, LAL."=", Node_Vectors."=");
+
+   Handled_Types : Node_Sets.Set;
+   Delayed_Types : Node_Multi_Maps.Map;
+
+   procedure Insert
+     (M : in out Node_Multi_Maps.Map;
+      K : LAL.Ada_Node;
+      E : LAL.Ada_Node)
+   is
+      use type Node_Multi_Maps.Cursor;
+
+      Cursor : Node_Multi_Maps.Cursor := M.Find (K);
+   begin
+      if Cursor = Node_Multi_Maps.No_Element then
+         M.Insert
+           (K, Node_Vectors.To_Vector (E, 1));
+      else
+         declare
+            V : Node_Vectors.Vector := Node_Multi_Maps.Element (Cursor);
+         begin
+            V.Append (E);
+            M.Replace_Element (Cursor, V);
+         end;
+      end if;
+   end Insert;
+
+   function Get_All
+     (M : Node_Multi_Maps.Map;
+      K : LAL.Ada_Node) return Node_Vectors.Vector
+   is
+      use type Node_Multi_Maps.Cursor;
+
+      Cursor : Node_Multi_Maps.Cursor := M.Find (K);
+   begin
+      if Cursor = Node_Multi_Maps.No_Element then
+         return Node_Vectors.Empty_Vector;
+      else
+         return Node_Multi_Maps.Element (Cursor);
+      end if;
+   end Get_All;
+
+   function Is_Handled (Decl : LAL.Base_Type_Decl'Class) return Boolean is
+      use type LAL.Analysis_Unit;
+   begin
+      return
+         Decl.Unit /= Unit
+         or else Handled_Types.Contains (Decl.As_Ada_Node);
+   end Is_Handled;
 
    function Generate_No_Op_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
@@ -182,7 +242,7 @@ is
    end Generate_Visitor;
 
    procedure Handle_Type_Decl
-     (Decl : LAL.Base_Type_Decl'Class)
+     (Decl : LAL.Base_Type_Decl'Class; Base_Index : Integer := -1)
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
@@ -192,9 +252,22 @@ is
       DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl_Part);
 
       Index : Natural :=
-         Decl.Child_Index + Node_Counters.Get
-           (Decl_Part_Count, Decl_Part);
+        (if Base_Index = -1
+         then Decl.Child_Index
+         else Base_Index) + Node_Counters.Get (Decl_Part_Count, Decl_Part);
    begin
+      if Decl.Kind in LALCO.Ada_Incomplete_Type_Decl then
+         return;
+      elsif
+         Decl.P_Is_Access_Type and then not Is_Handled (Decl.P_Accessed_Type)
+      then
+         Insert
+           (Delayed_Types,
+            Decl.P_Accessed_Type.As_Ada_Node,
+            Decl.As_Ada_Node);
+         return;
+      end if;
+
       LALRW.Insert_Child
         (DH, Index + 2, LALRW.Create_From_Template
           (RH,
@@ -208,6 +281,12 @@ is
       LALRW.Insert_Child
         (DH, Index + 3, Generate_Visitor (Decl));
       Node_Counters.Increase (Decl_Part_Count, Decl_Part);
+
+      Handled_Types.Insert (Decl.As_Ada_Node);
+
+      for Delayed of Get_All (Delayed_Types, Decl.As_Ada_Node) loop
+         Handle_Type_Decl (Delayed.As_Type_Decl, Decl.Child_Index);
+      end loop;
    end Handle_Type_Decl;
 
    function Process_Node
