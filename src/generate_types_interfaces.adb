@@ -266,6 +266,14 @@ is
             Decl.P_Accessed_Type.As_Ada_Node,
             Decl.As_Ada_Node);
          return;
+      elsif
+         Decl.P_Is_Array_Type and then not Is_Handled (Decl.P_Comp_Type)
+      then
+         Insert
+           (Delayed_Types,
+            Decl.P_Comp_Type.As_Ada_Node,
+            Decl.As_Ada_Node);
+         return;
       end if;
 
       LALRW.Insert_Child
