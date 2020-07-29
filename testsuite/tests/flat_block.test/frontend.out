@@ -12,41 +12,31 @@ procedure Test is
 begin
    GC.Push_Root (X'Address, Visitor_Test_Integer_Access'Address);
    declare
-      AGC_Root_Count : Natural                := GC.Root_Count;
       Y : aliased Integer_Access := AGC_Register (new Integer'(2));
    begin
       GC.Push_Root (Y'Address, Visitor_Test_Integer_Access'Address);
       declare
-         AGC_Root_Count : Natural                := GC.Root_Count;
          Z : aliased Integer_Access := AGC_Register (new Integer'(3));
       begin
          GC.Push_Root (Z'Address, Visitor_Test_Integer_Access'Address);
          declare
-            AGC_Root_Count : Natural                := GC.Root_Count;
             A : aliased Integer_Access := AGC_Register (new Integer'(4));
          begin
             GC.Push_Root (A'Address, Visitor_Test_Integer_Access'Address);
             declare
-               AGC_Root_Count : Natural                := GC.Root_Count;
                B : aliased Integer_Access := AGC_Register (new Integer'(5));
             begin
                GC.Push_Root (B'Address, Visitor_Test_Integer_Access'Address);
                declare
-                  AGC_Root_Count : Natural                := GC.Root_Count;
                   C : aliased Integer_Access := AGC_Register (new Integer'(6));
                begin
                   GC.Push_Root
                     (C'Address, Visitor_Test_Integer_Access'Address);
                   null;
-                  GC.Pop_Roots (AGC_Root_Count);
                end;
-               GC.Pop_Roots (AGC_Root_Count);
             end;
-            GC.Pop_Roots (AGC_Root_Count);
          end;
-         GC.Pop_Roots (AGC_Root_Count);
       end;
-      GC.Pop_Roots (AGC_Root_Count);
    end;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

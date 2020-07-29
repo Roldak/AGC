@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Containers.Hashed_Sets;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -18,6 +19,11 @@ is
    package LAL     renames Libadalang.Analysis;
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
+
+   package Node_Sets is new Ada.Containers.Hashed_Sets
+     (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
+
+   Handled_Stmts : Node_Sets.Set;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
@@ -98,12 +104,22 @@ is
                Container.Kind in LALCO.Ada_Base_Subp_Body;
 
             DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
+
+            Should_Pop_Roots : Boolean :=
+               not Handled_Stmts.Contains (Node.Parent.Parent.Parent)
+               or else Node.Parent.Child_Index
+                          /= Node.Parent.Parent.Children_Count - 1;
          begin
-            LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
-              (RH,
-               Root_Count_Name (Subp_Level) & " : Natural := GC.Root_Count;",
-               (1 .. 0 => <>),
-               LALCO.Object_Decl_Rule));
+            Handled_Stmts.Insert (Node.As_Ada_Node);
+
+            if Should_Pop_Roots then
+               LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
+                 (RH,
+                  Root_Count_Name (Subp_Level)
+                  & " : Natural := GC.Root_Count;",
+                  (1 .. 0 => <>),
+                  LALCO.Object_Decl_Rule));
+            end if;
 
             for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
                declare
@@ -116,7 +132,10 @@ is
                   end if;
                end;
             end loop;
-            Pop_Objects (SH, Subp_Level);
+
+            if Should_Pop_Roots then
+               Pop_Objects (SH, Subp_Level);
+            end if;
          end;
       end if;
    end Handle_Handled_Stmts;

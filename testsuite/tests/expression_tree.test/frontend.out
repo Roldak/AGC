@@ -94,8 +94,7 @@ procedure Test is
                   GC.Push_Root
                     (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
                   declare
-                     AGC_Root_Count : Natural := GC.Root_Count;
-                     AGC_Temp_0     : aliased Test.Expr_Access :=
+                     AGC_Temp_0 : aliased Test.Expr_Access :=
                        Simplify (Ex.Lhs);
                   begin
                      GC.Push_Root
@@ -106,7 +105,6 @@ procedure Test is
                      do
                         GC.Pop_Roots (AGC_Base_Root_Count);
                      end return;
-                     GC.Pop_Roots (AGC_Root_Count);
                   end;
                   GC.Pop_Roots (AGC_Root_Count);
                end;
@@ -133,8 +131,7 @@ procedure Test is
                   GC.Push_Root
                     (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
                   declare
-                     AGC_Root_Count : Natural := GC.Root_Count;
-                     AGC_Temp_0     : aliased Test.Expr_Access :=
+                     AGC_Temp_0 : aliased Test.Expr_Access :=
                        Simplify (Ex.Lhs);
                   begin
                      GC.Push_Root
@@ -145,7 +142,6 @@ procedure Test is
                      do
                         GC.Pop_Roots (AGC_Base_Root_Count);
                      end return;
-                     GC.Pop_Roots (AGC_Root_Count);
                   end;
                   GC.Pop_Roots (AGC_Root_Count);
                end;
@@ -186,22 +182,19 @@ procedure Test is
       begin
          GC.Push_Root (AGC_Temp_3'Address, Visitor_Test_Expr_Access'Address);
          declare
-            AGC_Root_Count : Natural                  := GC.Root_Count;
-            AGC_Temp_2     : aliased Test.Expr_Access :=
+            AGC_Temp_2 : aliased Test.Expr_Access :=
               AGC_Register (new Expr'(Var, 'x'));
          begin
             GC.Push_Root
               (AGC_Temp_2'Address, Visitor_Test_Expr_Access'Address);
             declare
-               AGC_Root_Count : Natural                  := GC.Root_Count;
-               AGC_Temp_1     : aliased Test.Expr_Access :=
+               AGC_Temp_1 : aliased Test.Expr_Access :=
                  AGC_Register (new Expr'(Mul, AGC_Temp_2, AGC_Temp_3));
             begin
                GC.Push_Root
                  (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
                declare
-                  AGC_Root_Count : Natural                  := GC.Root_Count;
-                  AGC_Temp_0     : aliased Test.Expr_Access :=
+                  AGC_Temp_0 : aliased Test.Expr_Access :=
                     AGC_Register (new Expr'(Lit, 0));
                begin
                   GC.Push_Root
@@ -211,11 +204,8 @@ procedure Test is
                       AGC_Register (new Expr'(Add, AGC_Temp_0, AGC_Temp_1)) do
                      GC.Pop_Roots (AGC_Base_Root_Count);
                   end return;
-                  GC.Pop_Roots (AGC_Root_Count);
                end;
-               GC.Pop_Roots (AGC_Root_Count);
             end;
-            GC.Pop_Roots (AGC_Root_Count);
          end;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end AGC_Func_0;
@@ -224,12 +214,10 @@ procedure Test is
       GC.Push_Root (X'Address, Visitor_Test_Expr_Access'Address);
       Put_Line (To_String (X));
       declare
-         AGC_Root_Count : Natural                  := GC.Root_Count;
-         AGC_Temp_0     : aliased Test.Expr_Access := Simplify (X);
+         AGC_Temp_0 : aliased Test.Expr_Access := Simplify (X);
       begin
          GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
          Put_Line (To_String (AGC_Temp_0));
-         GC.Pop_Roots (AGC_Root_Count);
       end;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Main;

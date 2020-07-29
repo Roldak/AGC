@@ -13,10 +13,9 @@ procedure Test is
 begin
    GC.Push_Root (X'Address, Visitor_Test_Integer_Access'Address);
    declare
-      AGC_Root_Count : Natural := GC.Root_Count;
-      Y              : Integer := 12;
+      Y : Integer := 12;
    begin
-      GC.Pop_Roots (AGC_Root_Count);
+      null;
    end;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

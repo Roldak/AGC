@@ -21,20 +21,17 @@ procedure Test is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
       declare
-         AGC_Root_Count : Natural                     := GC.Root_Count;
-         AGC_Temp_2     : aliased Test.Integer_Access := Inner (C);
+         AGC_Temp_2 : aliased Test.Integer_Access := Inner (C);
       begin
          GC.Push_Root
            (AGC_Temp_2'Address, Visitor_Test_Integer_Access'Address);
          declare
-            AGC_Root_Count : Natural                     := GC.Root_Count;
-            AGC_Temp_1     : aliased Test.Integer_Access := Inner (B);
+            AGC_Temp_1 : aliased Test.Integer_Access := Inner (B);
          begin
             GC.Push_Root
               (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
             declare
-               AGC_Root_Count : Natural                     := GC.Root_Count;
-               AGC_Temp_0     : aliased Test.Integer_Access := Inner (A);
+               AGC_Temp_0 : aliased Test.Integer_Access := Inner (A);
             begin
                GC.Push_Root
                  (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
@@ -43,11 +40,8 @@ procedure Test is
                    AGC_Temp_0.all + AGC_Temp_1.all + AGC_Temp_2.all do
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
-               GC.Pop_Roots (AGC_Root_Count);
             end;
-            GC.Pop_Roots (AGC_Root_Count);
          end;
-         GC.Pop_Roots (AGC_Root_Count);
       end;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Add;
