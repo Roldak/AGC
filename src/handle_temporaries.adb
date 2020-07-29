@@ -175,7 +175,8 @@ is
                   and then Expr.Parent.Kind not in
                     LALCO.Ada_Paren_Expr
                     | LALCO.Ada_Object_Decl
-                    | LALCO.Ada_Return_Stmt_Range
+                    | LALCO.Ada_Return_Stmt
+                    | LALCO.Ada_Extended_Return_Stmt
                then
                   Handle_Expr (Expr);
                end if;
