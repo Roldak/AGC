@@ -1,12 +1,12 @@
  HEAP SUMMARY:
-     in use at exit: 3,604 bytes in 6 blocks
-   total heap usage: 12 allocs, 6 frees, 3,884 bytes allocated
+     in use at exit: 3,616 bytes in 6 blocks
+   total heap usage: 12 allocs, 6 frees, 3,832 bytes allocated
  
  LEAK SUMMARY:
     definitely lost: 0 bytes in 0 blocks
     indirectly lost: 0 bytes in 0 blocks
-      possibly lost: 0 bytes in 0 blocks
-    still reachable: 3,604 bytes in 6 blocks
+      possibly lost: 24 bytes in 3 blocks
+    still reachable: 3,592 bytes in 3 blocks
          suppressed: 0 bytes in 0 blocks
 full to see details of leaked memory
  

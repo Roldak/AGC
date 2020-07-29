@@ -1,13 +1,15 @@
 with GC;
-with GC.Standard; use GC.Standard;
+with GC.Standard;
+with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
+use GC.Standard;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
+   pragma Default_Storage_Pool (GC.Storage.Pool);
    type T is record
       X : Integer;
    end record;
-   function AGC_Register is new GC.Register (T);
    procedure Visitor_Test_T (X : System.Address);
    procedure Visitor_Test_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
@@ -20,13 +22,11 @@ procedure Test is
       null;
    end Visitor_Test_T;
    type T_Access is access all T;
-   function AGC_Register is new GC.Register (T_Access);
    procedure Visitor_Test_T_Access is new GC.Visit_Access_Type
      (T, T_Access, Visitor_Test_T);
    type U is record
       A : T_Access;
    end record;
-   function AGC_Register is new GC.Register (U);
    procedure Visitor_Test_U (X : System.Address);
    procedure Visitor_Test_U (X : System.Address) is
       pragma Suppress (Accessibility_Check);
@@ -43,15 +43,14 @@ procedure Test is
       end;
    end Visitor_Test_U;
    type U_Access is access all U;
-   function AGC_Register is new GC.Register (U_Access);
    procedure Visitor_Test_U_Access is new GC.Visit_Access_Type
      (U, U_Access, Visitor_Test_U);
    function AGC_Func_0 return U_Access is
       AGC_Base_Root_Count : Natural               := GC.Root_Count;
-      AGC_Temp_0 : aliased Test.T_Access := AGC_Register (new T'(X => 1));
+      AGC_Temp_0          : aliased Test.T_Access := new T'(X => 1);
    begin
       GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_T_Access'Address);
-      return AGC_Ret : U_Access := AGC_Register (new U'(A => AGC_Temp_0)) do
+      return AGC_Ret : U_Access := new U'(A => AGC_Temp_0) do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;

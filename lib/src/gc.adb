@@ -26,29 +26,30 @@ package body GC is
      (Address, Address_Access)
          with Inline;
 
-   procedure Collect (Value : in Address) is
+   procedure Collect (Value : in Address)
+      with Inline
+   is
       Var : Address_Access := As_Address_Access (Value);
    begin
       Free (Var);
    end Collect;
 
    type Alloc_State is (Unknown, Reachable);
+   type Alloc_State_Access is access all Alloc_State;
+   for Alloc_State_Access'Size use Standard'Address_Size;
+
+   function As_Alloc_State_Access is new
+      Ada.Unchecked_Conversion (Address, Alloc_State_Access);
+
    type Root is record
       Addr    : Address;
       Visitor : Address;
    end record;
 
-   pragma Warnings (Off, "types for unchecked conversion have different sizes");
-   function Address_Hash is new Ada.Unchecked_Conversion
-     (Address, Ada.Containers.Hash_Type)
-         with Inline;
-   pragma Warnings (On, "types for unchecked conversion have different sizes");
-
-   package Address_Maps is new Ada.Containers.Hashed_Maps
-     (Address, Alloc_State, Address_Hash, "=");
+   package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
    package Root_Vectors is new Ada.Containers.Vectors (Positive, Root);
 
-   Alloc_Set : Address_Maps.Map;
+   Alloc_Set : Address_Vectors.Vector;
    Reach_Set : Root_Vectors.Vector;
 
    function Root_Count return Natural is (Natural (Reach_Set.Length));
@@ -63,29 +64,13 @@ package body GC is
       Reach_Set.Set_Length (Ada.Containers.Count_Type (X));
    end Pop_Roots;
 
-   function Register (X : access T) return access T
-   is
-      Addr : Address := X.all'Address;
+   procedure Register (X : Address) is
    begin
       Collect;
-      Put_Line ("Adding " & Address_Image (Addr));
-      Address_Maps.Insert (Alloc_Set, Addr, Unknown);
-      return X;
+      Put_Line ("Adding " & Address_Image (X));
+      Alloc_Set.Append (X);
+      As_Alloc_State_Access (X).all := Unknown;
    end Register;
-
-   procedure Mark (Addr : Address)
-      with Inline
-   is
-      use type Address_Maps.Cursor;
-
-      Cursor : Address_Maps.Cursor :=
-         Address_Maps.Find (Alloc_Set, Addr);
-   begin
-      if Cursor /= Address_Maps.No_Element then
-         Address_Maps.Replace_Element
-           (Alloc_Set, Cursor, Reachable);
-      end if;
-   end Mark;
 
    procedure No_Op (X : Address) is null;
 
@@ -101,8 +86,13 @@ package body GC is
       Acc : aliased T_Access := Conv (X).all;
    begin
       if Acc /= null then
-         Mark (Acc.all'Address);
-         Visit_Element (Acc.all'Address);
+         declare
+            Elem_Addr   : Address := Acc.all'Address;
+            Header_Addr : Address := Elem_Addr - 4;
+         begin
+            As_Alloc_State_Access (Header_Addr).all := Reachable;
+            Visit_Element (Elem_Addr);
+         end;
       end if;
    end Visit_Access_Type;
 
@@ -128,39 +118,30 @@ package body GC is
    end Visit_Array_Type;
 
    procedure Collect is
-      use type Address_Maps.Cursor;
    begin
       for Root of Reach_Set loop
          As_Address_Visitor (Root.Visitor).all (Root.Addr);
       end loop;
 
-      declare
-         Elem  : Address_Maps.Cursor := Address_Maps.First (Alloc_Set);
-         Next  : Address_Maps.Cursor;
-         State : Alloc_State;
-         Key   : Address;
-      begin
-         while Elem /= Address_Maps.No_Element loop
-            State := Address_Maps.Element (Elem);
-            Next  := Address_Maps.Next (Elem);
-            Key   := Address_Maps.Key (Elem);
-
-            if State /= Unknown then
-               Put_Line ("Keeping " & Address_Image (Key));
-               Address_Maps.Replace_Element (Alloc_Set, Elem, Unknown);
+      for J in reverse 1 .. Alloc_Set.Last_Index loop
+         declare
+            Alloc : Address := Alloc_Set (J);
+            State : Alloc_State_Access := As_Alloc_State_Access (Alloc);
+         begin
+            if State.all /= Unknown then
+               Put_Line ("Keeping " & Address_Image (Alloc));
+               State.all := Unknown;
             else
-               Put_Line ("Collecting " & Address_Image (Key));
-               Collect (Key);
-               Address_Maps.Delete (Alloc_Set, Elem);
+               Put_Line ("Collecting " & Address_Image (Alloc));
+               Collect (Alloc);
+               Alloc_Set.Delete (J);
             end if;
-
-            Elem := Next;
-         end loop;
-      end;
+         end;
+      end loop;
    end Collect;
 
    procedure Print_Stats is
    begin
-      Put_Line ("Still alive : " & Address_Maps.Length (Alloc_Set)'Image);
+      Put_Line ("Still alive : " & Alloc_Set.Length'Image);
    end Print_Stats;
 end GC;

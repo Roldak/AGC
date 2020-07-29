@@ -1,9 +1,12 @@
 with GC;
-with GC.Standard; use GC.Standard;
+with GC.Standard;
+with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
+use GC.Standard;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
+   pragma Default_Storage_Pool (GC.Storage.Pool);
    type Quad_Tree;
    type Quad_Tree_Access is access all Quad_Tree;
    type Quad_Tree_Access_Array is
@@ -12,12 +15,9 @@ procedure Test is
       Value : Integer;
       Nodes : Quad_Tree_Access_Array (1 .. 4);
    end record;
-   function AGC_Register is new GC.Register (Quad_Tree);
    procedure Visitor_Test_Quad_Tree (X : System.Address);
-   function AGC_Register is new GC.Register (Quad_Tree_Access);
    procedure Visitor_Test_Quad_Tree_Access is new GC.Visit_Access_Type
      (Quad_Tree, Quad_Tree_Access, Visitor_Test_Quad_Tree);
-   function AGC_Register is new GC.Register (Quad_Tree_Access_Array);
    procedure Visitor_Test_Quad_Tree_Access_Array is new GC.Visit_Array_Type
      (Quad_Tree_Access, Positive, Visitor_Test_Quad_Tree_Access);
    procedure Visitor_Test_Quad_Tree (X : System.Address) is
@@ -48,7 +48,7 @@ begin
            (AGC_Temp_3'Address, Visitor_Test_Quad_Tree_Access_Array'Address);
          declare
             AGC_Temp_2 : aliased Test.Quad_Tree_Access :=
-              AGC_Register (new Quad_Tree'(Value => 2, Nodes => AGC_Temp_3));
+              new Quad_Tree'(Value => 2, Nodes => AGC_Temp_3);
          begin
             GC.Push_Root
               (AGC_Temp_2'Address, Visitor_Test_Quad_Tree_Access'Address);
@@ -61,8 +61,7 @@ begin
                   Visitor_Test_Quad_Tree_Access_Array'Address);
                declare
                   AGC_Temp_0 : aliased Test.Quad_Tree_Access :=
-                    AGC_Register
-                      (new Quad_Tree'(Value => 5, Nodes => AGC_Temp_1));
+                    new Quad_Tree'(Value => 5, Nodes => AGC_Temp_1);
                begin
                   GC.Push_Root
                     (AGC_Temp_0'Address,

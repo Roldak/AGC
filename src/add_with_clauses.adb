@@ -28,6 +28,9 @@ begin
    declare
       WH : LALRW.Node_Rewriting_Handle :=
          LALRW.Handle (Unit.Root.As_Compilation_Unit.F_Prelude);
+
+      Decl_Part : LAL.Declarative_Part :=
+         Unit.Root.As_Compilation_Unit.P_Decl.P_Declarative_Region;
    begin
       LALRW.Insert_Child (WH, 1, LALRW.Create_From_Template
         (RH, "with GC;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
@@ -35,11 +38,23 @@ begin
         (RH, "with GC.Standard;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 3, LALRW.Create_From_Template
         (RH, "use GC.Standard;", (1 .. 0 => <>), LALCO.Use_Clause_Rule));
+      LALRW.Insert_Child (WH, 3, LALRW.Create_From_Template
+        (RH, "with GC.Storage;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 4, LALRW.Create_From_Template
         (RH, "with System;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 5, LALRW.Create_From_Template
         (RH, "with Ada.Unchecked_Conversion;",
          (1 .. 0 => <>), LALCO.With_Clause_Rule));
+
+      if not Decl_Part.Is_Null then
+         LALRW.Insert_Child
+           (LALRW.Handle (Decl_Part.F_Decls), 1,
+            LALRW.Create_From_Template
+              (RH,
+               "pragma Default_Storage_Pool (GC.Storage.Pool);",
+               (1 .. 0 => <>),
+               LALCO.Pragma_Rule));
+      end if;
    end;
 
    if not LALRW.Apply (RH).Success then

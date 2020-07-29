@@ -1,18 +1,20 @@
 with GC;
-with GC.Standard; use GC.Standard;
+with GC.Standard;
+with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
+use GC.Standard;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
+   pragma Default_Storage_Pool (GC.Storage.Pool);
    type Integer_Access is access all Integer;
-   function AGC_Register is new GC.Register (Integer_Access);
    procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
      (Integer, Integer_Access, Visitor_Standard_Integer);
    function Inner (X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
-      return AGC_Ret : Integer_Access := AGC_Register (new Integer'(X)) do
+      return AGC_Ret : Integer_Access := new Integer'(X) do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end Inner;

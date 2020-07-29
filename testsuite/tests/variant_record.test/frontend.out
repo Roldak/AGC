@@ -1,15 +1,16 @@
 with GC;
-with GC.Standard; use GC.Standard;
+with GC.Standard;
+with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
+use GC.Standard;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
+   pragma Default_Storage_Pool (GC.Storage.Pool);
    type Integer_Access is access all Integer;
-   function AGC_Register is new GC.Register (Integer_Access);
    procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
      (Integer, Integer_Access, Visitor_Standard_Integer);
    type Kind is (A, B, C);
-   function AGC_Register is new GC.Register (Kind);
    procedure Visitor_Test_Kind is new GC.No_Op (Kind);
    type Rec (K : Kind) is record
       X : Integer;
@@ -22,7 +23,6 @@ procedure Test is
             Z : Integer_Access;
       end case;
    end record;
-   function AGC_Register is new GC.Register (Rec);
    procedure Visitor_Test_Rec (X : System.Address);
    procedure Visitor_Test_Rec (X : System.Address) is
       pragma Suppress (Accessibility_Check);
@@ -48,8 +48,7 @@ procedure Test is
    R_1 : aliased Rec := (A, 1);
    function AGC_Func_0 return Rec is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;
-      AGC_Temp_0          : aliased Test.Integer_Access :=
-        AGC_Register (new Integer'(3));
+      AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(3);
    begin
       GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
       return AGC_Ret : Rec := (C, 2, AGC_Temp_0) do

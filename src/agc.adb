@@ -18,7 +18,6 @@ with Nest_Declare_Blocks;
 with Generate_Types_Interfaces;
 with Track_Roots;
 with Handle_Temporaries;
-with Register_Allocs;
 with Output_Unit;
 
 procedure AGC is
@@ -60,7 +59,6 @@ procedure AGC is
          Extend_Return_Stmts (Job_Ctx, Unit);
          Nest_Declare_Blocks (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
-         Register_Allocs (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
          Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
       end if;

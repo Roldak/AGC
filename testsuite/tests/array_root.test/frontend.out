@@ -1,38 +1,35 @@
 with GC;
-with GC.Standard;          use GC.Standard;
+with GC.Standard;
+with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
+use GC.Standard;
 with Ada.Text_IO;          use Ada.Text_IO;
 with System.Address_Image; use System;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
+   pragma Default_Storage_Pool (GC.Storage.Pool);
    type Integer_Access is access all Integer;
-   function AGC_Register is new GC.Register (Integer_Access);
    procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
      (Integer, Integer_Access, Visitor_Standard_Integer);
    type Int_Arr is array (Positive range <>) of Integer_Access;
-   function AGC_Register is new GC.Register (Int_Arr);
    procedure Visitor_Test_Int_Arr is new GC.Visit_Array_Type
      (Integer_Access, Positive, Visitor_Test_Integer_Access);
    type Char_Arr is array (Character) of Integer_Access;
-   function AGC_Register is new GC.Register (Char_Arr);
    procedure Visitor_Test_Char_Arr is new GC.Visit_Array_Type
      (Integer_Access, Character, Visitor_Test_Integer_Access);
    function AGC_Func_0 return Int_Arr is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;
-      AGC_Temp_2          : aliased Test.Integer_Access :=
-        AGC_Register (new Integer'(21));
+      AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(21);
    begin
       GC.Push_Root (AGC_Temp_2'Address, Visitor_Test_Integer_Access'Address);
       declare
-         AGC_Temp_1 : aliased Test.Integer_Access :=
-           AGC_Register (new Integer'(12));
+         AGC_Temp_1 : aliased Test.Integer_Access := new Integer'(12);
       begin
          GC.Push_Root
            (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
          declare
-            AGC_Temp_0 : aliased Test.Integer_Access :=
-              AGC_Register (new Integer'(42));
+            AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(42);
          begin
             GC.Push_Root
               (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);

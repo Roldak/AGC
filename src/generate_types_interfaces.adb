@@ -347,17 +347,6 @@ is
       if not Handled_Types.Contains (Decl.As_Ada_Node) then
          Handled_Types.Insert (Decl.As_Ada_Node);
 
-         LALRW.Insert_Child
-           (DH, Index + 2, LALRW.Create_From_Template
-             (RH,
-              "function AGC_Register is new GC.Register ("
-              & Type_Name
-              & ");",
-              (1 .. 0 => <>),
-              LALCO.Basic_Decl_Rule));
-         Node_Counters.Increase (Decl_Part_Count, Decl_Part);
-
-
          for Delayed of Get_Delayed_Types (Decl.As_Ada_Node) loop
             Handle_Type_Decl
               (Delayed.As_Type_Decl,

@@ -1,34 +1,36 @@
 with GC;
-with GC.Standard; use GC.Standard;
+with GC.Standard;
+with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
+use GC.Standard;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
+   pragma Default_Storage_Pool (GC.Storage.Pool);
    type Integer_Access is access all Integer;
-   function AGC_Register is new GC.Register (Integer_Access);
    procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
      (Integer, Integer_Access, Visitor_Standard_Integer);
-   X : aliased Integer_Access := AGC_Register (new Integer'(1));
+   X : aliased Integer_Access := new Integer'(1);
 begin
    GC.Push_Root (X'Address, Visitor_Test_Integer_Access'Address);
    declare
-      Y : aliased Integer_Access := AGC_Register (new Integer'(2));
+      Y : aliased Integer_Access := new Integer'(2);
    begin
       GC.Push_Root (Y'Address, Visitor_Test_Integer_Access'Address);
       declare
-         Z : aliased Integer_Access := AGC_Register (new Integer'(3));
+         Z : aliased Integer_Access := new Integer'(3);
       begin
          GC.Push_Root (Z'Address, Visitor_Test_Integer_Access'Address);
          declare
-            A : aliased Integer_Access := AGC_Register (new Integer'(4));
+            A : aliased Integer_Access := new Integer'(4);
          begin
             GC.Push_Root (A'Address, Visitor_Test_Integer_Access'Address);
             declare
-               B : aliased Integer_Access := AGC_Register (new Integer'(5));
+               B : aliased Integer_Access := new Integer'(5);
             begin
                GC.Push_Root (B'Address, Visitor_Test_Integer_Access'Address);
                declare
-                  C : aliased Integer_Access := AGC_Register (new Integer'(6));
+                  C : aliased Integer_Access := new Integer'(6);
                begin
                   GC.Push_Root
                     (C'Address, Visitor_Test_Integer_Access'Address);

@@ -12,9 +12,7 @@ package GC is
    procedure Pop_Roots (X : Natural)
       with Inline;
 
-   generic
-      type T (<>) is private;
-   function Register (X : access T) return access T
+   procedure Register (X : System.Address)
       with Inline;
 
    generic
