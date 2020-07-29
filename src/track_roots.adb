@@ -51,8 +51,15 @@ is
 
    procedure Pop_Objects
      (Stmts        : LALRW.Node_Rewriting_Handle;
-      Leaving_Subp : Boolean) is
+      Leaving_Subp : Boolean)
+   is
    begin
+      if
+         LALRW.Children_Count (Stmts) = 1
+         and then LALRW.Kind (LALRW.Child (Stmts, 1)) in LALCO.Ada_Null_Stmt
+      then
+         LALRW.Remove_Child (Stmts, 1);
+      end if;
       LALRW.Append_Child
         (Stmts,
          LALRW.Create_From_Template

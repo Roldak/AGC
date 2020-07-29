@@ -12,7 +12,6 @@ procedure Test is
    procedure Inner (X, Y : Integer_Access) is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
-      null;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
 begin

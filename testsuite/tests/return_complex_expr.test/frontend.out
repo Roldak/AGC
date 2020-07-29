@@ -13,7 +13,6 @@ procedure Test is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
       return AGC_Ret : Integer_Access := AGC_Register (new Integer'(X)) do
-         null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
@@ -42,7 +41,6 @@ procedure Test is
                return
                  AGC_Ret : Integer :=
                    AGC_Temp_0.all + AGC_Temp_1.all + AGC_Temp_2.all do
-                  null;
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
                GC.Pop_Roots (AGC_Root_Count);

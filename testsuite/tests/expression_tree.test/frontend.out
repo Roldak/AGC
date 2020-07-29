@@ -69,7 +69,6 @@ procedure Test is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
       return AGC_Ret : Boolean := Ex.K = Lit and then Ex.Value = V do
-         null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
@@ -81,12 +80,10 @@ procedure Test is
          when Add =>
             if Is_Lit (Ex.Lhs, 0) then
                return AGC_Ret : Expr_Access := Simplify (Ex.Rhs) do
-                  null;
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
             elsif Is_Lit (Ex.Rhs, 0) then
                return AGC_Ret : Expr_Access := Simplify (Ex.Lhs) do
-                  null;
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
             else
@@ -107,7 +104,6 @@ procedure Test is
                        AGC_Ret : Expr_Access :=
                          AGC_Register (new Expr'(Add, AGC_Temp_0, AGC_Temp_1))
                      do
-                        null;
                         GC.Pop_Roots (AGC_Base_Root_Count);
                      end return;
                      GC.Pop_Roots (AGC_Root_Count);
@@ -119,17 +115,14 @@ procedure Test is
             if Is_Lit (Ex.Lhs, 0) or else Is_Lit (Ex.Rhs, 0) then
                return
                  AGC_Ret : Expr_Access := AGC_Register (new Expr'(Lit, 0)) do
-                  null;
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
             elsif Is_Lit (Ex.Lhs, 1) then
                return AGC_Ret : Expr_Access := Simplify (Ex.Rhs) do
-                  null;
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
             elsif Is_Lit (Ex.Rhs, 1) then
                return AGC_Ret : Expr_Access := Simplify (Ex.Lhs) do
-                  null;
                   GC.Pop_Roots (AGC_Base_Root_Count);
                end return;
             else
@@ -150,7 +143,6 @@ procedure Test is
                        AGC_Ret : Expr_Access :=
                          AGC_Register (new Expr'(Mul, AGC_Temp_0, AGC_Temp_1))
                      do
-                        null;
                         GC.Pop_Roots (AGC_Base_Root_Count);
                      end return;
                      GC.Pop_Roots (AGC_Root_Count);
@@ -160,12 +152,10 @@ procedure Test is
             end if;
          when Lit =>
             return AGC_Ret : Expr_Access := Ex do
-               null;
                GC.Pop_Roots (AGC_Base_Root_Count);
             end return;
          when Var =>
             return AGC_Ret : Expr_Access := Ex do
-               null;
                GC.Pop_Roots (AGC_Base_Root_Count);
             end return;
       end case;
@@ -183,7 +173,6 @@ procedure Test is
                "(" & To_String (Ex.Lhs) & " * " & To_String (Ex.Rhs) & ")",
              when Lit => Ex.Value'Image, when Var => Ex.Name'Image)
       do
-         null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
@@ -220,7 +209,6 @@ procedure Test is
                   return
                     AGC_Ret : Expr_Access :=
                       AGC_Register (new Expr'(Add, AGC_Temp_0, AGC_Temp_1)) do
-                     null;
                      GC.Pop_Roots (AGC_Base_Root_Count);
                   end return;
                   GC.Pop_Roots (AGC_Root_Count);

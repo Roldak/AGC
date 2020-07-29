@@ -15,13 +15,11 @@ procedure Test is
       if B then
          return
            AGC_Ret : Integer_Access := AGC_Register (new Integer'(X + 1)) do
-            null;
             GC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       else
          return
            AGC_Ret : Integer_Access := AGC_Register (new Integer'(X - 1)) do
-            null;
             GC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end if;
@@ -33,7 +31,6 @@ procedure Test is
    begin
       GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
       return AGC_Ret : Integer := AGC_Temp_0.all do
-         null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);

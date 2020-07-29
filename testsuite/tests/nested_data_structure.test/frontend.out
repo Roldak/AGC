@@ -58,7 +58,6 @@ procedure Test is
    begin
       GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_T_Access'Address);
       return AGC_Ret : U_Access := AGC_Register (new U'(A => AGC_Temp_0)) do
-         null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);

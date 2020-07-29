@@ -23,6 +23,5 @@ procedure Test is
       null;
    end Visitor_Test_T;
 begin
-   null;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

@@ -63,7 +63,6 @@ procedure Test is
    begin
       GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
       return AGC_Ret : Rec := (C, 2, AGC_Temp_0) do
-         null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
