@@ -19,8 +19,7 @@ procedure Test is
      (Quad_Tree, Quad_Tree_Access, Visitor_Test_Quad_Tree);
    function AGC_Register is new GC.Register (Quad_Tree_Access_Array);
    procedure Visitor_Test_Quad_Tree_Access_Array is new GC.Visit_Array_Type
-     (Quad_Tree_Access, Positive, Quad_Tree_Access_Array,
-      Visitor_Test_Quad_Tree_Access);
+     (Quad_Tree_Access, Positive, Visitor_Test_Quad_Tree_Access);
    procedure Visitor_Test_Quad_Tree (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Quad_Tree;

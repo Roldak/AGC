@@ -269,16 +269,12 @@ is
 
       Index_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Index_Type.F_Name);
-
-      Array_Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Decl.F_Name);
    begin
       return LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " is new GC.Visit_Array_Type ("
         & Element_Type_Name & ", "
         & Index_Type_Name & ", "
-        & Array_Type_Name & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule);

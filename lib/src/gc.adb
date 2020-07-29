@@ -97,6 +97,7 @@ package body GC is
    procedure Visit_Array_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
 
+      type T_Array is array (I range <>) of T;
       type T_Array_Access is access all T_Array;
       for T_Array_Access'Size use Standard'Address_Size;
 
