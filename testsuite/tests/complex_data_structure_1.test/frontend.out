@@ -28,12 +28,6 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased Quad_Tree := Conv (X).all;
    begin
-      null;
-      declare
-         C : aliased Standard.Integer := R.Value;
-      begin
-         Visitor_Standard_Integer (C'Address);
-      end;
       declare
          C : aliased Test.Quad_Tree_Access_Array := R.Nodes;
       begin

@@ -18,11 +18,6 @@ procedure Test is
       R : aliased T := Conv (X).all;
    begin
       null;
-      declare
-         C : aliased Standard.Integer := R.X;
-      begin
-         Visitor_Standard_Integer (C'Address);
-      end;
    end Visitor_Test_T;
    type T_Access is access all T;
    function AGC_Register is new GC.Register (T_Access);
@@ -41,7 +36,6 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased U := Conv (X).all;
    begin
-      null;
       declare
          C : aliased Test.T_Access := R.A;
       begin

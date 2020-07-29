@@ -34,7 +34,6 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased Expr := Conv (X).all;
    begin
-      null;
       case R.K is
          when Add | Mul =>
             declare
@@ -48,17 +47,9 @@ procedure Test is
                Visitor_Test_Expr_Access (C'Address);
             end;
          when Lit =>
-            declare
-               C : aliased Standard.Integer := R.Value;
-            begin
-               Visitor_Standard_Integer (C'Address);
-            end;
+            null;
          when Var =>
-            declare
-               C : aliased Standard.Character := R.Name;
-            begin
-               Visitor_Standard_Character (C'Address);
-            end;
+            null;
       end case;
    end Visitor_Test_Expr;
    type Env is array (Character) of Integer;

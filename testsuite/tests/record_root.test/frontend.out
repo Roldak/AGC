@@ -21,7 +21,6 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased Rec := Conv (X).all;
    begin
-      null;
       declare
          C : aliased Test.Integer_Access := R.Value;
       begin

@@ -32,21 +32,11 @@ procedure Test is
         (System.Address, Rec_Access);
       R : aliased Rec := Conv (X).all;
    begin
-      null;
-      declare
-         C : aliased Standard.Integer := R.X;
-      begin
-         Visitor_Standard_Integer (C'Address);
-      end;
       case R.K is
          when A =>
             null;
          when B =>
-            declare
-               C : aliased Standard.Integer := R.Y;
-            begin
-               Visitor_Standard_Integer (C'Address);
-            end;
+            null;
          when C =>
             declare
                C : aliased Test.Integer_Access := R.Z;

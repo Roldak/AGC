@@ -168,18 +168,17 @@ is
                   Comp_Text : Langkit_Support.Text.Text_Type :=
                      LAL.Text (Comp_Name);
                begin
-                  LALRW.Append_Child (Stmts, LALRW.Create_From_Template
-                    (RH,
-                     "declare"
-                     & "   C : aliased {} := R." & Comp_Text & ";"
-                     & "begin "
-                     & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
-                     & "end;",
-                     (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule));
+                  if Utils.Is_Relevant_Type (Comp_Type) then
+                     LALRW.Append_Child (Stmts, LALRW.Create_From_Template
+                       (RH,
+                        "declare"
+                        & "   C : aliased {} := R." & Comp_Text & ";"
+                        & "begin "
+                        & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
+                        & "end;",
+                        (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule));
+                  end if;
                end;
-            else
-               LALRW.Append_Child (Stmts, LALRW.Create_Regular_Node
-                 (RH, LALCO.Ada_Null_Stmt, (1 .. 0 => <>)));
             end if;
          end loop;
 
@@ -226,6 +225,11 @@ is
                LALRW.Append_Child (Stmts, Case_Stmt);
             end;
          end if;
+
+         if LALRW.Children_Count (Stmts) = 0 then
+            LALRW.Append_Child (Stmts, LALRW.Create_Regular_Node
+              (RH, LALCO.Ada_Null_Stmt, (1 .. 0 => <>)));
+         end if;
       end Handle_Component_List;
    begin
       if not Is_Handled (Decl) then
@@ -247,6 +251,8 @@ is
          (1 .. 0 => <>),
          LALCO.Basic_Decl_Rule)
       do
+         LALRW.Remove_Child
+           (LALRW.Child (LALRW.Child (Res, 5), 1), 1);
          Handle_Component_List
            (LALRW.Child (LALRW.Child (Res, 5), 1),
             Rec_Def.F_Components);
