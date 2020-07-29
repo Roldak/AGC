@@ -9,7 +9,8 @@ package body Utils is
       return
          Typ.P_Is_Access_Type
          or else Typ.P_Is_Record_Type
-         or else Typ.P_Is_Array_Type;
+         or else (Typ.P_Is_Array_Type
+                  and then Is_Relevant_Type (Typ.P_Comp_Type));
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
