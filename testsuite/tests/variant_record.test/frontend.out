@@ -55,42 +55,24 @@ procedure Test is
             end;
       end case;
    end Visitor_Test_Rec;
+   R_1 : aliased Rec := (A, 1);
    function AGC_Func_0 return Rec is
-      AGC_Base_Root_Count : Natural          := GC.Root_Count;
-      AGC_Temp_0          : aliased Test.Rec := (A, 1);
+      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Temp_0          : aliased Test.Integer_Access :=
+        AGC_Register (new Integer'(3));
    begin
-      GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Rec'Address);
-      return AGC_Ret : Rec := AGC_Temp_0 do
+      GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
+      return AGC_Ret : Rec := (C, 2, AGC_Temp_0) do
          null;
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end AGC_Func_0;
-   R_1 : aliased Rec := AGC_Func_0;
-   function AGC_Func_1 return Rec is
-      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
-      AGC_Temp_1          : aliased Test.Integer_Access :=
-        AGC_Register (new Integer'(3));
-   begin
-      GC.Push_Root (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
-      declare
-         AGC_Root_Count : Natural          := GC.Root_Count;
-         AGC_Temp_0     : aliased Test.Rec := (C, 2, AGC_Temp_1);
-      begin
-         GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Rec'Address);
-         return AGC_Ret : Rec := AGC_Temp_0 do
-            null;
-            GC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
-      GC.Pop_Roots (AGC_Base_Root_Count);
-   end AGC_Func_1;
 begin
    GC.Push_Root (R_1'Address, Visitor_Test_Rec'Address);
    declare
       AGC_Root_Count : Natural     := GC.Root_Count;
-      R_2            : aliased Rec := AGC_Func_1;
+      R_2            : aliased Rec := AGC_Func_0;
    begin
       GC.Push_Root (R_2'Address, Visitor_Test_Rec'Address);
       GC.Collect;

@@ -11,19 +11,7 @@ procedure Test is
    function AGC_Register is new GC.Register (My_Nat_Access);
    procedure Visitor_Test_My_Nat_Access is new GC.Visit_Access_Type
      (My_Natural, My_Nat_Access, Visitor_Test_My_Natural);
-   function AGC_Func_0 return My_Nat_Access is
-      AGC_Base_Root_Count : Natural                    := GC.Root_Count;
-      AGC_Temp_0          : aliased Test.My_Nat_Access :=
-        AGC_Register (new My_Natural'(2));
-   begin
-      GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_My_Nat_Access'Address);
-      return AGC_Ret : My_Nat_Access := AGC_Temp_0 do
-         null;
-         GC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
-   end AGC_Func_0;
-   X : aliased My_Nat_Access := AGC_Func_0;
+   X : aliased My_Nat_Access := AGC_Register (new My_Natural'(2));
 begin
    GC.Push_Root (X'Address, Visitor_Test_My_Nat_Access'Address);
    null;

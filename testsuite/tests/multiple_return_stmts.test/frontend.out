@@ -13,33 +13,17 @@ procedure Test is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
       if B then
-         declare
-            AGC_Root_Count : Natural                     := GC.Root_Count;
-            AGC_Temp_0     : aliased Test.Integer_Access :=
-              AGC_Register (new Integer'(X + 1));
-         begin
-            GC.Push_Root
-              (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
-            return AGC_Ret : Integer_Access := AGC_Temp_0 do
-               null;
-               GC.Pop_Roots (AGC_Base_Root_Count);
-            end return;
-            GC.Pop_Roots (AGC_Root_Count);
-         end;
+         return
+           AGC_Ret : Integer_Access := AGC_Register (new Integer'(X + 1)) do
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
       else
-         declare
-            AGC_Root_Count : Natural                     := GC.Root_Count;
-            AGC_Temp_0     : aliased Test.Integer_Access :=
-              AGC_Register (new Integer'(X - 1));
-         begin
-            GC.Push_Root
-              (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
-            return AGC_Ret : Integer_Access := AGC_Temp_0 do
-               null;
-               GC.Pop_Roots (AGC_Base_Root_Count);
-            end return;
-            GC.Pop_Roots (AGC_Root_Count);
-         end;
+         return
+           AGC_Ret : Integer_Access := AGC_Register (new Integer'(X - 1)) do
+            null;
+            GC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
       end if;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;

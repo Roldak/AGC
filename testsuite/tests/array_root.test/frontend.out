@@ -20,36 +20,30 @@ procedure Test is
      (Integer_Access, Character, Visitor_Test_Integer_Access);
    function AGC_Func_0 return Int_Arr is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;
-      AGC_Temp_3          : aliased Test.Integer_Access :=
+      AGC_Temp_2          : aliased Test.Integer_Access :=
         AGC_Register (new Integer'(21));
    begin
-      GC.Push_Root (AGC_Temp_3'Address, Visitor_Test_Integer_Access'Address);
+      GC.Push_Root (AGC_Temp_2'Address, Visitor_Test_Integer_Access'Address);
       declare
          AGC_Root_Count : Natural                     := GC.Root_Count;
-         AGC_Temp_2     : aliased Test.Integer_Access :=
+         AGC_Temp_1     : aliased Test.Integer_Access :=
            AGC_Register (new Integer'(12));
       begin
          GC.Push_Root
-           (AGC_Temp_2'Address, Visitor_Test_Integer_Access'Address);
+           (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
          declare
             AGC_Root_Count : Natural                     := GC.Root_Count;
-            AGC_Temp_1     : aliased Test.Integer_Access :=
+            AGC_Temp_0     : aliased Test.Integer_Access :=
               AGC_Register (new Integer'(42));
          begin
             GC.Push_Root
-              (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
-            declare
-               AGC_Root_Count : Natural              := GC.Root_Count;
-               AGC_Temp_0     : aliased Test.Int_Arr :=
-                 (1 => AGC_Temp_1, 2 => AGC_Temp_2, 3 => AGC_Temp_3);
-            begin
-               GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Int_Arr'Address);
-               return AGC_Ret : Int_Arr := AGC_Temp_0 do
-                  null;
-                  GC.Pop_Roots (AGC_Base_Root_Count);
-               end return;
-               GC.Pop_Roots (AGC_Root_Count);
-            end;
+              (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
+            return
+              AGC_Ret : Int_Arr :=
+                (1 => AGC_Temp_0, 2 => AGC_Temp_1, 3 => AGC_Temp_2) do
+               null;
+               GC.Pop_Roots (AGC_Base_Root_Count);
+            end return;
             GC.Pop_Roots (AGC_Root_Count);
          end;
          GC.Pop_Roots (AGC_Root_Count);

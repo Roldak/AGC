@@ -12,19 +12,10 @@ procedure Test is
    function Inner (X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
-      declare
-         AGC_Root_Count : Natural                     := GC.Root_Count;
-         AGC_Temp_0     : aliased Test.Integer_Access :=
-           AGC_Register (new Integer'(X));
-      begin
-         GC.Push_Root
-           (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
-         return AGC_Ret : Integer_Access := AGC_Temp_0 do
-            null;
-            GC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
+      return AGC_Ret : Integer_Access := AGC_Register (new Integer'(X)) do
+         null;
+         GC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
    function Add (A, B : Integer_Access) return Integer is

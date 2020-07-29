@@ -28,18 +28,7 @@ procedure Test is
    function AGC_Register is new GC.Register (T_Access);
    procedure Visitor_Test_T_Access is new GC.Visit_Access_Type
      (T, T_Access, Visitor_Test_T);
-   function AGC_Func_0 return T_Access is
-      AGC_Base_Root_Count : Natural               := GC.Root_Count;
-      AGC_Temp_0 : aliased Test.T_Access := AGC_Register (new T'(X => 2));
-   begin
-      GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_T_Access'Address);
-      return AGC_Ret : T_Access := AGC_Temp_0 do
-         null;
-         GC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
-   end AGC_Func_0;
-   X : aliased T_Access := AGC_Func_0;
+   X : aliased T_Access := AGC_Register (new T'(X => 2));
 begin
    GC.Push_Root (X'Address, Visitor_Test_T_Access'Address);
    null;

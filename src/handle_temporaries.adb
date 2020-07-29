@@ -172,7 +172,10 @@ is
                   and then Utils.Is_Relevant_Type (Expr_Type)
                   and then Utils.Is_Actual_Expr (Expr)
                   and then not Utils.Is_Named_Expr (Expr)
-                  and then Expr.Parent.Kind not in LALCO.Ada_Paren_Expr
+                  and then Expr.Parent.Kind not in
+                    LALCO.Ada_Paren_Expr
+                    | LALCO.Ada_Object_Decl
+                    | LALCO.Ada_Return_Stmt_Range
                then
                   Handle_Expr (Expr);
                end if;

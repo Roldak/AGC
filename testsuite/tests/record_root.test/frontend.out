@@ -30,21 +30,14 @@ procedure Test is
    end Visitor_Test_Rec;
    function AGC_Func_0 return Rec is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;
-      AGC_Temp_1          : aliased Test.Integer_Access :=
+      AGC_Temp_0          : aliased Test.Integer_Access :=
         AGC_Register (new Integer'(2));
    begin
-      GC.Push_Root (AGC_Temp_1'Address, Visitor_Test_Integer_Access'Address);
-      declare
-         AGC_Root_Count : Natural          := GC.Root_Count;
-         AGC_Temp_0     : aliased Test.Rec := (Value => AGC_Temp_1);
-      begin
-         GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Rec'Address);
-         return AGC_Ret : Rec := AGC_Temp_0 do
-            null;
-            GC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
+      GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Integer_Access'Address);
+      return AGC_Ret : Rec := (Value => AGC_Temp_0) do
+         null;
+         GC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
       GC.Pop_Roots (AGC_Base_Root_Count);
    end AGC_Func_0;
    X : aliased Rec := AGC_Func_0;
