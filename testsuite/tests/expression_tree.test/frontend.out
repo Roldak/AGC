@@ -54,8 +54,7 @@ procedure Test is
    end Visitor_Test_Expr;
    type Env is array (Character) of Integer;
    function AGC_Register is new GC.Register (Env);
-   procedure Visitor_Test_Env is new GC.Visit_Array_Type
-     (Integer, Character, Visitor_Standard_Integer);
+   procedure Visitor_Test_Env is new GC.No_Op (Env);
    function Is_Lit (Ex : Expr_Access; V : Integer) return Boolean is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin

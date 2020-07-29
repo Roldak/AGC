@@ -276,14 +276,18 @@ is
       Index_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Index_Type.F_Name);
    begin
-      return LALRW.Create_From_Template
-        (RH,
-        "procedure " & Visit_Name & " is new GC.Visit_Array_Type ("
-        & Element_Type_Name & ", "
-        & Index_Type_Name & ", "
-        & Utils.Visitor_Name (Element_Type) & ");",
-        (1 .. 0 => <>),
-        LALCO.Basic_Decl_Rule);
+      if Utils.Is_Relevant_Type (Element_Type) then
+         return LALRW.Create_From_Template
+           (RH,
+           "procedure " & Visit_Name & " is new GC.Visit_Array_Type ("
+           & Element_Type_Name & ", "
+           & Index_Type_Name & ", "
+           & Utils.Visitor_Name (Element_Type) & ");",
+           (1 .. 0 => <>),
+           LALCO.Basic_Decl_Rule);
+      else
+         return Generate_No_Op_Visitor (Visit_Name, Decl);
+      end if;
    end Generate_Array_Type_Visitor;
 
    function Generate_Visitor
