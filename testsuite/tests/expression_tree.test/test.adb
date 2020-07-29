@@ -31,6 +31,8 @@ procedure Test is
                return Simplify (Ex.Rhs);
             elsif Is_Lit (Ex.Rhs, 0) then
                return Simplify (Ex.Lhs);
+            elsif Ex.Lhs.K = Lit and Ex.Rhs.K = Lit then
+               return new Expr'(Lit, Ex.Lhs.Value + Ex.Rhs.Value);
             else
                return new Expr'
                  (Add,
@@ -44,6 +46,8 @@ procedure Test is
                return Simplify (Ex.Rhs);
             elsif Is_Lit (Ex.Rhs, 1) then
                return Simplify (Ex.Lhs);
+            elsif Ex.Lhs.K = Lit and Ex.Rhs.K = Lit then
+               return new Expr'(Lit, Ex.Lhs.Value * Ex.Rhs.Value);
             else
                return new Expr'
                  (Mul,
@@ -56,6 +60,36 @@ procedure Test is
             return Ex;
       end case;
    end Simplify;
+
+   function Substitute (Ex : Expr_Access; Ev : Env) return Expr_Access is
+   begin
+      case Ex.K is
+         when Add =>
+            return new Expr'
+              (Add,
+               Substitute (Ex.Lhs, Ev),
+               Substitute (Ex.Rhs, Ev));
+         when Mul =>
+            return new Expr'
+              (Mul,
+               Substitute (Ex.Lhs, Ev),
+               Substitute (Ex.Rhs, Ev));
+         when Lit =>
+            return Ex;
+         when Var =>
+            return new Expr'(Lit, Ev (Ex.Name));
+      end case;
+   end Substitute;
+
+   function Evaluate (Ex : Expr_Access; Ev : Env) return Integer is
+      Simplified : Expr_Access := Simplify (Substitute (Ex, Ev));
+   begin
+      if Simplified.K = Lit then
+         return Simplified.Value;
+      else
+         return Evaluate (Simplified, Ev);
+      end if;
+   end Evaluate;
 
    function To_String (Ex : Expr_Access) return String is
    begin
@@ -76,9 +110,18 @@ procedure Test is
         (Add,
          new Expr'(Lit, 0),
          new Expr'(Mul, new Expr'(Var, 'x'), new Expr'(Lit, 1)));
+
+      Y : Expr_Access := new Expr'
+        (Mul, new Expr'(Lit, 2), new Expr'(Lit, 4));
+
+      Z : Expr_Access := new Expr'(Add, X, Y);
+
+      Ev : Env := ('x' => 42, others => 0);
    begin
-      Put_Line (To_String (X));
-      Put_Line (To_String (Simplify (X)));
+      Put_Line (To_String (Z));
+      Put_Line (To_String (Simplify (Z)));
+      Put_Line (To_String (Substitute (Z, Ev)));
+      Put_Line (Evaluate (Z, Ev)'Image);
    end Main;
 begin
    Main;
