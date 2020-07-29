@@ -43,7 +43,6 @@ procedure Test is
             end return;
          end;
       end;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end AGC_Func_0;
    X : aliased Int_Arr := AGC_Func_0;
 begin

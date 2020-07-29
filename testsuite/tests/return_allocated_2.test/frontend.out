@@ -17,7 +17,6 @@ procedure Test is
       return AGC_Ret : Integer_Access := Tmp do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
    function Add (A, B : Integer_Access) return Integer is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -25,7 +24,6 @@ procedure Test is
       return AGC_Ret : Integer := A.all + B.all do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end Add;
    function AGC_Func_0 return Integer is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;
@@ -41,7 +39,6 @@ procedure Test is
             GC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end AGC_Func_0;
    A : Integer := AGC_Func_0;
 begin

@@ -36,7 +36,6 @@ procedure Test is
       return AGC_Ret : Rec := (Value => AGC_Temp_0) do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end AGC_Func_0;
    X : aliased Rec := AGC_Func_0;
 begin

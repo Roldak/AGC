@@ -61,7 +61,6 @@ procedure Test is
       return AGC_Ret : Boolean := Ex.K = Lit and then Ex.Value = V do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end Is_Lit;
    function Simplify (Ex : Expr_Access) return Expr_Access is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -96,7 +95,6 @@ procedure Test is
                         GC.Pop_Roots (AGC_Base_Root_Count);
                      end return;
                   end;
-                  GC.Pop_Roots (AGC_Root_Count);
                end;
             end if;
          when Mul =>
@@ -133,7 +131,6 @@ procedure Test is
                         GC.Pop_Roots (AGC_Base_Root_Count);
                      end return;
                   end;
-                  GC.Pop_Roots (AGC_Root_Count);
                end;
             end if;
          when Lit =>
@@ -145,7 +142,6 @@ procedure Test is
                GC.Pop_Roots (AGC_Base_Root_Count);
             end return;
       end case;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end Simplify;
    function To_String (Ex : Expr_Access) return String is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -161,7 +157,6 @@ procedure Test is
       do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end To_String;
    procedure Main is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
@@ -197,7 +192,6 @@ procedure Test is
                end;
             end;
          end;
-         GC.Pop_Roots (AGC_Base_Root_Count);
       end AGC_Func_0;
       X : aliased Expr_Access := AGC_Func_0;
    begin

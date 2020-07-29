@@ -27,6 +27,41 @@ is
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
+   function Ends_With_Return_Stmt
+     (Stmts : LAL.Stmt_List'Class) return Boolean
+   is
+      Last_Stmt : LAL.Ada_NOde := Stmts.Child (Stmts.Last_Child_Index);
+   begin
+      case Last_Stmt.Kind is
+         when LALCO.Ada_Return_Stmt =>
+            return True;
+         when LALCO.Ada_Extended_Return_Stmt =>
+            return True;
+         when LALCO.Ada_Decl_Block =>
+            return Ends_With_Return_Stmt
+              (Last_Stmt.As_Decl_Block.F_Stmts.F_Stmts);
+         when LALCO.Ada_Begin_Block =>
+            return Ends_With_Return_Stmt
+              (Last_Stmt.As_Begin_Block.F_Stmts.F_Stmts);
+         when LALCO.Ada_Case_Stmt =>
+            return (for all Alt of Last_Stmt.As_Case_Stmt.F_Alternatives
+                      => Ends_With_Return_Stmt (Alt.F_Stmts));
+         when LALCO.Ada_If_Stmt =>
+            declare
+               If_Stmt : LAL.If_Stmt := Last_Stmt.As_If_Stmt;
+            begin
+               return
+                  Ends_With_Return_Stmt (If_Stmt.F_Then_Stmts)
+                  and then not If_Stmt.F_Else_Stmts.Is_Null
+                  and then Ends_With_Return_Stmt (If_Stmt.F_Else_Stmts)
+                  and then (for all Alt of If_Stmt.F_Alternatives
+                              => Ends_With_Return_Stmt (Alt.F_Stmts));
+            end;
+         when others =>
+            return False;
+      end case;
+   end Ends_With_Return_Stmt;
+
    procedure Push_Object
      (Stmts : LALRW.Node_Rewriting_Handle; X : LAL.Object_Decl)
    is
@@ -134,7 +169,9 @@ is
             end loop;
 
             if Should_Pop_Roots then
-               Pop_Objects (SH, Subp_Level);
+               if not Ends_With_Return_Stmt (Node.F_Stmts) then
+                  Pop_Objects (SH, Subp_Level);
+               end if;
             end if;
          end;
       end if;

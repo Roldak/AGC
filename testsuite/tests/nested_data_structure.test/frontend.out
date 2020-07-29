@@ -54,7 +54,6 @@ procedure Test is
       return AGC_Ret : U_Access := AGC_Register (new U'(A => AGC_Temp_0)) do
          GC.Pop_Roots (AGC_Base_Root_Count);
       end return;
-      GC.Pop_Roots (AGC_Base_Root_Count);
    end AGC_Func_0;
    X : aliased U_Access := AGC_Func_0;
 begin
