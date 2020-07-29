@@ -88,7 +88,11 @@ package body GC is
       if Acc /= null then
          declare
             Elem_Addr   : Address := Acc.all'Address;
-            Header_Addr : Address := Elem_Addr - 4;
+            Header_Addr : Address :=
+               Elem_Addr - Storage_Offset
+                 (T'Descriptor_Size / Storage_Unit
+                  + Acc.all'Finalization_Size
+                  + 4);
          begin
             As_Alloc_State_Access (Header_Addr).all := Reachable;
             Visit_Element (Elem_Addr);
