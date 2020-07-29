@@ -3,7 +3,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
-with Ada.Containers.Ordered_Maps;
+with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 
 with System; use System;
@@ -15,13 +15,16 @@ package body GC is
    type Address_Visitor is access procedure (X : Address);
 
    function As_Address_Access is new Ada.Unchecked_Conversion
-     (Address, Address_Access);
+     (Address, Address_Access)
+         with Inline;
 
    function As_Address_Visitor is new Ada.Unchecked_Conversion
-     (Address, Address_Visitor);
+     (Address, Address_Visitor)
+         with Inline;
 
    procedure Free is new Ada.Unchecked_Deallocation
-     (Address, Address_Access);
+     (Address, Address_Access)
+         with Inline;
 
    procedure Collect (Value : in Address) is
       Var : Address_Access := As_Address_Access (Value);
@@ -35,7 +38,14 @@ package body GC is
       Visitor : Address;
    end record;
 
-   package Address_Maps is new Ada.Containers.Ordered_Maps (Address, Alloc_State);
+   pragma Warnings (Off, "types for unchecked conversion have different sizes");
+   function Address_Hash is new Ada.Unchecked_Conversion
+     (Address, Ada.Containers.Hash_Type)
+         with Inline;
+   pragma Warnings (On, "types for unchecked conversion have different sizes");
+
+   package Address_Maps is new Ada.Containers.Hashed_Maps
+     (Address, Alloc_State, Address_Hash, "=");
    package Root_Vectors is new Ada.Containers.Vectors (Positive, Root);
 
    Alloc_Set : Address_Maps.Map;
@@ -63,7 +73,9 @@ package body GC is
       return X;
    end Register;
 
-   procedure Mark (Addr : Address) is
+   procedure Mark (Addr : Address)
+      with Inline
+   is
       use type Address_Maps.Cursor;
 
       Cursor : Address_Maps.Cursor :=

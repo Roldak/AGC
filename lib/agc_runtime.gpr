@@ -5,6 +5,14 @@ library project AGC_Runtime is
    for Library_Dir use ".";
 
    package Compiler is
-      for Switches ("Ada") use ("-g");
+      Mode := external("BUILD_MODE", "debug");
+      case Mode is
+         when "debug" =>
+            for Switches ("Ada") use ("-g");
+         when "release" =>
+            for Switches ("Ada") use ("-O3", "-flto");
+         when others =>
+            null;
+      end case;
    end Compiler;
 end AGC_Runtime;
