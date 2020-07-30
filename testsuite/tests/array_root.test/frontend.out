@@ -9,11 +9,11 @@ procedure Test is
    procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
      (Integer, Integer_Access, GC.No_Op);
    type Int_Arr is array (Positive range <>) of Integer_Access;
-   procedure AGC_Visit_Test_Int_Arr is new GC.Visit_Array_Type
-     (Integer_Access, Positive, AGC_Visit_Test_Integer_Access);
+   procedure AGC_Visit_Test_Int_Arr is new GC.Visit_Unconstrained_Array_Type
+     (Integer_Access, Positive, Int_Arr, AGC_Visit_Test_Integer_Access);
    type Char_Arr is array (Character) of Integer_Access;
-   procedure AGC_Visit_Test_Char_Arr is new GC.Visit_Array_Type
-     (Integer_Access, Character, AGC_Visit_Test_Integer_Access);
+   procedure AGC_Visit_Test_Char_Arr is new GC.Visit_Constrained_Array_Type
+     (Integer_Access, Character, Char_Arr, AGC_Visit_Test_Integer_Access);
    function AGC_Func_0 return Int_Arr is
       AGC_Base_Root_Count : Natural                     := GC.Root_Count;
       AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(21);

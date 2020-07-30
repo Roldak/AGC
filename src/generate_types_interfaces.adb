@@ -248,6 +248,8 @@ is
       Decl       : LAL.Base_Type_Decl'Class)
       return LALRW.Node_Rewriting_Handle
    is
+      Is_Constrained : Boolean := Decl.P_Is_Definite_Subtype;
+
       Element_Type : LAL.Base_Type_Decl'Class :=
          Decl.P_Comp_Type;
 
@@ -259,12 +261,21 @@ is
 
       Index_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Index_Type.F_Name);
+
+      Array_Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.F_Name);
+
+      Generic_Visitor_Name : Langkit_Support.Text.Text_Type :=
+        (if Is_Constrained
+         then "GC.Visit_Constrained_Array_Type"
+         else "GC.Visit_Unconstrained_Array_Type");
    begin
       return LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & " is new GC.Visit_Array_Type ("
+        "procedure " & Visit_Name & " is new " & Generic_Visitor_Name &" ("
         & Element_Type_Name & ", "
         & Index_Type_Name & ", "
+        & Array_Type_Name & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule);

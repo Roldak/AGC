@@ -16,8 +16,10 @@ procedure Test is
    procedure AGC_Visit_Test_Quad_Tree (X : System.Address);
    procedure AGC_Visit_Test_Quad_Tree_Access is new GC.Visit_Access_Type
      (Quad_Tree, Quad_Tree_Access, AGC_Visit_Test_Quad_Tree);
-   procedure AGC_Visit_Test_Quad_Tree_Access_Array is new GC.Visit_Array_Type
-     (Quad_Tree_Access, Positive, AGC_Visit_Test_Quad_Tree_Access);
+   procedure AGC_Visit_Test_Quad_Tree_Access_Array is new GC
+     .Visit_Unconstrained_Array_Type
+     (Quad_Tree_Access, Positive, Quad_Tree_Access_Array,
+      AGC_Visit_Test_Quad_Tree_Access);
    procedure AGC_Visit_Test_Quad_Tree (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Quad_Tree;

@@ -28,8 +28,17 @@ package GC is
    generic
       type T is private;
       type I is (<>);
+      type T_Array is array (I) of T;
       with procedure Visit_Element (X : System.Address);
-   procedure Visit_Array_Type (X : System.Address)
+   procedure Visit_Constrained_Array_Type (X : System.Address)
+      with Inline;
+
+   generic
+      type T is private;
+      type I is (<>);
+      type T_Array is array (I range <>) of T;
+      with procedure Visit_Element (X : System.Address);
+   procedure Visit_Unconstrained_Array_Type (X : System.Address)
       with Inline;
 
    procedure Collect;
