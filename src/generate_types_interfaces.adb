@@ -324,6 +324,9 @@ is
    begin
       if Decl.Kind in LALCO.Ada_Incomplete_Type_Decl then
          return;
+      elsif not Utils.Is_Relevant_Type (Decl) then
+         Handled_Types.Insert (Decl.As_Ada_Node);
+         return;
       elsif
          Decl.P_Is_Access_Type and then not Is_Handled (Decl.P_Accessed_Type)
       then

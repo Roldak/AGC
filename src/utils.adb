@@ -137,6 +137,10 @@ package body Utils is
      (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
    is
    begin
-      return "Visitor_" & Unique_Identifier (Typ);
+      if Is_Relevant_Type (Typ) then
+         return "AGC_Visit_" & Unique_Identifier (Typ);
+      else
+         return "GC.No_Op";
+      end if;
    end Visitor_Name;
 end Utils;

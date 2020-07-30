@@ -1,15 +1,12 @@
 with GC;
-with GC.Standard;
 with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
-use GC.Standard;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    pragma Default_Storage_Pool (GC.Storage.Pool);
    type Expr_Kind is (Add, Mul, Lit, Var);
-   procedure Visitor_Test_Expr_Kind is new GC.No_Op (Expr_Kind);
    type Expr;
    type Expr_Access is access all Expr;
    type Expr (K : Expr_Kind) is record
@@ -23,10 +20,10 @@ procedure Test is
             Name : Character;
       end case;
    end record;
-   procedure Visitor_Test_Expr (X : System.Address);
-   procedure Visitor_Test_Expr_Access is new GC.Visit_Access_Type
-     (Expr, Expr_Access, Visitor_Test_Expr);
-   procedure Visitor_Test_Expr (X : System.Address) is
+   procedure AGC_Visit_Test_Expr (X : System.Address);
+   procedure AGC_Visit_Test_Expr_Access is new GC.Visit_Access_Type
+     (Expr, Expr_Access, AGC_Visit_Test_Expr);
+   procedure AGC_Visit_Test_Expr (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Expr;
       for Rec_Access'Size use Standard'Address_Size;
@@ -39,21 +36,20 @@ procedure Test is
             declare
                C : aliased Test.Expr_Access := R.Lhs;
             begin
-               Visitor_Test_Expr_Access (C'Address);
+               AGC_Visit_Test_Expr_Access (C'Address);
             end;
             declare
                C : aliased Test.Expr_Access := R.Rhs;
             begin
-               Visitor_Test_Expr_Access (C'Address);
+               AGC_Visit_Test_Expr_Access (C'Address);
             end;
          when Lit =>
             null;
          when Var =>
             null;
       end case;
-   end Visitor_Test_Expr;
+   end AGC_Visit_Test_Expr;
    type Env is array (Character) of Integer;
-   procedure Visitor_Test_Env is new GC.No_Op (Env);
    function Is_Lit (Ex : Expr_Access; V : Integer) return Boolean is
       AGC_Base_Root_Count : Natural := GC.Root_Count;
    begin
@@ -86,13 +82,14 @@ procedure Test is
                   AGC_Temp_1 : aliased Test.Expr_Access := Simplify (Ex.Rhs);
                begin
                   GC.Push_Root
-                    (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_1'Address, AGC_Visit_Test_Expr_Access'Address);
                   declare
                      AGC_Temp_0 : aliased Test.Expr_Access :=
                        Simplify (Ex.Lhs);
                   begin
                      GC.Push_Root
-                       (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                       (AGC_Temp_0'Address,
+                        AGC_Visit_Test_Expr_Access'Address);
                      return
                        AGC_Ret : Expr_Access :=
                          new Expr'(Add, AGC_Temp_0, AGC_Temp_1) do
@@ -126,13 +123,14 @@ procedure Test is
                   AGC_Temp_1 : aliased Test.Expr_Access := Simplify (Ex.Rhs);
                begin
                   GC.Push_Root
-                    (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_1'Address, AGC_Visit_Test_Expr_Access'Address);
                   declare
                      AGC_Temp_0 : aliased Test.Expr_Access :=
                        Simplify (Ex.Lhs);
                   begin
                      GC.Push_Root
-                       (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                       (AGC_Temp_0'Address,
+                        AGC_Visit_Test_Expr_Access'Address);
                      return
                        AGC_Ret : Expr_Access :=
                          new Expr'(Mul, AGC_Temp_0, AGC_Temp_1) do
@@ -162,13 +160,13 @@ procedure Test is
                  Substitute (Ex.Rhs, Ev);
             begin
                GC.Push_Root
-                 (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
+                 (AGC_Temp_1'Address, AGC_Visit_Test_Expr_Access'Address);
                declare
                   AGC_Temp_0 : aliased Test.Expr_Access :=
                     Substitute (Ex.Lhs, Ev);
                begin
                   GC.Push_Root
-                    (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
                   return
                     AGC_Ret : Expr_Access :=
                       new Expr'(Add, AGC_Temp_0, AGC_Temp_1) do
@@ -183,13 +181,13 @@ procedure Test is
                  Substitute (Ex.Rhs, Ev);
             begin
                GC.Push_Root
-                 (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
+                 (AGC_Temp_1'Address, AGC_Visit_Test_Expr_Access'Address);
                declare
                   AGC_Temp_0 : aliased Test.Expr_Access :=
                     Substitute (Ex.Lhs, Ev);
                begin
                   GC.Push_Root
-                    (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
                   return
                     AGC_Ret : Expr_Access :=
                       new Expr'(Mul, AGC_Temp_0, AGC_Temp_1) do
@@ -213,14 +211,14 @@ procedure Test is
          AGC_Base_Root_Count : Natural                  := GC.Root_Count;
          AGC_Temp_0          : aliased Test.Expr_Access := Substitute (Ex, Ev);
       begin
-         GC.Push_Root (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+         GC.Push_Root (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
          return AGC_Ret : Expr_Access := Simplify (AGC_Temp_0) do
             GC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end AGC_Func_0;
       Simplified : aliased Expr_Access := AGC_Func_0;
    begin
-      GC.Push_Root (Simplified'Address, Visitor_Test_Expr_Access'Address);
+      GC.Push_Root (Simplified'Address, AGC_Visit_Test_Expr_Access'Address);
       if Simplified.K = Lit then
          return AGC_Ret : Integer := Simplified.Value do
             GC.Pop_Roots (AGC_Base_Root_Count);
@@ -252,23 +250,23 @@ procedure Test is
          AGC_Base_Root_Count : Natural                  := GC.Root_Count;
          AGC_Temp_3          : aliased Test.Expr_Access := new Expr'(Lit, 1);
       begin
-         GC.Push_Root (AGC_Temp_3'Address, Visitor_Test_Expr_Access'Address);
+         GC.Push_Root (AGC_Temp_3'Address, AGC_Visit_Test_Expr_Access'Address);
          declare
             AGC_Temp_2 : aliased Test.Expr_Access := new Expr'(Var, 'x');
          begin
             GC.Push_Root
-              (AGC_Temp_2'Address, Visitor_Test_Expr_Access'Address);
+              (AGC_Temp_2'Address, AGC_Visit_Test_Expr_Access'Address);
             declare
                AGC_Temp_1 : aliased Test.Expr_Access :=
                  new Expr'(Mul, AGC_Temp_2, AGC_Temp_3);
             begin
                GC.Push_Root
-                 (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
+                 (AGC_Temp_1'Address, AGC_Visit_Test_Expr_Access'Address);
                declare
                   AGC_Temp_0 : aliased Test.Expr_Access := new Expr'(Lit, 0);
                begin
                   GC.Push_Root
-                    (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
                   return
                     AGC_Ret : Expr_Access :=
                       new Expr'(Add, AGC_Temp_0, AGC_Temp_1) do
@@ -283,12 +281,12 @@ procedure Test is
          AGC_Base_Root_Count : Natural                  := GC.Root_Count;
          AGC_Temp_1          : aliased Test.Expr_Access := new Expr'(Lit, 4);
       begin
-         GC.Push_Root (AGC_Temp_1'Address, Visitor_Test_Expr_Access'Address);
+         GC.Push_Root (AGC_Temp_1'Address, AGC_Visit_Test_Expr_Access'Address);
          declare
             AGC_Temp_0 : aliased Test.Expr_Access := new Expr'(Lit, 2);
          begin
             GC.Push_Root
-              (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+              (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
             return
               AGC_Ret : Expr_Access := new Expr'(Mul, AGC_Temp_0, AGC_Temp_1)
             do
@@ -297,15 +295,15 @@ procedure Test is
          end;
       end AGC_Func_1;
    begin
-      GC.Push_Root (X'Address, Visitor_Test_Expr_Access'Address);
+      GC.Push_Root (X'Address, AGC_Visit_Test_Expr_Access'Address);
       declare
          Y : aliased Expr_Access := AGC_Func_1;
       begin
-         GC.Push_Root (Y'Address, Visitor_Test_Expr_Access'Address);
+         GC.Push_Root (Y'Address, AGC_Visit_Test_Expr_Access'Address);
          declare
             Z : aliased Expr_Access := new Expr'(Add, X, Y);
          begin
-            GC.Push_Root (Z'Address, Visitor_Test_Expr_Access'Address);
+            GC.Push_Root (Z'Address, AGC_Visit_Test_Expr_Access'Address);
             declare
                Ev : Env := ('x' => 42, others => 0);
             begin
@@ -315,7 +313,7 @@ procedure Test is
                   AGC_Temp_0     : aliased Test.Expr_Access := Simplify (Z);
                begin
                   GC.Push_Root
-                    (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
                   Put_Line (To_String (AGC_Temp_0));
                   GC.Pop_Roots (AGC_Root_Count);
                end;
@@ -324,7 +322,7 @@ procedure Test is
                   AGC_Temp_0 : aliased Test.Expr_Access := Substitute (Z, Ev);
                begin
                   GC.Push_Root
-                    (AGC_Temp_0'Address, Visitor_Test_Expr_Access'Address);
+                    (AGC_Temp_0'Address, AGC_Visit_Test_Expr_Access'Address);
                   Put_Line (To_String (AGC_Temp_0));
                   GC.Pop_Roots (AGC_Root_Count);
                end;

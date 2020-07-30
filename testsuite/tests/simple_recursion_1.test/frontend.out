@@ -1,21 +1,19 @@
 with GC;
-with GC.Standard;
 with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
-use GC.Standard;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    pragma Default_Storage_Pool (GC.Storage.Pool);
    type Integer_Access is access all Integer;
-   procedure Visitor_Test_Integer_Access is new GC.Visit_Access_Type
-     (Integer, Integer_Access, Visitor_Standard_Integer);
+   procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
+     (Integer, Integer_Access, GC.No_Op);
    procedure Foo (N : Natural) is
       AGC_Base_Root_Count : Natural                := GC.Root_Count;
       X                   : aliased Integer_Access := new Integer'(42);
    begin
-      GC.Push_Root (X'Address, Visitor_Test_Integer_Access'Address);
+      GC.Push_Root (X'Address, AGC_Visit_Test_Integer_Access'Address);
       if N < 100 then
          Foo (N + 1);
       end if;

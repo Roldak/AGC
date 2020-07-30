@@ -72,8 +72,6 @@ package body GC is
       As_Alloc_State_Access (X).all := Unknown;
    end Register;
 
-   procedure No_Op (X : Address) is null;
-
    procedure Visit_Access_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
 

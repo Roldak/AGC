@@ -15,9 +15,7 @@ package GC is
    procedure Register (X : System.Address)
       with Inline;
 
-   generic
-      type T (<>) is private;
-   procedure No_Op (X : System.Address)
+   procedure No_Op (X : System.Address) is null
       with Inline;
 
    generic
