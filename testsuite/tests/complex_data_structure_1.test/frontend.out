@@ -41,33 +41,25 @@ begin
       AGC_Root_Count : Natural := GC.Root_Count;
    begin
       declare
-         AGC_Temp_3 : aliased Test.Quad_Tree_Access_Array :=
+         AGC_Temp_2 : aliased Test.Quad_Tree_Access_Array :=
            (null, null, null, null);
       begin
          GC.Push_Root
-           (AGC_Temp_3'Address, AGC_Visit_Test_Quad_Tree_Access_Array'Address);
+           (AGC_Temp_2'Address, AGC_Visit_Test_Quad_Tree_Access_Array'Address);
          declare
-            AGC_Temp_2 : aliased Test.Quad_Tree_Access :=
-              new Quad_Tree'(Value => 2, Nodes => AGC_Temp_3);
+            AGC_Temp_1 : aliased Test.Quad_Tree_Access :=
+              new Quad_Tree'(Value => 2, Nodes => AGC_Temp_2);
          begin
             GC.Push_Root
-              (AGC_Temp_2'Address, AGC_Visit_Test_Quad_Tree_Access'Address);
+              (AGC_Temp_1'Address, AGC_Visit_Test_Quad_Tree_Access'Address);
             declare
-               AGC_Temp_1 : aliased Test.Quad_Tree_Access_Array :=
-                 (1 => null, 2 => AGC_Temp_2, 3 => null, 4 => null);
+               AGC_Temp_0 : aliased Test.Quad_Tree_Access_Array :=
+                 (1 => null, 2 => AGC_Temp_1, 3 => null, 4 => null);
             begin
                GC.Push_Root
-                 (AGC_Temp_1'Address,
+                 (AGC_Temp_0'Address,
                   AGC_Visit_Test_Quad_Tree_Access_Array'Address);
-               declare
-                  AGC_Temp_0 : aliased Test.Quad_Tree_Access :=
-                    new Quad_Tree'(Value => 5, Nodes => AGC_Temp_1);
-               begin
-                  GC.Push_Root
-                    (AGC_Temp_0'Address,
-                     AGC_Visit_Test_Quad_Tree_Access'Address);
-                  X := AGC_Temp_0;
-               end;
+               X := new Quad_Tree'(Value => 5, Nodes => AGC_Temp_0);
             end;
          end;
       end;

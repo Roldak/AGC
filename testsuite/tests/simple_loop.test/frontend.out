@@ -13,15 +13,7 @@ procedure Test is
 begin
    GC.Push_Root (X'Address, AGC_Visit_Test_Integer_Access'Address);
    for I in 1 .. 10_000 loop
-      declare
-         AGC_Root_Count : Natural                     := GC.Root_Count;
-         AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(42);
-      begin
-         GC.Push_Root
-           (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
-         X := AGC_Temp_0;
-         GC.Pop_Roots (AGC_Root_Count);
-      end;
+      X := new Integer'(42);
    end loop;
    GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
