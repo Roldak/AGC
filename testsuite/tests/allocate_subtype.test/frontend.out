@@ -15,6 +15,6 @@ procedure Test is
    X : aliased My_Nat_Access := new My_Natural'(2);
 begin
    GC.Push_Root (X'Address, Visitor_Test_My_Nat_Access'Address);
-   null;
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

@@ -27,6 +27,6 @@ procedure Test is
    X : aliased T_Access := new T'(X => 2);
 begin
    GC.Push_Root (X'Address, Visitor_Test_T_Access'Address);
-   null;
+   GC.Collect;
    GC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

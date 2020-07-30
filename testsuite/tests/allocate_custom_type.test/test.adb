@@ -7,5 +7,5 @@ procedure Test is
 
    X : T_Access := new T'(X => 2);
 begin
-   null;
+   GC.Collect;
 end Test;
