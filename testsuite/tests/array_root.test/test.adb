@@ -1,6 +1,3 @@
-with Ada.Text_IO; use Ada.Text_IO;
-with System.Address_Image; use System;
-
 procedure Test is
    type Integer_Access is access all Integer;
 

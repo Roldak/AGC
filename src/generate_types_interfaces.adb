@@ -79,22 +79,6 @@ is
          or else Handled_Types.Contains (Decl.As_Ada_Node);
    end Is_Handled;
 
-   function Generate_No_Op_Visitor
-     (Visit_Name : Langkit_Support.Text.Text_Type;
-      Decl       : LAL.Base_Type_Decl'Class)
-      return LALRW.Node_Rewriting_Handle
-   is
-      Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Decl.F_Name);
-   begin
-      return LALRW.Create_From_Template
-        (RH,
-        "procedure " & Visit_Name & " is new GC.No_Op ("
-        & Type_Name & ");",
-        (1 .. 0 => <>),
-        LALCO.Basic_Decl_Rule);
-   end Generate_No_Op_Visitor;
-
    function Generate_Visitor_Prototype
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class)
@@ -276,18 +260,14 @@ is
       Index_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Index_Type.F_Name);
    begin
-      if Utils.Is_Relevant_Type (Element_Type) then
-         return LALRW.Create_From_Template
-           (RH,
-           "procedure " & Visit_Name & " is new GC.Visit_Array_Type ("
-           & Element_Type_Name & ", "
-           & Index_Type_Name & ", "
-           & Utils.Visitor_Name (Element_Type) & ");",
-           (1 .. 0 => <>),
-           LALCO.Basic_Decl_Rule);
-      else
-         return Generate_No_Op_Visitor (Visit_Name, Decl);
-      end if;
+      return LALRW.Create_From_Template
+        (RH,
+        "procedure " & Visit_Name & " is new GC.Visit_Array_Type ("
+        & Element_Type_Name & ", "
+        & Index_Type_Name & ", "
+        & Utils.Visitor_Name (Element_Type) & ");",
+        (1 .. 0 => <>),
+        LALCO.Basic_Decl_Rule);
    end Generate_Array_Type_Visitor;
 
    function Generate_Visitor
@@ -303,7 +283,7 @@ is
       elsif Decl.P_Is_Array_Type then
          return Generate_Array_Type_Visitor (Visit_Name, Decl);
       else
-         return Generate_No_Op_Visitor (Visit_Name, Decl);
+         raise Program_Error with "Unhandled type";
       end if;
    end Generate_Visitor;
 

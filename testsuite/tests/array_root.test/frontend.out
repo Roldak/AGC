@@ -2,8 +2,6 @@ with GC;
 with GC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
-with Ada.Text_IO;          use Ada.Text_IO;
-with System.Address_Image; use System;
 procedure Test is
    AGC_Base_Root_Count : Natural := GC.Root_Count;
    pragma Default_Storage_Pool (GC.Storage.Pool);
