@@ -10,7 +10,7 @@ with System; use System;
 with System.Address_Image;
 with System.Storage_Elements; use System.Storage_Elements;
 
-package body GC is
+package body AGC is
    type Address_Access is access all Address;
    type Address_Visitor is access procedure (X : Address);
 
@@ -163,4 +163,4 @@ package body GC is
    begin
       Put_Line ("Still alive : " & Alloc_Set.Length'Image);
    end Print_Stats;
-end GC;
+end AGC;

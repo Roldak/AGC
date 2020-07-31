@@ -16,5 +16,5 @@ procedure Test is
 
    A : Integer := Add (Inner (1), Inner (2));
 begin
-   GC.Collect;
+   AGC.Collect;
 end Test;

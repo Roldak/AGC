@@ -14,8 +14,8 @@ procedure Test is
 
    Y : Char_Arr;
 begin
-   GC.Collect;
+   AGC.Collect;
    X (2).all := 145;
    Y ('b') := X (3);
-   GC.Collect;
+   AGC.Collect;
 end Test;

@@ -1,15 +1,15 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type T;
    type T_Access is access all T;
    type T is null record;
    procedure AGC_Visit_Test_T (X : System.Address);
-   procedure AGC_Visit_Test_T_Access is new GC.Visit_Access_Type
+   procedure AGC_Visit_Test_T_Access is new AGC.Visit_Access_Type
      (T, T_Access, AGC_Visit_Test_T);
    procedure AGC_Visit_Test_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
@@ -22,5 +22,5 @@ procedure Test is
       null;
    end AGC_Visit_Test_T;
 begin
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

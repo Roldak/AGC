@@ -7,6 +7,6 @@ procedure Test is
 
    X : Rec := (Value => new Integer'(2));
 begin
-   GC.Collect;
+   AGC.Collect;
    X.Value.all := 3;
 end Test;

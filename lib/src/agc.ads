@@ -2,7 +2,7 @@ with Ada.Containers;
 
 with System;
 
-package GC is
+package AGC is
    function Root_Count return Natural
       with Inline;
 
@@ -44,4 +44,4 @@ package GC is
    procedure Collect;
 
    procedure Print_Stats;
-end GC;
+end AGC;

@@ -75,7 +75,7 @@ is
         (Stmts, 1,
          LALRW.Create_From_Template
            (RH,
-            "GC.Push_Root ({}'Address, {}'Address);",
+            "AGC.Push_Root ({}'Address, {}'Address);",
             (1 => LALRW.Create_Token_Node
                     (RH, LALCO.Ada_Identifier, Name),
              2 => LALRW.Create_Token_Node
@@ -105,7 +105,7 @@ is
         (Stmts,
          LALRW.Create_From_Template
            (RH,
-            "GC.Pop_Roots (" & Root_Count_Name (Leaving_Subp) & ");",
+            "AGC.Pop_Roots (" & Root_Count_Name (Leaving_Subp) & ");",
             (1 .. 0 => <>),
             LALCO.Call_Stmt_Rule));
    end Pop_Objects;
@@ -151,7 +151,7 @@ is
                LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
                  (RH,
                   Root_Count_Name (Subp_Level)
-                  & " : Natural := GC.Root_Count;",
+                  & " : Natural := AGC.Root_Count;",
                   (1 .. 0 => <>),
                   LALCO.Object_Decl_Rule));
             end if;

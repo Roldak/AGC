@@ -10,5 +10,5 @@ procedure Test is
    end Inner;
 begin
    Inner (new Integer'(1));
-   GC.Collect;
+   AGC.Collect;
 end Test;

@@ -5,5 +5,5 @@ procedure Test is
 
    X : Arr_Access := new Arr'(1 => 2, 2 => 4);
 begin
-   GC.Collect;
+   AGC.Collect;
 end Test;

@@ -13,6 +13,6 @@ procedure Test is
 
    X : U_Access := new U'(A => new T'(X => 1));
 begin
-   GC.Collect;
+   AGC.Collect;
    X.A.X := 2;
 end Test;

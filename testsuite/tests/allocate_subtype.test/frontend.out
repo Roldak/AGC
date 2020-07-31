@@ -1,17 +1,17 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    subtype My_Natural is Integer range 0 .. Integer'Last;
    type My_Nat_Access is access all My_Natural;
-   procedure AGC_Visit_Test_My_Nat_Access is new GC.Visit_Access_Type
-     (My_Natural, My_Nat_Access, GC.No_Op);
+   procedure AGC_Visit_Test_My_Nat_Access is new AGC.Visit_Access_Type
+     (My_Natural, My_Nat_Access, AGC.No_Op);
    X : aliased My_Nat_Access := new My_Natural'(2);
 begin
-   GC.Push_Root (X'Address, AGC_Visit_Test_My_Nat_Access'Address);
-   GC.Collect;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Push_Root (X'Address, AGC_Visit_Test_My_Nat_Access'Address);
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

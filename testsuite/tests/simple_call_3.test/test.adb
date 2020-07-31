@@ -9,5 +9,5 @@ procedure Test is
    end Inner;
 begin
    Inner (new Integer'(1), new Integer'(2));
-   GC.Collect;
+   AGC.Collect;
 end Test;

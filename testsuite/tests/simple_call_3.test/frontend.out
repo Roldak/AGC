@@ -1,34 +1,35 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
-     (Integer, Integer_Access, GC.No_Op);
+   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
    procedure Inner (X, Y : Integer_Access) is
-      AGC_Base_Root_Count : Natural := GC.Root_Count;
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
    begin
-      GC.Pop_Roots (AGC_Base_Root_Count);
+      AGC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
 begin
    declare
-      AGC_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_1     : aliased Test.Integer_Access := new Integer'(2);
    begin
-      GC.Push_Root (AGC_Temp_1'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root
+        (AGC_Temp_1'Address, AGC_Visit_Test_Integer_Access'Address);
       declare
          AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(1);
       begin
-         GC.Push_Root
+         AGC.Push_Root
            (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
          Inner (AGC_Temp_0, AGC_Temp_1);
       end;
-      GC.Pop_Roots (AGC_Root_Count);
+      AGC.Pop_Roots (AGC_Root_Count);
    end;
-   GC.Collect;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

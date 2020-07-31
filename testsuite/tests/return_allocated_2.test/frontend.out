@@ -1,47 +1,48 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
-     (Integer, Integer_Access, GC.No_Op);
+   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
    function Inner (X : Integer) return Integer_Access is
-      AGC_Base_Root_Count : Natural                := GC.Root_Count;
+      AGC_Base_Root_Count : Natural                := AGC.Root_Count;
       Tmp                 : aliased Integer_Access := new Integer'(X);
    begin
-      GC.Push_Root (Tmp'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root (Tmp'Address, AGC_Visit_Test_Integer_Access'Address);
       return AGC_Ret : Integer_Access := Tmp do
-         GC.Pop_Roots (AGC_Base_Root_Count);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end Inner;
    function Add (A, B : Integer_Access) return Integer is
-      AGC_Base_Root_Count : Natural := GC.Root_Count;
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
    begin
       return AGC_Ret : Integer := A.all + B.all do
-         GC.Pop_Roots (AGC_Base_Root_Count);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end Add;
    function AGC_Func_0 return Integer is
-      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_1          : aliased Test.Integer_Access := Inner (2);
    begin
-      GC.Push_Root (AGC_Temp_1'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root
+        (AGC_Temp_1'Address, AGC_Visit_Test_Integer_Access'Address);
       declare
          AGC_Temp_0 : aliased Test.Integer_Access := Inner (1);
       begin
-         GC.Push_Root
+         AGC.Push_Root
            (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
          return AGC_Ret : Integer := Add (AGC_Temp_0, AGC_Temp_1) do
-            GC.Pop_Roots (AGC_Base_Root_Count);
+            AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end;
    end AGC_Func_0;
    A : Integer := AGC_Func_0;
 begin
-   GC.Collect;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

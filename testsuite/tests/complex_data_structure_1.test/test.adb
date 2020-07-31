@@ -25,5 +25,5 @@ begin
             3 => null,
             4 => null));
    end;
-   GC.Collect;
+   AGC.Collect;
 end Test;

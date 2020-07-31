@@ -18,5 +18,5 @@ procedure Test is
    R_1 : Rec := (A, 1);
    R_2 : Rec := (C, 2, new Integer'(3));
 begin
-   GC.Collect;
+   AGC.Collect;
 end Test;

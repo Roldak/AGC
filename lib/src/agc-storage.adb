@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with System.Memory; use System.Memory;
 
-package body GC.Storage is
+package body AGC.Storage is
    procedure Allocate
      (Self : in out GC_Pool;
       Addr : out System.Address;
@@ -12,7 +12,7 @@ package body GC.Storage is
       Actual_Size : constant Storage_Count := Size + 4;
       Allocated   : constant Address := Alloc (size_t (Actual_Size));
 	begin
-      GC.Register (Allocated);
+      AGC.Register (Allocated);
       Addr := Allocated + 4;
    end Allocate;
 
@@ -25,4 +25,4 @@ package body GC.Storage is
    begin
       null;
    end Deallocate;
-end GC.Storage;
+end AGC.Storage;

@@ -1,13 +1,13 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
-     (Integer, Integer_Access, GC.No_Op);
+   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
    type Rec is record
       Value : Integer_Access;
    end record;
@@ -27,18 +27,19 @@ procedure Test is
       end;
    end AGC_Visit_Test_Rec;
    function AGC_Func_0 return Rec is
-      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(2);
    begin
-      GC.Push_Root (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root
+        (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
       return AGC_Ret : Rec := (Value => AGC_Temp_0) do
-         GC.Pop_Roots (AGC_Base_Root_Count);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
    X : aliased Rec := AGC_Func_0;
 begin
-   GC.Push_Root (X'Address, AGC_Visit_Test_Rec'Address);
-   GC.Collect;
+   AGC.Push_Root (X'Address, AGC_Visit_Test_Rec'Address);
+   AGC.Collect;
    X.Value.all := 3;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

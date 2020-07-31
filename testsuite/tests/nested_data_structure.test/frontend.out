@@ -1,10 +1,10 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type T is record
       X : Integer;
    end record;
@@ -20,7 +20,7 @@ procedure Test is
       null;
    end AGC_Visit_Test_T;
    type T_Access is access all T;
-   procedure AGC_Visit_Test_T_Access is new GC.Visit_Access_Type
+   procedure AGC_Visit_Test_T_Access is new AGC.Visit_Access_Type
      (T, T_Access, AGC_Visit_Test_T);
    type U is record
       A : T_Access;
@@ -41,21 +41,21 @@ procedure Test is
       end;
    end AGC_Visit_Test_U;
    type U_Access is access all U;
-   procedure AGC_Visit_Test_U_Access is new GC.Visit_Access_Type
+   procedure AGC_Visit_Test_U_Access is new AGC.Visit_Access_Type
      (U, U_Access, AGC_Visit_Test_U);
    function AGC_Func_0 return U_Access is
-      AGC_Base_Root_Count : Natural               := GC.Root_Count;
+      AGC_Base_Root_Count : Natural               := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.T_Access := new T'(X => 1);
    begin
-      GC.Push_Root (AGC_Temp_0'Address, AGC_Visit_Test_T_Access'Address);
+      AGC.Push_Root (AGC_Temp_0'Address, AGC_Visit_Test_T_Access'Address);
       return AGC_Ret : U_Access := new U'(A => AGC_Temp_0) do
-         GC.Pop_Roots (AGC_Base_Root_Count);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
    X : aliased U_Access := AGC_Func_0;
 begin
-   GC.Push_Root (X'Address, AGC_Visit_Test_U_Access'Address);
-   GC.Collect;
+   AGC.Push_Root (X'Address, AGC_Visit_Test_U_Access'Address);
+   AGC.Collect;
    X.A.X := 2;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

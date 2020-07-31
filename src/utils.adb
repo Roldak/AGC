@@ -140,7 +140,7 @@ package body Utils is
       if Is_Relevant_Type (Typ) then
          return "AGC_Visit_" & Unique_Identifier (Typ);
       else
-         return "GC.No_Op";
+         return "AGC.No_Op";
       end if;
    end Visitor_Name;
 end Utils;

@@ -4,5 +4,5 @@ procedure Test is
 
    X : My_Nat_Access := new My_Natural'(2);
 begin
-   GC.Collect;
+   AGC.Collect;
 end Test;

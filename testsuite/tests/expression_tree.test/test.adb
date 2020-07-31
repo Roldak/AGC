@@ -125,5 +125,5 @@ procedure Test is
    end Main;
 begin
    Main;
-   GC.Collect;
+   AGC.Collect;
 end Test;

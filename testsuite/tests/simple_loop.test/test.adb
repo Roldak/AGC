@@ -8,5 +8,5 @@ begin
    for I in 1 .. 10_000 loop
       X := new Integer'(42);
    end loop;
-   GC.Collect;
+   AGC.Collect;
 end Test;

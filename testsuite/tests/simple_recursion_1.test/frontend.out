@@ -1,26 +1,26 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
-     (Integer, Integer_Access, GC.No_Op);
+   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
    procedure Foo (N : Natural) is
-      AGC_Base_Root_Count : Natural                := GC.Root_Count;
+      AGC_Base_Root_Count : Natural                := AGC.Root_Count;
       X                   : aliased Integer_Access := new Integer'(42);
    begin
-      GC.Push_Root (X'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root (X'Address, AGC_Visit_Test_Integer_Access'Address);
       if N < 100 then
          Foo (N + 1);
       end if;
-      GC.Pop_Roots (AGC_Base_Root_Count);
+      AGC.Pop_Roots (AGC_Base_Root_Count);
    end Foo;
 begin
    Foo (0);
-   GC.Collect;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

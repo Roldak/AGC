@@ -12,5 +12,5 @@ procedure Test is
    A : Integer_Access := new Integer'(1);
 begin
    Inner (A);
-   GC.Collect;
+   AGC.Collect;
 end Test;

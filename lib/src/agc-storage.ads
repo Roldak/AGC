@@ -2,7 +2,7 @@ with System; use System;
 with System.Storage_Pools; use System.Storage_Pools;
 with System.Storage_Elements; use System.Storage_Elements;
 
-package GC.Storage is
+package AGC.Storage is
    type GC_Pool is new Root_Storage_Pool with null record;
 
    overriding procedure Allocate
@@ -22,4 +22,4 @@ package GC.Storage is
 	      with Inline;
 
    Pool : GC_Pool;
-end GC.Storage;
+end AGC.Storage;

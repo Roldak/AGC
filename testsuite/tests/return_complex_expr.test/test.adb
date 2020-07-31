@@ -15,5 +15,5 @@ procedure Test is
 
    A : Integer := Add (1, 2, 3);
 begin
-   GC.Collect;
+   AGC.Collect;
 end Test;

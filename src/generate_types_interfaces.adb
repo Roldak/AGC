@@ -108,7 +108,7 @@ is
    begin
       return LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & " is new GC.Visit_Access_Type ("
+        "procedure " & Visit_Name & " is new AGC.Visit_Access_Type ("
         & Element_Type_Name & ", "
         & Access_Type_Name & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
@@ -267,8 +267,8 @@ is
 
       Generic_Visitor_Name : Langkit_Support.Text.Text_Type :=
         (if Is_Constrained
-         then "GC.Visit_Constrained_Array_Type"
-         else "GC.Visit_Unconstrained_Array_Type");
+         then "AGC.Visit_Constrained_Array_Type"
+         else "AGC.Visit_Unconstrained_Array_Type");
    begin
       return LALRW.Create_From_Template
         (RH,

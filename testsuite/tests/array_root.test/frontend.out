@@ -1,53 +1,54 @@
-with GC;
-with GC.Storage;
+with AGC;
+with AGC.Storage;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   AGC_Base_Root_Count : Natural := GC.Root_Count;
-   pragma Default_Storage_Pool (GC.Storage.Pool);
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new GC.Visit_Access_Type
-     (Integer, Integer_Access, GC.No_Op);
+   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
    type Int_Arr is array (Positive range <>) of Integer_Access;
-   procedure AGC_Visit_Test_Int_Arr is new GC.Visit_Unconstrained_Array_Type
+   procedure AGC_Visit_Test_Int_Arr is new AGC.Visit_Unconstrained_Array_Type
      (Integer_Access, Positive, Int_Arr, AGC_Visit_Test_Integer_Access);
    type Char_Arr is array (Character) of Integer_Access;
-   procedure AGC_Visit_Test_Char_Arr is new GC.Visit_Constrained_Array_Type
+   procedure AGC_Visit_Test_Char_Arr is new AGC.Visit_Constrained_Array_Type
      (Integer_Access, Character, Char_Arr, AGC_Visit_Test_Integer_Access);
    function AGC_Func_0 return Int_Arr is
-      AGC_Base_Root_Count : Natural                     := GC.Root_Count;
+      AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(21);
    begin
-      GC.Push_Root (AGC_Temp_2'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root
+        (AGC_Temp_2'Address, AGC_Visit_Test_Integer_Access'Address);
       declare
          AGC_Temp_1 : aliased Test.Integer_Access := new Integer'(12);
       begin
-         GC.Push_Root
+         AGC.Push_Root
            (AGC_Temp_1'Address, AGC_Visit_Test_Integer_Access'Address);
          declare
             AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(42);
          begin
-            GC.Push_Root
+            AGC.Push_Root
               (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
             return
               AGC_Ret : Int_Arr :=
                 (1 => AGC_Temp_0, 2 => AGC_Temp_1, 3 => AGC_Temp_2) do
-               GC.Pop_Roots (AGC_Base_Root_Count);
+               AGC.Pop_Roots (AGC_Base_Root_Count);
             end return;
          end;
       end;
    end AGC_Func_0;
    X : aliased Int_Arr := AGC_Func_0;
 begin
-   GC.Push_Root (X'Address, AGC_Visit_Test_Int_Arr'Address);
+   AGC.Push_Root (X'Address, AGC_Visit_Test_Int_Arr'Address);
    declare
       Y : aliased Char_Arr;
    begin
-      GC.Push_Root (Y'Address, AGC_Visit_Test_Char_Arr'Address);
-      GC.Collect;
+      AGC.Push_Root (Y'Address, AGC_Visit_Test_Char_Arr'Address);
+      AGC.Collect;
       X (2).all := 145;
       Y ('b')   := X (3);
-      GC.Collect;
+      AGC.Collect;
    end;
-   GC.Pop_Roots (AGC_Base_Root_Count);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

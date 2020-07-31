@@ -14,5 +14,5 @@ procedure Test is
 
    A : Integer := Inner (True, 42).all;
 begin
-   GC.Collect;
+   AGC.Collect;
 end Test;
