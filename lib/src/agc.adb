@@ -52,6 +52,9 @@ package body AGC is
    Alloc_Set : Address_Vectors.Vector;
    Reach_Set : Root_Vectors.Vector;
 
+   Current_Size : Storage_Count := 0;
+   Max_Size     : constant Storage_Count := 1024 * 1024 * 2;
+
    function Root_Count return Natural is (Natural (Reach_Set.Length));
 
    procedure Push_Root (X, Visitor : Address) is
@@ -64,12 +67,22 @@ package body AGC is
       Reach_Set.Set_Length (Ada.Containers.Count_Type (X));
    end Pop_Roots;
 
-   procedure Register (X : Address) is
+   Total_Registered : Natural := 0;
+
+   procedure Register
+     (Addr : Address;
+      Size : Storage_Count)
+   is
    begin
-      Collect;
-      Put_Line ("Adding " & Address_Image (X));
-      Alloc_Set.Append (X);
-      As_Alloc_State_Access (X).all := Unknown;
+      if Current_Size > Max_Size then
+         Collect;
+         Current_Size := 0;
+      end if;
+      Current_Size := Current_Size + Size;
+      Total_Registered := Total_Registered + 1;
+
+      Alloc_Set.Append (Addr);
+      As_Alloc_State_Access (Addr).all := Unknown;
    end Register;
 
    procedure Visit_Access_Type (X : Address) is
@@ -89,9 +102,14 @@ package body AGC is
             Type_Offset : constant Storage_Offset :=
                T'Descriptor_Size / Storage_Unit + Acc.all'Finalization_Size;
             Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
+
+            State : Alloc_State_Access :=
+               As_Alloc_State_Access (Header_Addr);
          begin
-            As_Alloc_State_Access (Header_Addr).all := Reachable;
-            Visit_Element (Elem_Addr);
+            if State.all /= Reachable then
+               State.all := Reachable;
+               Visit_Element (Elem_Addr);
+            end if;
          end;
       end if;
    end Visit_Access_Type;
@@ -137,30 +155,31 @@ package body AGC is
    end Visit_Unconstrained_Array_Type;
 
    procedure Collect is
+      New_Set : Address_Vectors.Vector;
    begin
       for Root of Reach_Set loop
          As_Address_Visitor (Root.Visitor).all (Root.Addr);
       end loop;
 
-      for J in reverse 1 .. Alloc_Set.Last_Index loop
+      for Alloc of Alloc_Set loop
          declare
-            Alloc : Address := Alloc_Set (J);
             State : Alloc_State_Access := As_Alloc_State_Access (Alloc);
          begin
             if State.all /= Unknown then
-               Put_Line ("Keeping " & Address_Image (Alloc));
                State.all := Unknown;
+               New_Set.Append (Alloc);
             else
-               Put_Line ("Collecting " & Address_Image (Alloc));
                Collect (Alloc);
-               Alloc_Set.Delete (J);
             end if;
          end;
       end loop;
+
+      Address_Vectors.Move (Alloc_Set, New_Set);
    end Collect;
 
    procedure Print_Stats is
    begin
       Put_Line ("Still alive : " & Alloc_Set.Length'Image);
+      Put_Line ("Total registered : " & Total_Registered'Image);
    end Print_Stats;
 end AGC;

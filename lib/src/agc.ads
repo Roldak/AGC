@@ -1,6 +1,7 @@
 with Ada.Containers;
 
 with System;
+with System.Storage_Elements;
 
 package AGC is
    function Root_Count return Natural
@@ -12,7 +13,9 @@ package AGC is
    procedure Pop_Roots (X : Natural)
       with Inline;
 
-   procedure Register (X : System.Address)
+   procedure Register
+     (Addr : System.Address;
+      Size : System.Storage_Elements.Storage_Count)
       with Inline;
 
    procedure No_Op (X : System.Address) is null

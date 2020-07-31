@@ -12,7 +12,7 @@ package body AGC.Storage is
       Actual_Size : constant Storage_Count := Size + 4;
       Allocated   : constant Address := Alloc (size_t (Actual_Size));
 	begin
-      AGC.Register (Allocated);
+      AGC.Register (Allocated, Size);
       Addr := Allocated + 4;
    end Allocate;
 
