@@ -1,0 +1,5 @@
+project Manual is
+   package Compiler is
+      for Switches ("Ada") use ("-O3", "-flto");
+   end Compiler;
+end Manual;
