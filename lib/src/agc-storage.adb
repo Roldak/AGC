@@ -6,7 +6,7 @@ with Ada.Finalization;
 with Ada.Unchecked_Deallocation;
 
 with AGC.Storage.Malloc_Free;
-with AGC.Storage.Bump_Ptr;
+with AGC.Storage.Free_List;
 
 package body AGC.Storage is
    procedure Free is new Ada.Unchecked_Deallocation
@@ -35,8 +35,8 @@ package body AGC.Storage is
             begin
                if V = "MALLOC_FREE" then
                   Current_Pool.Pool := new Malloc_Free.Malloc_Free_Pool;
-               elsif V = "BUMP_PTR" then
-                  Current_Pool.Pool := new Bump_Ptr.Bump_Ptr_Pool;
+               elsif V = "FREE_LIST" then
+                  Current_Pool.Pool := new Free_List.Free_List_Pool;
                else
                   raise Program_Error with "Unknown Storage Pool";
                end if;

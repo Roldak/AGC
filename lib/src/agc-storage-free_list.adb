@@ -6,7 +6,7 @@ with System.Memory; use System.Memory;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Conversion;
 
-package body AGC.Storage.Bump_Ptr is
+package body AGC.Storage.Free_List is
    Data_Size : constant Storage_Count := 1024 * 1024 * 8;
 
    Info_Size : constant Storage_Count :=
@@ -19,7 +19,7 @@ package body AGC.Storage.Bump_Ptr is
      (System.Address, Free_Info_Access);
 
    procedure Collect
-     (Self : in out Bump_Ptr_Pool; X : System.Address)
+     (Self : in out Free_List_Pool; X : System.Address)
    is
       Node : System.Address := X - Info_Size;
       Info : Free_Info renames As_Info (Node).all;
@@ -30,7 +30,7 @@ package body AGC.Storage.Bump_Ptr is
       Self.Free := Node;
    end Collect;
 
-   procedure Finalize (Self : in out Bump_Ptr_Pool) is
+   procedure Finalize (Self : in out Free_List_Pool) is
       use type System.Address;
    begin
       if Self.Data /= System.Null_Address then
@@ -41,17 +41,18 @@ package body AGC.Storage.Bump_Ptr is
    end Finalize;
 
    function Is_Allocated
-     (Self : Bump_Ptr_Pool;
+     (Self : Free_List_Pool;
       Node : System.Address) return Boolean
    is
       use type System.Address;
    begin
-      return Node >= Self.Data + Data_Size
+      return Node < Self.Data
+             or else Node >= Self.Data + Data_Size
              or else (As_Info (Node).Prev = System.Null_Address
                       and then Self.Free /= Node);
    end;
 
-   procedure Init (Self : in out Bump_Ptr_Pool) is
+   procedure Init (Self : in out Free_List_Pool) is
    begin
       Self.Data := Alloc (size_t (Data_Size));
       Self.Free := Self.Data;
@@ -62,7 +63,7 @@ package body AGC.Storage.Bump_Ptr is
    end Init;
 
    procedure Split
-     (Self : in out Bump_Ptr_Pool;
+     (Self : in out Free_List_Pool;
       Node : System.Address;
       Required_Size : Storage_Count)
    is
@@ -110,7 +111,7 @@ package body AGC.Storage.Bump_Ptr is
    end Split;
 
    procedure Merge
-     (Self : in out Bump_Ptr_Pool)
+     (Self : in out Free_List_Pool)
    is
       use type System.Address;
 
@@ -139,10 +140,14 @@ package body AGC.Storage.Bump_Ptr is
                      end if;
                   elsif Consec_Prev = System.Null_Address then
                      As_Info (Info.Prev).Next := Info.Next;
-                     As_Info (Info.Next).Prev := Info.Prev;
+                     if Info.Next /= System.Null_Address then
+                        As_Info (Info.Next).Prev := Info.Prev;
+                     end if;
 
                      Info.Next := Consec_Next;
-                     As_Info (Consec_Next).Prev := Node;
+                     if Consec_Next /= System.Null_Address then
+                        As_Info (Consec_Next).Prev := Node;
+                     end if;
 
                      Self.Free := Node;
                      Info.Prev := System.Null_Address;
@@ -161,7 +166,7 @@ package body AGC.Storage.Bump_Ptr is
    end Merge;
 
    function Find
-     (Self : in out Bump_Ptr_Pool;
+     (Self : in out Free_List_Pool;
       Size : Storage_Count) return System.Address
    is
       use type System.Address;
@@ -186,7 +191,7 @@ package body AGC.Storage.Bump_Ptr is
    end Find;
 
    procedure Allocate
-     (Self : in out Bump_Ptr_Pool;
+     (Self : in out Free_List_Pool;
       Addr : out System.Address;
       Size : Storage_Count;
       Alignment : Storage_Count)
@@ -214,7 +219,7 @@ package body AGC.Storage.Bump_Ptr is
    end Allocate;
 
    procedure Deallocate
-     (Self : in out Bump_Ptr_Pool;
+     (Self : in out Free_List_Pool;
       Addr : System.Address;
       Size : Storage_Count;
       Alignment : Storage_Count)
@@ -222,4 +227,4 @@ package body AGC.Storage.Bump_Ptr is
    begin
       null;
    end Deallocate;
-end AGC.Storage.Bump_Ptr;
+end AGC.Storage.Free_List;
