@@ -35,7 +35,8 @@ begin
       LALRW.Insert_Child (WH, 1, LALRW.Create_From_Template
         (RH, "with AGC;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 2, LALRW.Create_From_Template
-        (RH, "with AGC.Storage;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
+        (RH, "with AGC.Storage.Get;", (1 .. 0 => <>),
+         LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 3, LALRW.Create_From_Template
         (RH, "with System;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 4, LALRW.Create_From_Template
@@ -47,7 +48,7 @@ begin
            (LALRW.Handle (Decl_Part.F_Decls), 1,
             LALRW.Create_From_Template
               (RH,
-               "pragma Default_Storage_Pool (AGC.Storage.Pool);",
+               "pragma Default_Storage_Pool (AGC.Storage.Get.Pool);",
                (1 .. 0 => <>),
                LALCO.Pragma_Rule));
       end if;

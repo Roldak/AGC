@@ -1,10 +1,10 @@
 with AGC;
-with AGC.Storage;
+with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Pool);
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
    procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
      (Integer, Integer_Access, AGC.No_Op);

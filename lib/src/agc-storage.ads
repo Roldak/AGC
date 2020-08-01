@@ -3,23 +3,12 @@ with System.Storage_Pools; use System.Storage_Pools;
 with System.Storage_Elements; use System.Storage_Elements;
 
 package AGC.Storage is
-   type GC_Pool is new Root_Storage_Pool with null record;
+   type AGC_Pool is abstract new Root_Storage_Pool with private;
+   type AGC_Pool_Access is access all AGC_Pool'Class;
 
-   overriding procedure Allocate
-     (Self : in out GC_Pool;
-      Addr : out System.Address;
-      Size : Storage_Count;
-      Alignment : Storage_Count);
+   procedure Collect (P : in out AGC_Pool; X : Address) is abstract;
 
-   overriding procedure Deallocate
-     (Self : in out GC_Pool;
-      Addr : System.Address;
-      Size : Storage_Count;
-      Alignment : Storage_Count);
-
-   overriding function Storage_Size
-     (Self : GC_Pool) return Storage_Count is (Storage_Count'Last)
-	      with Inline;
-
-   Pool : GC_Pool;
+   function Get_Pool return AGC_Pool_Access;
+private
+   type AGC_Pool is abstract new Root_Storage_Pool with null record;
 end AGC.Storage;

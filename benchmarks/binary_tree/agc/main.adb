@@ -1,12 +1,12 @@
 with AGC;
-with AGC.Storage;
+with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Main is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Pool);
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Tree;
    type Tree_Kind is (Node, Leaf);
    type Tree_Access is access all Tree;

@@ -1,11 +1,11 @@
 with AGC;
-with AGC.Storage;
+with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Pool);
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Expr_Kind is (Add, Mul, Lit, Var);
    type Expr;
    type Expr_Access is access all Expr;

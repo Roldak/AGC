@@ -10,6 +10,8 @@ with System; use System;
 with System.Address_Image;
 with System.Storage_Elements; use System.Storage_Elements;
 
+with AGC.Storage.Get;
+
 package body AGC is
    type Address_Access is access all Address;
    type Address_Visitor is access procedure (X : Address);
@@ -25,14 +27,6 @@ package body AGC is
    procedure Free is new Ada.Unchecked_Deallocation
      (Address, Address_Access)
          with Inline;
-
-   procedure Collect (Value : in Address)
-      with Inline
-   is
-      Var : Address_Access := As_Address_Access (Value);
-   begin
-      Free (Var);
-   end Collect;
 
    type Alloc_State is (Unknown, Reachable);
    type Alloc_State_Access is access all Alloc_State;
@@ -169,7 +163,7 @@ package body AGC is
                State.all := Unknown;
                New_Set.Append (Alloc);
             else
-               Collect (Alloc);
+               AGC.Storage.Get.AGC_Pool.Collect (Alloc);
             end if;
          end;
       end loop;

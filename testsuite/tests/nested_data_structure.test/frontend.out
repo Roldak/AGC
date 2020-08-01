@@ -1,10 +1,10 @@
 with AGC;
-with AGC.Storage;
+with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Pool);
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type T is record
       X : Integer;
    end record;
