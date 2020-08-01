@@ -33,7 +33,6 @@ package body AGC.Storage is
             declare
                V : String := Value ("AGC_POOL");
             begin
-               Put_Line (V);
                if V = "MALLOC_FREE" then
                   Current_Pool.Pool := new Malloc_Free.Malloc_Free_Pool;
                elsif V = "BUMP_PTR" then

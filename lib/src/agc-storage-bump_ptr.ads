@@ -10,9 +10,15 @@ package AGC.Storage.Bump_Ptr is
 
    overriding procedure Finalize (Self : in out Bump_Ptr_Pool);
 private
+   type Free_Info is record
+      Size : Storage_Count;
+      Prev : System.Address;
+      Next : System.Address;
+   end record;
+
    type Bump_Ptr_Pool is new AGC_Pool with record
       Data : System.Address := System.Null_Address;
-      Ptr  : System.Address := System.Null_Address;
+      Free : System.Address := System.Null_Address;
    end record;
 
    overriding procedure Allocate
