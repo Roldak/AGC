@@ -31,5 +31,6 @@ package Utils is
      (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type;
 
    function Visitor_Name
-     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
+     (Typ : LAL.Base_Type_Decl'Class;
+      Is_Ref : Boolean := True) return Langkit_Support.Text.Text_Type;
 end Utils;

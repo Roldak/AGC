@@ -139,12 +139,32 @@ package body Utils is
       return Name;
    end Unique_Identifier;
 
+   function Fully_Qualified_Decl_Part_Of
+     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
+   is
+      FQN : Langkit_Support.Text.Text_Type :=
+         Decl.P_Fully_Qualified_Name;
+   begin
+      for I in reverse FQN'First .. FQN'Last loop
+         if FQN (I) = '.' then
+            return FQN (FQN'First .. I);
+         end if;
+      end loop;
+      return FQN;
+   end Fully_Qualified_Decl_Part_Of;
+
    function Visitor_Name
-     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+     (Typ    : LAL.Base_Type_Decl'Class;
+      Is_Ref : Boolean := True) return Langkit_Support.Text.Text_Type
    is
    begin
       if Is_Relevant_Type (Typ) then
-         return "AGC_Visit_" & Unique_Identifier (Typ);
+         if Is_Ref then
+            return Fully_Qualified_Decl_Part_Of (Typ)
+               & "AGC_Visit_" & LAL.Text (Typ.P_Defining_Name);
+         else
+            return "AGC_Visit_" & LAL.Text (Typ.P_Defining_Name);
+         end if;
       else
          return "AGC.No_Op";
       end if;

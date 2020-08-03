@@ -6,13 +6,13 @@ procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
      (Integer, Integer_Access, AGC.No_Op);
    type Rec is record
       Value : Integer_Access;
    end record;
-   procedure AGC_Visit_Test_Rec (X : System.Address);
-   procedure AGC_Visit_Test_Rec (X : System.Address) is
+   procedure AGC_Visit_Rec (X : System.Address);
+   procedure AGC_Visit_Rec (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Rec;
       for Rec_Access'Size use Standard'Address_Size;
@@ -23,22 +23,22 @@ procedure Test is
       declare
          C : aliased Test.Integer_Access := R.Value;
       begin
-         AGC_Visit_Test_Integer_Access (C'Address);
+         Test.AGC_Visit_Integer_Access (C'Address);
       end;
-   end AGC_Visit_Test_Rec;
+   end AGC_Visit_Rec;
    function AGC_Func_0 return Rec is
       AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(2);
    begin
       AGC.Push_Root
-        (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
+        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       return AGC_Ret : Rec := (Value => AGC_Temp_0) do
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
    X : aliased Rec := AGC_Func_0;
 begin
-   AGC.Push_Root (X'Address, AGC_Visit_Test_Rec'Address);
+   AGC.Push_Root (X'Address, Test.AGC_Visit_Rec'Address);
    AGC.Collect;
    X.Value.all := 3;
    AGC.Pop_Roots (AGC_Base_Root_Count);

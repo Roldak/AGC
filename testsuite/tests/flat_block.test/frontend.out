@@ -6,33 +6,33 @@ procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
      (Integer, Integer_Access, AGC.No_Op);
    X : aliased Integer_Access := new Integer'(1);
 begin
-   AGC.Push_Root (X'Address, AGC_Visit_Test_Integer_Access'Address);
+   AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    declare
       Y : aliased Integer_Access := new Integer'(2);
    begin
-      AGC.Push_Root (Y'Address, AGC_Visit_Test_Integer_Access'Address);
+      AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
       declare
          Z : aliased Integer_Access := new Integer'(3);
       begin
-         AGC.Push_Root (Z'Address, AGC_Visit_Test_Integer_Access'Address);
+         AGC.Push_Root (Z'Address, Test.AGC_Visit_Integer_Access'Address);
          declare
             A : aliased Integer_Access := new Integer'(4);
          begin
-            AGC.Push_Root (A'Address, AGC_Visit_Test_Integer_Access'Address);
+            AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
             declare
                B : aliased Integer_Access := new Integer'(5);
             begin
                AGC.Push_Root
-                 (B'Address, AGC_Visit_Test_Integer_Access'Address);
+                 (B'Address, Test.AGC_Visit_Integer_Access'Address);
                declare
                   C : aliased Integer_Access := new Integer'(6);
                begin
                   AGC.Push_Root
-                    (C'Address, AGC_Visit_Test_Integer_Access'Address);
+                    (C'Address, Test.AGC_Visit_Integer_Access'Address);
                   null;
                end;
             end;

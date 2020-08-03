@@ -6,7 +6,7 @@ procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
      (Integer, Integer_Access, AGC.No_Op);
    type Kind is (A, B, C);
    type Rec (K : Kind) is record
@@ -20,8 +20,8 @@ procedure Test is
             Z : Integer_Access;
       end case;
    end record;
-   procedure AGC_Visit_Test_Rec (X : System.Address);
-   procedure AGC_Visit_Test_Rec (X : System.Address) is
+   procedure AGC_Visit_Rec (X : System.Address);
+   procedure AGC_Visit_Rec (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Rec;
       for Rec_Access'Size use Standard'Address_Size;
@@ -38,27 +38,27 @@ procedure Test is
             declare
                C : aliased Test.Integer_Access := R.Z;
             begin
-               AGC_Visit_Test_Integer_Access (C'Address);
+               Test.AGC_Visit_Integer_Access (C'Address);
             end;
       end case;
-   end AGC_Visit_Test_Rec;
+   end AGC_Visit_Rec;
    R_1 : aliased Rec := (A, 1);
    function AGC_Func_0 return Rec is
       AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(3);
    begin
       AGC.Push_Root
-        (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
+        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       return AGC_Ret : Rec := (C, 2, AGC_Temp_0) do
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
 begin
-   AGC.Push_Root (R_1'Address, AGC_Visit_Test_Rec'Address);
+   AGC.Push_Root (R_1'Address, Test.AGC_Visit_Rec'Address);
    declare
       R_2 : aliased Rec := AGC_Func_0;
    begin
-      AGC.Push_Root (R_2'Address, AGC_Visit_Test_Rec'Address);
+      AGC.Push_Root (R_2'Address, Test.AGC_Visit_Rec'Address);
       AGC.Collect;
    end;
    AGC.Pop_Roots (AGC_Base_Root_Count);

@@ -7,7 +7,7 @@ procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
-   procedure AGC_Visit_Test_Integer_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
      (Integer, Integer_Access, AGC.No_Op);
    function Inner (X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural := AGC.Root_Count;
@@ -28,12 +28,12 @@ procedure Test is
       AGC_Temp_1          : aliased Test.Integer_Access := Inner (2);
    begin
       AGC.Push_Root
-        (AGC_Temp_1'Address, AGC_Visit_Test_Integer_Access'Address);
+        (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
       declare
          AGC_Temp_0 : aliased Test.Integer_Access := Inner (1);
       begin
          AGC.Push_Root
-           (AGC_Temp_0'Address, AGC_Visit_Test_Integer_Access'Address);
+           (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
          return AGC_Ret : Integer := Add (AGC_Temp_0, AGC_Temp_1) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;

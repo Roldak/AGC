@@ -285,7 +285,7 @@ is
      (Decl       : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
    is
       Visit_Name : Langkit_Support.Text.Text_Type :=
-         Utils.Visitor_Name (Decl);
+         Utils.Visitor_Name (Decl, Is_Ref => False);
    begin
       if Decl.P_Is_Access_Type then
          return Generate_Access_Type_Visitor (Visit_Name, Decl);
