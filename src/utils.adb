@@ -73,6 +73,12 @@ package body Utils is
             end if;
          end;
       elsif
+         Expr.Kind in LALCO.Ada_Name
+         and then Expr.Parent.Kind in LALCO.Ada_Dotted_Name
+         and then Expr.Parent.As_Dotted_Name.F_Suffix = Expr
+      then
+         return False;
+      elsif
          Expr.Kind in LALCO.Ada_Qual_Expr
          or else Expr.Parent.Kind in LALCO.Ada_Qual_Expr
       then
