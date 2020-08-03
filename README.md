@@ -20,6 +20,24 @@ AGC adds a garbage collector to your Ada programs.
    
 3. You can now invoke `gprbuild` on this new project file. The built binary will behave as your original program, but will benefit from garbage collection.
 
+Note that it is possible to configure the runtime behavior of AGC. For now, this is done using environment variables and the only configurable part is the kind of storage pool to use: simply set the `AGC_POOL` variable to either:
+* `MALLOC_FREE`: The storage pool is managed by the system using malloc/free.
+* `FREE_LIST`: The storage pool is managed by AGC which allocates a big chunk of memory and manages all allocations using a free-list based mechanism.
+
+## Performance
+
+Although the main goal of AGC is to alleviate Ada programmers from memory managment, it's very important to keep performance of resulting binaries reasonable. To keep track of this work, a set of benchmarks will be maintained in the `benchmarks` directory (there is only one for now).
+
+To have an idea of the performance, single-run results for the `binary_tree` benchmark on my machine give:
+
+* **Raw** (no deallocation):                              `0,18s user 0,09s system 98% cpu 0,269 total`
+* **Manual** (user-managed):                              `0,23s user 0,00s system 99% cpu 0,230 total`
+* **Controlled** (ref-counted using controlled types):    `1,04s user 0,00s system 99% cpu 1,044 total`
+* **AGC** with `AGC_POOL=MALLOC_FREE`:                    `0,43s user 0,00s system 97% cpu 0,438 total`
+* **AGC** with `AGC_POOL=FREE_LIST`:                      `0,25s user 0,01s system 95% cpu 0,276 total`
+
+As you can see AGC's performance using its own free-list based storage pool gives results on-par with manually managed memory, and even the malloc/free-based storage pool yields better performance than a controlled-types based implementation, without having to write any additional memory-managment code.
+
 ## Internals
 
 The implementation is similar to any garbage collector:
