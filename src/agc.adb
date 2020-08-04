@@ -13,11 +13,12 @@ with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
 with Add_With_Clauses;
+with Handle_Temporaries;
 with Extend_Return_Stmts;
 with Nest_Declare_Blocks;
-with Generate_Types_Interfaces;
 with Track_Roots;
-with Handle_Temporaries;
+with Generate_Types_Interfaces;
+with Move_Bodies;
 with Output_Unit;
 
 procedure AGC is
@@ -60,6 +61,7 @@ procedure AGC is
          Nest_Declare_Blocks (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
+         Move_Bodies (Job_Ctx, Unit);
          Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
       end if;
    end Process_Unit;
