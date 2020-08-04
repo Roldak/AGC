@@ -26,7 +26,7 @@ Note that it is possible to configure the runtime behavior of AGC. For now, this
 
 ## Performance
 
-Although the main goal of AGC is to alleviate Ada programmers from memory managment, it's very important to keep performance of resulting binaries reasonable. To keep track of this work, a set of benchmarks will be maintained in the `benchmarks` directory (there is only one for now).
+Although the main goal of AGC is to alleviate Ada programmers from memory management, it's very important to keep performance of resulting binaries reasonable. To keep track of this work, a set of benchmarks will be maintained in the `benchmarks` directory (there is only one for now).
 
 To have an idea of the performance, single-run results for the `binary_tree` benchmark on my machine give:
 
@@ -36,7 +36,7 @@ To have an idea of the performance, single-run results for the `binary_tree` ben
 * **AGC** with `AGC_POOL=MALLOC_FREE`:                    `0,43s user 0,00s system 97% cpu 0,438 total`
 * **AGC** with `AGC_POOL=FREE_LIST`:                      `0,25s user 0,01s system 95% cpu 0,276 total`
 
-As you can see AGC's performance using its own free-list based storage pool gives results on-par with manually managed memory, and even the malloc/free-based storage pool yields better performance than a controlled-types based implementation, without having to write any additional memory-managment code.
+As you can see AGC's performance using its own free-list based storage pool gives results on-par with manually managed memory, and even the malloc/free-based storage pool yields better performance than a controlled-types based implementation, without having to write any additional memory-management code.
 
 ## Internals
 
@@ -91,7 +91,7 @@ end Test;
 
 As you can see, roots are explicited to the garbage collector through calls to `AGC.Push_Root`. The example above shows it working for stack-allocated variables, but this must also include global variables (_not yet implemented_). Note that all stack-allocated variables are now marked `aliased`: this is because we are taking their address which in Ada is only necessarily meaningful for aliased objects (see RM 13.3.16).
 
-AGC must sometime do heavy manipulation to track all reachable locations. In particular, temporary results such as values returned from function calls must be registered in the garbage collector although they are not reachable by a source code variable. This is done by reshaping the code to store them explicitly in temporary variables. For example:
+In some cases, AGC must perform heavy manipulations to be able to track all reachable locations. In particular, temporary results such as values returned from function calls must be registered in the garbage collector although they are not reachable by a source code variable. This is done by reshaping the code to store them explicitly in temporary variables. For example:
 
 ```ada
 with Ada.Text_IO; use Ada.Text_IO;
@@ -146,6 +146,6 @@ begin
 end Test;
 ```
 
-To see why this is necessary, assume for a moment that the GC was running on the original program. Now if we suppose that the allocation inside `Incr` triggers a garbage collection, then the temporary value `new Integer'(1)` allocated in `Test`'s body would be collected because it's not reachable by any root, neither directly or indirectly. Thanks to the transformation, a temporary variable `AGC_Temp_1` is generated and holds its result while `Incr` is being called.
+To see why this is necessary, assume for a moment that the GC was running on the original program. If we suppose that the allocation inside `Incr` triggers a garbage collection, then the temporary value `new Integer'(1)` allocated in `Test`'s body would be collected because it's not reachable by any root, neither directly nor indirectly. Thanks to the transformation, a temporary variable `AGC_Temp_1` is generated and holds a reference to it while `Incr` is being called.
 
-Additionally, you may have observed the presence of `AGC_Visit_[...]` procedures in the generated code. Those are automatically derived for types that the GC must be aware of, which are basically all types that are either access types or than contain access types directly or indirectly. These are used by AGC's runtime to browse the entire space of reachable locations starting from the program's roots whenever a collection is triggered. This allows keeping alive memory that is indirectly reachable by a root of the program.
+Additionally, you may have observed the presence of `AGC_Visit_[...]` procedures in the generated code. Those are automatically derived for types that the GC must be aware of, which are basically all types that are either access types or than contain access types directly or indirectly. These are used by AGC's runtime to browse the entire space of reachable locations starting from the program's roots whenever a collection is triggered. This allows keeping alive all memory that is reachable by a root of the program and freeing the rest of it.
