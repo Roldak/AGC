@@ -12,13 +12,15 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
+with Post_Actions;
+
 with Add_With_Clauses;
 with Handle_Temporaries;
 with Extend_Return_Stmts;
 with Nest_Declare_Blocks;
 with Track_Roots;
 with Generate_Types_Interfaces;
-with Move_Bodies;
+with Detect_Misplaced_Bodies;
 with Output_Unit;
 
 procedure AGC is
@@ -33,10 +35,14 @@ procedure AGC is
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit);
 
+   procedure Post_Process
+     (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array);
+
    package App is new Helpers.App
-     (Name         => "AGC",
-      Description  => "Garbage collection for Ada",
-      Process_Unit => Process_Unit);
+     (Name             => "AGC",
+      Description      => "Garbage collection for Ada",
+      Process_Unit     => Process_Unit,
+      App_Post_Process => Post_Process);
 
    package Output_Dir is new GNATCOLL.Opt_Parse.Parse_Option
      (Parser      => App.Args.Parser,
@@ -46,6 +52,8 @@ procedure AGC is
       Default_Val => Null_XString,
       Help        =>
          "The directory in which to save the transformed ada units.");
+
+   To_Do : Post_Actions.Actions;
 
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit)
@@ -61,10 +69,25 @@ procedure AGC is
          Nest_Declare_Blocks (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
-         Move_Bodies (Job_Ctx, Unit);
-         Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
+         Detect_Misplaced_Bodies (Job_Ctx, Unit, To_Do);
       end if;
    end Process_Unit;
+
+   procedure Post_Process
+     (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
+   is
+      First_Context : LAL.Analysis_Context :=
+         Jobs (Jobs'First).Analysis_Ctx;
+   begin
+      To_Do.Perform_Actions (First_Context);
+
+      --  output units
+      for Job_Ctx of Jobs loop
+         for Unit of Job_Ctx.Units_Processed loop
+            Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
+         end loop;
+      end loop;
+   end Post_Process;
 begin
    App.Run;
 end AGC;
