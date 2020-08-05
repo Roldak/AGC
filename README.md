@@ -24,6 +24,8 @@ Note that it is possible to configure the runtime behavior of AGC. For now, this
 * `MALLOC_FREE`: The storage pool is managed by the system using malloc/free.
 * `FREE_LIST`: The storage pool is managed by AGC which allocates a big chunk of memory and manages all allocations using a free-list based mechanism.
 
+*Warning: this is still in prototype phase. A lot of features are missing and a lot of Ada constructs are not supported yet. Check out the tests and benchmarks to have an idea of what is currently supported.*
+
 ## Performance
 
 Although the main goal of AGC is to alleviate Ada programmers from memory management, it's very important to keep performance of resulting binaries reasonable. To keep track of this work, a set of benchmarks will be maintained in the `benchmarks` directory (there is only one for now).
