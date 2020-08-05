@@ -1,0 +1,41 @@
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+with Pkg;
+procedure Main is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   X : aliased Pkg.T_Access := Pkg.Create (3);
+begin
+   AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Access'Address);
+   Put_Line (X.all'Image);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Main;
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package body Pkg is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   function Create (X : Integer) return T_Access is
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   begin
+      return AGC_Ret : T_Access := new T'(T (X)) do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end Create;
+end Pkg;
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package Pkg is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type T is new Integer;
+   type T_Access is access all T;
+   procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
+     (T, T_Access, AGC.No_Op);
+   function Create (X : Integer) return T_Access;
+end Pkg;

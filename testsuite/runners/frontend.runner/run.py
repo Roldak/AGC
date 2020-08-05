@@ -3,12 +3,14 @@ import tempfile
 import subprocess
 import sys
 
+from glob import glob
 
-def run(src_file):
+
+def run(arg):
     with tempfile.TemporaryDirectory() as d:
         # Run AGC
         agc_out = subprocess.run(
-            ["agc", src_file, "--output-dir", d],
+            ["agc", arg, "--output-dir", d],
             capture_output=True,
             text=True
         )
@@ -16,9 +18,23 @@ def run(src_file):
             print(agc_out.stderr)
             return
 
-        # Run gnatpp
-        subprocess.run(["gnatpp", "--pipe", os.path.join(d, src_file)])
+        gpr_path = os.path.join(d, "prj.gpr")
+        with open(gpr_path, "w") as gpr:
+            gpr.write("project Prj is end Prj;")
+            gpr.flush()
+
+            # Run gnatpp
+            subprocess.run(
+                ["gnatpp", "--pipe", "-q", "-P", "prj.gpr"],
+                cwd=d
+            )
 
 
 if __name__ == "__main__":
-    run("test.adb")
+    gprs = glob("*.gpr")
+    if len(gprs) == 0:
+        run("test.adb")
+    elif len(gprs) == 1:
+        run("-P{}".format(gprs[0]))
+    else:
+        print("Multiple gpr files found: {}".format(", ".join(gprs)))
