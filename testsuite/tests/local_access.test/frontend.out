@@ -1,0 +1,39 @@
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with System.Address_Image;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access all Integer;
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
+   type Rec is record
+      X : aliased Integer;
+      Y : aliased Integer;
+   end record;
+   procedure AGC_Visit_Rec (X : System.Address);
+   procedure AGC_Visit_Rec (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all Rec;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased Rec := Conv (X).all;
+   begin
+      null;
+   end AGC_Visit_Rec;
+   R : aliased Rec := (others => 0);
+begin
+   AGC.Push_Root (R'Address, Test.AGC_Visit_Rec'Address);
+   declare
+      A : aliased Integer_Access := R.Y'Unchecked_Access;
+   begin
+      AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
+      AGC.Collect;
+      Put_Line (R.X'Image);
+   end;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

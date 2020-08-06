@@ -30,6 +30,14 @@ package body AGC.Storage.Free_List is
       Self.Free := Node;
    end Collect;
 
+   function Is_Valid_Address
+     (Self : in out Free_List_Pool; X : System.Address) return Boolean
+   is
+      use type System.Address;
+   begin
+      return X >= Self.Data and X < Self.Data + Data_Size;
+   end Is_Valid_Address;
+
    procedure Finalize (Self : in out Free_List_Pool) is
       use type System.Address;
    begin

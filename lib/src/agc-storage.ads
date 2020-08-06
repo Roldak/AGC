@@ -8,6 +8,9 @@ package AGC.Storage is
    procedure Collect
      (Self : in out AGC_Pool; X : System.Address) is abstract;
 
+   function Is_Valid_Address
+     (Self : in out AGC_Pool; X : System.Address) return Boolean is abstract;
+
    procedure Finalize (Self : in out AGC_Pool) is null;
 
    function Get_Pool return AGC_Pool_Access;

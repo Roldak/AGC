@@ -88,23 +88,22 @@ package body AGC is
       function Conv is new Ada.Unchecked_Conversion
         (Address, T_Access_Access);
 
-      Acc : aliased T_Access := Conv (X).all;
-   begin
-      if Acc /= null then
-         declare
-            Elem_Addr   : constant Address := Acc.all'Address;
-            Type_Offset : constant Storage_Offset :=
-               T'Descriptor_Size / Storage_Unit + Acc.all'Finalization_Size;
-            Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
+      Acc       : aliased constant T_Access := Conv (X).all;
+      Elem_Addr : constant Address          := Acc.all'Address;
+      Type_Offset : constant Storage_Offset :=
+         T'Descriptor_Size / Storage_Unit + Acc.all'Finalization_Size;
+      Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
 
-            State : Alloc_State_Access :=
-               As_Alloc_State_Access (Header_Addr);
-         begin
-            if State.all /= Reachable then
-               State.all := Reachable;
-               Visit_Element (Elem_Addr);
-            end if;
-         end;
+      State : Alloc_State_Access :=
+         As_Alloc_State_Access (Header_Addr);
+   begin
+      if not Validate_Address
+         or else AGC.Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
+      then
+         if State.all /= Reachable then
+            State.all := Reachable;
+            Visit_Element (Elem_Addr);
+         end if;
       end if;
    end Visit_Access_Type;
 

@@ -8,6 +8,9 @@ package AGC.Storage.Free_List is
    overriding procedure Collect
      (Self : in out Free_List_Pool; X : System.Address);
 
+   function Is_Valid_Address
+     (Self : in out Free_List_Pool; X : System.Address) return Boolean;
+
    overriding procedure Finalize (Self : in out Free_List_Pool);
 private
    type Free_Info is record

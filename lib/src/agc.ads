@@ -25,6 +25,7 @@ package AGC is
       type T (<>) is private;
       type T_Access is access all T;
       with procedure Visit_Element (X : System.Address);
+      Validate_Address : Boolean := True;
    procedure Visit_Access_Type (X : System.Address)
       with Inline;
 
