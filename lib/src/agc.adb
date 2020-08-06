@@ -11,6 +11,7 @@ with System.Address_Image;
 with System.Storage_Elements; use System.Storage_Elements;
 
 with AGC.Storage.Get;
+with AGC.Validate_Addresses;
 
 package body AGC is
    type Address_Access is access all Address;
@@ -97,7 +98,7 @@ package body AGC is
       State : Alloc_State_Access :=
          As_Alloc_State_Access (Header_Addr);
    begin
-      if not Validate_Address
+      if not Validate_Addresses.Value
          or else AGC.Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
       then
          if State.all /= Reachable then

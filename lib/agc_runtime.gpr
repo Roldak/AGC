@@ -1,9 +1,15 @@
 library project AGC_Runtime is
    type Pool_Getter_Type is ("dynamic", "malloc_free", "free_list");
 
+   type Address_Validation_Type is ("no", "yes");
+
    Pool_Getter : Pool_Getter_Type := external("POOL_GETTER", "dynamic");
 
-   for Source_Dirs use ("src", "src/get_" & Pool_Getter);
+   Validate_Addrs : Address_Validation_Type :=
+      external ("VALIDATE_ADDRESSES", "yes");
+
+   for Source_Dirs use
+     ("src", "src/get_" & Pool_Getter, "src/addr_valid_" & Validate_Addrs);
    for Object_Dir use "obj";
    for Library_Name use "agc_runtime";
    for Library_Dir use ".";

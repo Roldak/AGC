@@ -2,6 +2,8 @@ with System.Memory; use System.Memory;
 
 with Ada.Unchecked_Conversion;
 
+with AGC.Validate_Addresses;
+
 package body AGC.Storage.Malloc_Free is
    function Conv is new Ada.Unchecked_Conversion
      (System.Address, Long_Integer)
@@ -18,8 +20,11 @@ package body AGC.Storage.Malloc_Free is
      (Self : in out Malloc_Free_Pool; X : System.Address)
    is
    begin
-      Self.Allocated.Delete (X);
       Free (X);
+
+      if Validate_Addresses.Value then
+         Self.Allocated.Delete (X);
+      end if;
    end Collect;
 
    function Is_Valid_Address
@@ -39,8 +44,11 @@ package body AGC.Storage.Malloc_Free is
       Allocated   : constant System.Address := Alloc (size_t (Actual_Size));
 	begin
       AGC.Register (Allocated, Size);
-      Self.Allocated.Insert (Allocated);
       Addr := Allocated + 4;
+
+      if Validate_Addresses.Value then
+         Self.Allocated.Insert (Allocated);
+      end if;
    end Allocate;
 
    procedure Deallocate
