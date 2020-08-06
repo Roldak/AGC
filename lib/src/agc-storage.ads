@@ -11,9 +11,7 @@ package AGC.Storage is
    function Is_Valid_Address
      (Self : in out AGC_Pool; X : System.Address) return Boolean is abstract;
 
-   procedure Finalize (Self : in out AGC_Pool) is null;
-
-   function Get_Pool return AGC_Pool_Access;
+   overriding procedure Finalize (Self : in out AGC_Pool) is null;
 private
    type AGC_Pool is abstract new Root_Storage_Pool with null record;
 end AGC.Storage;

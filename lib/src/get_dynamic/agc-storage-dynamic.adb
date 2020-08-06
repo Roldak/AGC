@@ -8,7 +8,7 @@ with Ada.Unchecked_Deallocation;
 with AGC.Storage.Malloc_Free;
 with AGC.Storage.Free_List;
 
-package body AGC.Storage is
+package body AGC.Storage.Dynamic is
    procedure Free is new Ada.Unchecked_Deallocation
      (AGC_Pool'Class, AGC_Pool_Access);
 
@@ -19,7 +19,6 @@ package body AGC.Storage is
    overriding procedure Finalize (X : in out Pool_Holder) is
    begin
       if X.Pool /= null then
-         X.Pool.Finalize;
          Free (X.Pool);
       end if;
    end Finalize;
@@ -48,4 +47,4 @@ package body AGC.Storage is
 
       return Current_Pool.Pool;
    end Get_Pool;
-end AGC.Storage;
+end AGC.Storage.Dynamic;
