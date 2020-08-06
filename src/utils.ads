@@ -23,6 +23,9 @@ package Utils is
 
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean;
 
+   function Get_Record_Def
+     (Decl : LAL.Type_Decl'Class) return LAL.Base_Record_Def'Class;
+
    function Generate_Type_Reference
      (RH  : LALRW.Rewriting_Handle;
       Typ : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle;

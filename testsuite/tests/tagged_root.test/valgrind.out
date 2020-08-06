@@ -1,0 +1,50 @@
+    at 0x40842D: test__pkg_u__print.5376 (in /tmp/tmp64j3yxlm/test)
+    by 0x408227: _ada_test (in /tmp/tmp64j3yxlm/test)
+    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+  Address 0x4a8c084 is 4 bytes inside a block of size 8 free'd
+    at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x4358A8: __gnat_free (in /tmp/tmp64j3yxlm/test)
+    by 0x411576: agc__collect (in /tmp/tmp64j3yxlm/test)
+    by 0x4081F8: _ada_test (in /tmp/tmp64j3yxlm/test)
+    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+  Block was alloc'd at
+    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x43584E: __gnat_malloc (in /tmp/tmp64j3yxlm/test)
+    by 0x4181C1: agc__storage__malloc_free__allocate__2 (in /tmp/tmp64j3yxlm/test)
+    by 0x408BBA: test__agc_func_0.5437 (in /tmp/tmp64j3yxlm/test)
+    by 0x407F41: _ada_test (in /tmp/tmp64j3yxlm/test)
+    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+ 
+ Invalid read of size 4
+    at 0x408486: test__pkg_u__print.5376 (in /tmp/tmp64j3yxlm/test)
+    by 0x408227: _ada_test (in /tmp/tmp64j3yxlm/test)
+    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+  Address 0x4a8bf84 is 4 bytes inside a block of size 8 free'd
+    at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x4358A8: __gnat_free (in /tmp/tmp64j3yxlm/test)
+    by 0x411576: agc__collect (in /tmp/tmp64j3yxlm/test)
+    by 0x4081F8: _ada_test (in /tmp/tmp64j3yxlm/test)
+    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+  Block was alloc'd at
+    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x43584E: __gnat_malloc (in /tmp/tmp64j3yxlm/test)
+    by 0x4181C1: agc__storage__malloc_free__allocate__2 (in /tmp/tmp64j3yxlm/test)
+    by 0x408B75: test__agc_func_0.5437 (in /tmp/tmp64j3yxlm/test)
+    by 0x407F41: _ada_test (in /tmp/tmp64j3yxlm/test)
+    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+ 
+ 
+ HEAP SUMMARY:
+     in use at exit: 3,592 bytes in 3 blocks
+   total heap usage: 10 allocs, 7 frees, 3,736 bytes allocated
+ 
+ LEAK SUMMARY:
+    definitely lost: 0 bytes in 0 blocks
+    indirectly lost: 0 bytes in 0 blocks
+      possibly lost: 0 bytes in 0 blocks
+    still reachable: 3,592 bytes in 3 blocks
+         suppressed: 0 bytes in 0 blocks
+full to see details of leaked memory
+ 
+ For lists of detected and suppressed errors, rerun with: -s
+ ERROR SUMMARY: 2 errors from 2 contexts (suppressed: 0 from 0)

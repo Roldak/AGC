@@ -127,7 +127,7 @@ is
          LAL.Text (Decl.F_Name);
 
       Rec_Def : LAL.Base_Record_Def'Class :=
-         Decl.As_Type_Decl.F_Type_Def.As_Record_Type_Def.F_Record_Def;
+         Utils.Get_Record_Def (Decl.As_Type_Decl);
 
       procedure Handle_Component_List
         (Stmts : LALRW.Node_Rewriting_Handle; List : LAL.Component_List'Class)
