@@ -105,12 +105,16 @@ is
 
       Access_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
+
+      Is_Generalized : Langkit_Support.Text.Text_Type :=
+        (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
    begin
       return LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " is new AGC.Visit_Access_Type ("
         & Element_Type_Name & ", "
         & Access_Type_Name & ", "
+        & Is_Generalized & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule);

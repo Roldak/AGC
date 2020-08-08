@@ -116,6 +116,23 @@ package body Utils is
       end case;
    end Is_Named_Expr;
 
+   function Is_Generalized_Access_Type
+     (Typ : LAL.Base_Type_Decl'Class) return Boolean
+   is
+   begin
+      if Typ.Kind in LALCO.Ada_Type_Decl then
+         declare
+            Def : LAL.Type_Def'Class := Typ.As_Type_Decl.F_Type_Def;
+         begin
+            return
+               Def.Kind in LALCO.Ada_Type_Access_Def
+               and then Def.As_Type_Access_Def.F_Has_All.Kind
+                           in LALCO.Ada_All_Present;
+         end;
+      end if;
+      return False;
+   end Is_Generalized_Access_Type;
+
    function Get_Record_Def
      (Decl : LAL.Type_Decl'Class) return LAL.Base_Record_Def'Class
    is

@@ -3,7 +3,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    type Expr_Kind is (Add, Mul, Lit, Var);
    type Expr;
-   type Expr_Access is access all Expr;
+   type Expr_Access is access Expr;
    type Expr (K : Expr_Kind) is record
       case K is
          when Add | Mul =>

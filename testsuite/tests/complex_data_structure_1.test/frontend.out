@@ -6,7 +6,7 @@ procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Quad_Tree;
-   type Quad_Tree_Access is access all Quad_Tree;
+   type Quad_Tree_Access is access Quad_Tree;
    type Quad_Tree_Access_Array is
      array (Positive range <>) of Quad_Tree_Access;
    type Quad_Tree is record
@@ -15,7 +15,7 @@ procedure Test is
    end record;
    procedure AGC_Visit_Quad_Tree (X : System.Address);
    procedure AGC_Visit_Quad_Tree_Access is new AGC.Visit_Access_Type
-     (Quad_Tree, Quad_Tree_Access, Test.AGC_Visit_Quad_Tree);
+     (Quad_Tree, Quad_Tree_Access, False, Test.AGC_Visit_Quad_Tree);
    procedure AGC_Visit_Quad_Tree_Access_Array is new AGC
      .Visit_Unconstrained_Array_Type
      (Quad_Tree_Access, Positive, Quad_Tree_Access_Array,

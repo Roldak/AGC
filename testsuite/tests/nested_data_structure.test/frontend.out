@@ -19,9 +19,9 @@ procedure Test is
    begin
       null;
    end AGC_Visit_T;
-   type T_Access is access all T;
+   type T_Access is access T;
    procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-     (T, T_Access, Test.AGC_Visit_T);
+     (T, T_Access, False, Test.AGC_Visit_T);
    type U is record
       A : T_Access;
    end record;
@@ -40,9 +40,9 @@ procedure Test is
          Test.AGC_Visit_T_Access (C'Address);
       end;
    end AGC_Visit_U;
-   type U_Access is access all U;
+   type U_Access is access U;
    procedure AGC_Visit_U_Access is new AGC.Visit_Access_Type
-     (U, U_Access, Test.AGC_Visit_U);
+     (U, U_Access, False, Test.AGC_Visit_U);
    function AGC_Func_0 return U_Access is
       AGC_Base_Root_Count : Natural               := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.T_Access := new T'(X => 1);

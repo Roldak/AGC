@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Test is
-   type Integer_Access is access all Integer;
+   type Integer_Access is access Integer;
 
    package Pkg_T is
       type T is tagged record

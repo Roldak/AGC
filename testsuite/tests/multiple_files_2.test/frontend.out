@@ -47,8 +47,8 @@ package Pkg is
       X : Integer;
    end record;
    procedure AGC_Visit_T (X : System.Address);
-   type T_Access is access all T;
+   type T_Access is access T;
    procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-     (T, T_Access, Pkg.AGC_Visit_T);
+     (T, T_Access, False, Pkg.AGC_Visit_T);
    function Create (X : Integer) return T_Access;
 end Pkg;

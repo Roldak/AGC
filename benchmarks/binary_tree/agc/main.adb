@@ -9,7 +9,7 @@ procedure Main is
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Tree;
    type Tree_Kind is (Node, Leaf);
-   type Tree_Access is access all Tree;
+   type Tree_Access is access Tree;
    type Tree (K : Tree_Kind) is record
       case K is
          when Node =>
@@ -22,7 +22,7 @@ procedure Main is
    end record;
    procedure AGC_Visit_Tree (X : System.Address);
    procedure AGC_Visit_Tree_Access is new AGC.Visit_Access_Type
-     (Tree, Tree_Access, Main.AGC_Visit_Tree);
+     (Tree, Tree_Access, False, Main.AGC_Visit_Tree);
    procedure AGC_Visit_Tree (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Tree;

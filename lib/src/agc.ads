@@ -23,7 +23,8 @@ package AGC is
 
    generic
       type T (<>) is private;
-      type T_Access is access all T;
+      type T_Access is access T;
+      Is_Generalized_Access : Boolean;
       with procedure Visit_Element (X : System.Address);
    procedure Visit_Access_Type (X : System.Address)
       with Inline;

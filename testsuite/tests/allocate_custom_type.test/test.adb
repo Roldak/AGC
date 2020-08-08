@@ -3,7 +3,7 @@ procedure Test is
       X : Integer;
    end record;
 
-   type T_Access is access all T;
+   type T_Access is access T;
 
    X : T_Access := new T'(X => 2);
 begin

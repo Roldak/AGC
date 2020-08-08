@@ -1,5 +1,5 @@
 procedure Test is
-   type Integer_Access is access all Integer;
+   type Integer_Access is access Integer;
 
    type Kind is (A, B, C);
 

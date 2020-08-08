@@ -4,7 +4,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 procedure Main is
    type Tree;
    type Tree_Kind is (Node, Leaf);
-   type Tree_Access is access all Tree;
+   type Tree_Access is access Tree;
    type Tree (K : Tree_Kind) is record
       case K is
          when Node =>

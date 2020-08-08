@@ -1,5 +1,5 @@
 procedure Test is
-   type Integer_Access is access all Integer;
+   type Integer_Access is access Integer;
 
    --  unconstrained array
    type Int_Arr is array (Positive range <>) of Integer_Access;

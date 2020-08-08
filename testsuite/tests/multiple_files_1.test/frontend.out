@@ -34,8 +34,8 @@ with Ada.Unchecked_Conversion;
 package Pkg is
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type T is new Integer;
-   type T_Access is access all T;
+   type T_Access is access T;
    procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-     (T, T_Access, AGC.No_Op);
+     (T, T_Access, False, AGC.No_Op);
    function Create (X : Integer) return T_Access;
 end Pkg;

@@ -46,6 +46,7 @@ package body AGC is
    package Root_Vectors is new Ada.Containers.Vectors (Positive, Root);
 
    Alloc_Set : Address_Vectors.Vector;
+   Modif_Set : Address_Vectors.Vector;
    Reach_Set : Root_Vectors.Vector;
 
    Current_Size : Storage_Count := 0;
@@ -81,6 +82,8 @@ package body AGC is
       As_Alloc_State_Access (Addr).all := Unknown;
    end Register;
 
+   Any_Modified : Boolean := False;
+
    procedure Visit_Access_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
 
@@ -102,12 +105,21 @@ package body AGC is
 
             State : Alloc_State_Access := As_Alloc_State_Access (Header_Addr);
          begin
-            if not Validate_Addresses.Value
-               or else AGC.Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
+            if Validate_Addresses.Value
+               and then not Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
             then
-               if State.all = Unknown then
-                  State.all := Reachable;
-                  Visit_Element (Elem_Addr);
+               return;
+            end if;
+
+            if State.all = Unknown then
+               State.all := Reachable;
+               Visit_Element (Elem_Addr);
+
+               if not Validate_Addresses.Value
+                  and then Is_Generalized_Access
+               then
+                  Any_Modified := True;
+                  Modif_Set.Append (Header_Addr);
                end if;
             end if;
          end;
@@ -154,6 +166,15 @@ package body AGC is
       end loop;
    end Visit_Unconstrained_Array_Type;
 
+   procedure Reset_Modified is
+   begin
+      for Alloc of Modif_Set loop
+         As_Alloc_State_Access (Alloc).all := Unknown;
+      end loop;
+      Modif_Set.Clear;
+      Any_Modified := False;
+   end Reset_Modified;
+
    New_Set : Address_Vectors.Vector;
 
    procedure Collect is
@@ -174,6 +195,10 @@ package body AGC is
             end if;
          end;
       end loop;
+
+      if not Validate_Addresses.Value and Any_Modified then
+         Reset_Modified;
+      end if;
 
       Address_Vectors.Move (Alloc_Set, New_Set);
    end Collect;

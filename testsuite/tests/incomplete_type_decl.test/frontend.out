@@ -6,11 +6,11 @@ procedure Test is
    AGC_Base_Root_Count : Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type T;
-   type T_Access is access all T;
+   type T_Access is access T;
    type T is null record;
    procedure AGC_Visit_T (X : System.Address);
    procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-     (T, T_Access, Test.AGC_Visit_T);
+     (T, T_Access, False, Test.AGC_Visit_T);
    procedure AGC_Visit_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all T;

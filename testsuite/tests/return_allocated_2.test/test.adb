@@ -1,7 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Test is
-   type Integer_Access is access all Integer;
+   type Integer_Access is access Integer;
 
    function Inner (X : Integer) return Integer_Access is
       Tmp : Integer_Access := new Integer'(X);

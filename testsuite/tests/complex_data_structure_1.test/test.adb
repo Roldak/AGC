@@ -1,7 +1,7 @@
 procedure Test is
    type Quad_Tree;
 
-   type Quad_Tree_Access is access all Quad_Tree;
+   type Quad_Tree_Access is access Quad_Tree;
 
    type Quad_Tree_Access_Array is
       array (Positive range <>) of Quad_Tree_Access;
