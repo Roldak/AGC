@@ -1,0 +1,24 @@
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with System.Address_Image;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access all Integer;
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, AGC.No_Op);
+   type Arr is array (1 .. 2) of aliased Integer;
+   R : aliased Arr := (others => 0);
+begin
+   declare
+      A : aliased Integer_Access := R (2)'Unchecked_Access;
+   begin
+      AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
+      AGC.Collect;
+      Put_Line (R (1)'Image);
+   end;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
