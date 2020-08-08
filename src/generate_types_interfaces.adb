@@ -27,6 +27,8 @@ is
 
    Decl_Part_Count : Node_Counters.Counter;
 
+   type RWNode_Processor is access procedure (X : LALRW.Node_Rewriting_Handle);
+
    package Node_Vectors is new Ada.Containers.Vectors
      (Positive, LAL.Ada_Node, LAL."=");
 
@@ -79,23 +81,23 @@ is
          or else Handled_Types.Contains (Decl.As_Ada_Node);
    end Is_Handled;
 
-   function Generate_Visitor_Prototype
+   procedure Generate_Visitor_Prototype
      (Visit_Name : Langkit_Support.Text.Text_Type;
-      Decl       : LAL.Base_Type_Decl'Class)
-      return LALRW.Node_Rewriting_Handle
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
    is
    begin
-      return LALRW.Create_From_Template
+      Append (LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " (X : System.Address);",
         (1 .. 0 => <>),
-        LALCO.Basic_Decl_Rule);
+        LALCO.Basic_Decl_Rule));
    end Generate_Visitor_Prototype;
 
-   function Generate_Access_Type_Visitor
+   procedure Generate_Access_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
-      Decl       : LAL.Base_Type_Decl'Class)
-      return LALRW.Node_Rewriting_Handle
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
    is
       Element_Type : LAL.Base_Type_Decl'Class :=
          Decl.P_Accessed_Type;
@@ -109,7 +111,7 @@ is
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
    begin
-      return LALRW.Create_From_Template
+      Append (LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " is new AGC.Visit_Access_Type ("
         & Element_Type_Name & ", "
@@ -117,13 +119,13 @@ is
         & Is_Generalized & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
-        LALCO.Basic_Decl_Rule);
+        LALCO.Basic_Decl_Rule));
    end Generate_Access_Type_Visitor;
 
-   function Generate_Record_Type_Visitor
+   procedure Generate_Record_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
-      Decl       : LAL.Base_Type_Decl'Class)
-      return LALRW.Node_Rewriting_Handle
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
    is
       use type Langkit_Support.Text.Unbounded_Text_Type;
 
@@ -237,23 +239,25 @@ is
    begin
       if not Is_Handled (Decl) then
          Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
-         return Generate_Visitor_Prototype (Visit_Name, Decl);
+         Generate_Visitor_Prototype (Visit_Name, Decl, Append);
+         return;
       end if;
 
-      return Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
-        (RH,
-         "procedure " & Visit_Name
-         & "(X : System.Address) is "
-         & "pragma Suppress (Accessibility_Check);"
-         & "type Rec_Access is access all " & Type_Name & ";"
-         & "for Rec_Access'Size use Standard'Address_Size;"
-         & "function Conv is new Ada.Unchecked_Conversion"
-         & "  (System.Address, Rec_Access);"
-         & "R : aliased " & Type_Name & " := Conv (X).all;"
-         &" begin null; end;",
-         (1 .. 0 => <>),
-         LALCO.Basic_Decl_Rule)
-      do
+      declare
+         Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+           (RH,
+            "procedure " & Visit_Name
+            & "(X : System.Address) is "
+            & "pragma Suppress (Accessibility_Check);"
+            & "type Rec_Access is access all " & Type_Name & ";"
+            & "for Rec_Access'Size use Standard'Address_Size;"
+            & "function Conv is new Ada.Unchecked_Conversion"
+            & "  (System.Address, Rec_Access);"
+            & "R : aliased " & Type_Name & " := Conv (X).all;"
+            &" begin null; end;",
+            (1 .. 0 => <>),
+            LALCO.Basic_Decl_Rule);
+      begin
          LALRW.Remove_Child
            (LALRW.Child (LALRW.Child (Res, 5), 1), 1);
          Handle_Base_Record
@@ -261,13 +265,14 @@ is
          Handle_Component_List
            (LALRW.Child (LALRW.Child (Res, 5), 1),
             Rec_Def.F_Components);
-      end return;
+         Append (Res);
+      end;
    end Generate_Record_Type_Visitor;
 
-   function Generate_Array_Type_Visitor
+   procedure Generate_Array_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
-      Decl       : LAL.Base_Type_Decl'Class)
-      return LALRW.Node_Rewriting_Handle
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
    is
       Is_Constrained : Boolean := Decl.P_Is_Definite_Subtype;
 
@@ -291,7 +296,7 @@ is
          then "AGC.Visit_Constrained_Array_Type"
          else "AGC.Visit_Unconstrained_Array_Type");
    begin
-      return LALRW.Create_From_Template
+      Append (LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " is new " & Generic_Visitor_Name &" ("
         & Element_Type_Name & ", "
@@ -299,25 +304,26 @@ is
         & Array_Type_Name & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
-        LALCO.Basic_Decl_Rule);
+        LALCO.Basic_Decl_Rule));
    end Generate_Array_Type_Visitor;
 
-   function Generate_Visitor
-     (Decl       : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
+   procedure Generate_Visitors
+     (Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
    is
       Visit_Name : Langkit_Support.Text.Text_Type :=
          Utils.Visitor_Name (Decl, Is_Ref => False);
    begin
       if Decl.P_Is_Access_Type then
-         return Generate_Access_Type_Visitor (Visit_Name, Decl);
+         Generate_Access_Type_Visitor (Visit_Name, Decl, Append);
       elsif Decl.P_Is_Record_Type then
-         return Generate_Record_Type_Visitor (Visit_Name, Decl);
+         Generate_Record_Type_Visitor (Visit_Name, Decl, Append);
       elsif Decl.P_Is_Array_Type then
-         return Generate_Array_Type_Visitor (Visit_Name, Decl);
+         Generate_Array_Type_Visitor (Visit_Name, Decl, Append);
       else
          raise Program_Error with "Unhandled type";
       end if;
-   end Generate_Visitor;
+   end Generate_Visitors;
 
    procedure Handle_Type_Decl
      (Decl : LAL.Base_Type_Decl'Class; Base_Index : Integer := -1)
@@ -333,6 +339,13 @@ is
         (if Base_Index = -1
          then Decl.Child_Index
          else Base_Index) + Node_Counters.Get (Decl_Part_Count, Decl_Part);
+
+      procedure Add_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
+      begin
+         LALRW.Insert_Child (DH, Index + 2, Visitor);
+         Node_Counters.Increase (Decl_Part_Count, Decl_Part);
+         Index := Index + 1;
+      end Add_Visitor;
    begin
       if Decl.Kind in LALCO.Ada_Incomplete_Type_Decl then
          return;
@@ -355,9 +368,7 @@ is
          return;
       end if;
 
-      LALRW.Insert_Child
-        (DH, Index + 2, Generate_Visitor (Decl));
-      Node_Counters.Increase (Decl_Part_Count, Decl_Part);
+      Generate_Visitors (Decl, Add_Visitor'Unrestricted_Access);
 
       if not Handled_Types.Contains (Decl.As_Ada_Node) then
          Handled_Types.Insert (Decl.As_Ada_Node);
