@@ -6,7 +6,7 @@ library project AGC_Runtime is
    Pool_Getter : Pool_Getter_Type := external("POOL_GETTER", "dynamic");
 
    Validate_Addrs : Address_Validation_Type :=
-      external ("VALIDATE_ADDRESSES", "yes");
+      external ("VALIDATE_ADDRESSES", "no");
 
    Qualifier := Pool_Getter & "-" & Validate_Addrs;
 
