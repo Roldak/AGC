@@ -84,12 +84,17 @@ is
    procedure Generate_Visitor_Prototype
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class;
+      Real_Type  : Boolean;
       Append     : RWNode_Processor)
    is
+      Type_Name : Langkit_Support.Text.Text_Type :=
+        (if Real_Type
+         then "access " & LAL.Text (Decl.P_Defining_Name)
+         else "System.Address");
    begin
       Append (LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & " (X : System.Address);",
+        "procedure " & Visit_Name & " (X : " & Type_Name & ");",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
    end Generate_Visitor_Prototype;
@@ -134,6 +139,11 @@ is
 
       Rec_Def : LAL.Base_Record_Def'Class :=
          Utils.Get_Record_Def (Decl.As_Type_Decl);
+
+      Is_Tagged : Boolean := Decl.P_Is_Tagged_Type;
+
+      CW_Visit_Name : Langkit_Support.Text.Text_Type :=
+         Visit_Name & "_Classwide";
 
       procedure Handle_Base_Record
         (Stmts : LALRW.Node_Rewriting_Handle)
@@ -236,14 +246,8 @@ is
               (RH, LALCO.Ada_Null_Stmt, (1 .. 0 => <>)));
          end if;
       end Handle_Component_List;
-   begin
-      if not Is_Handled (Decl) then
-         Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
-         Generate_Visitor_Prototype (Visit_Name, Decl, Append);
-         return;
-      end if;
 
-      declare
+      procedure Generate_Visitor_Body is
          Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
            (RH,
             "procedure " & Visit_Name
@@ -266,6 +270,53 @@ is
            (LALRW.Child (LALRW.Child (Res, 5), 1),
             Rec_Def.F_Components);
          Append (Res);
+      end Generate_Visitor_Body;
+
+      procedure Generate_Dispatcher_Body is
+         Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+           (RH,
+            "procedure AGC_Visit (X : access " & Type_Name & ") is "
+            & "begin " & Visit_Name & " (X.all'Address); end;",
+            (1 .. 0 => <>),
+            LALCO.Basic_Decl_Rule);
+      begin
+         Append (Res);
+      end Generate_Dispatcher_Body;
+
+      procedure Generate_Classwide_Visitor_Body is
+         Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+           (RH,
+            "procedure " & CW_Visit_Name
+            & "(X : System.Address) is "
+            & "pragma Suppress (Accessibility_Check);"
+            & "type T_Access is access all " & Type_Name & "'Class;"
+            & "for T_Access'Size use Standard'Address_Size;"
+            & "function Conv is new Ada.Unchecked_Conversion"
+            & "  (System.Address, T_Access);"
+            &" begin Conv (X).AGC_Visit; end;",
+            (1 .. 0 => <>),
+            LALCO.Basic_Decl_Rule);
+      begin
+         Append (Res);
+      end Generate_Classwide_Visitor_Body;
+   begin
+      if not Is_Handled (Decl) then
+         Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
+         Generate_Visitor_Prototype (Visit_Name, Decl, False, Append);
+         if Is_Tagged then
+            Generate_Visitor_Prototype ("AGC_Visit", Decl, True, Append);
+            Generate_Visitor_Prototype (CW_Visit_Name, Decl, False, Append);
+         end if;
+         return;
+      end if;
+
+      declare
+      begin
+         Generate_Visitor_Body;
+         if Is_Tagged then
+            Generate_Dispatcher_Body;
+            Generate_Classwide_Visitor_Body;
+         end if;
       end;
    end Generate_Record_Type_Visitor;
 

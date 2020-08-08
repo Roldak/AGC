@@ -14,9 +14,24 @@ procedure Test is
          X : Integer_Access;
       end record;
       procedure AGC_Visit_T (X : System.Address);
+      procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
       procedure Print (X : T);
    end Pkg_T;
    package body Pkg_T is
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+      procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (Accessibility_Check);
          type Rec_Access is access all T;
@@ -43,9 +58,24 @@ procedure Test is
          Y : Integer_Access;
       end record;
       procedure AGC_Visit_U (X : System.Address);
+      procedure AGC_Visit (X : access U);
+      procedure AGC_Visit_U_Classwide (X : System.Address);
       procedure Print (X : U);
    end Pkg_U;
    package body Pkg_U is
+      procedure AGC_Visit_U_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all U'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_U_Classwide;
+      procedure AGC_Visit (X : access U) is
+      begin
+         AGC_Visit_U (X.all'Address);
+      end AGC_Visit;
       procedure AGC_Visit_U (X : System.Address) is
          pragma Suppress (Accessibility_Check);
          type Rec_Access is access all U;
@@ -68,7 +98,7 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end Pkg_U;
-   function AGC_Func_0 return Pkg_U.U is
+   function AGC_Func_0 return Pkg_T.T'Class is
       AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_1          : aliased Test.Integer_Access := new Integer'(2);
    begin
@@ -79,14 +109,16 @@ procedure Test is
       begin
          AGC.Push_Root
            (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-         return AGC_Ret : Pkg_U.U := (X => AGC_Temp_0, Y => AGC_Temp_1) do
+         return
+           AGC_Ret : Pkg_T.T'Class :=
+             Pkg_U.U'(X => AGC_Temp_0, Y => AGC_Temp_1) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end;
    end AGC_Func_0;
-   X : aliased Pkg_U.U := AGC_Func_0;
+   X : aliased Pkg_T.T'Class := AGC_Func_0;
 begin
-   AGC.Push_Root (X'Address, Test.Pkg_U.AGC_Visit_U'Address);
+   AGC.Push_Root (X'Address, Test.Pkg_T.AGC_Visit_T_Classwide'Address);
    X.Print;
    AGC.Collect;
    X.Print;

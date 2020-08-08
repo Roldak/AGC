@@ -10,7 +10,9 @@ package body Utils is
          Typ.P_Is_Access_Type
          or else Typ.P_Is_Record_Type
          or else (Typ.P_Is_Array_Type
-                  and then Is_Relevant_Type (Typ.P_Comp_Type));
+                  and then Is_Relevant_Type (Typ.P_Comp_Type))
+         or else (Typ.P_Is_Classwide
+                  and then Is_Relevant_Type (Typ.Parent.As_Base_Type_Decl));
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
@@ -175,7 +177,9 @@ package body Utils is
      (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
    is
       FQN : Langkit_Support.Text.Text_Type :=
-         Decl.P_Fully_Qualified_Name;
+         (if Decl.Kind in LALCO.Ada_Classwide_Type_Decl
+          then Decl.Parent.As_Base_Type_Decl.P_Fully_Qualified_Name
+          else Decl.P_Fully_Qualified_Name);
    begin
       for I in reverse FQN'First .. FQN'Last loop
          if FQN (I) = '.' then
@@ -189,13 +193,20 @@ package body Utils is
      (Typ    : LAL.Base_Type_Decl'Class;
       Is_Ref : Boolean := True) return Langkit_Support.Text.Text_Type
    is
+      Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Typ.P_Defining_Name);
+
+      Normalized_Name : Langkit_Support.Text.Text_Type :=
+        (if Typ.P_Is_Classwide
+         then Type_Name & "_Classwide"
+         else Type_Name);
    begin
       if Is_Relevant_Type (Typ) then
          if Is_Ref then
             return Fully_Qualified_Decl_Part_Of (Typ)
-               & "AGC_Visit_" & LAL.Text (Typ.P_Defining_Name);
+               & "AGC_Visit_" & Normalized_Name;
          else
-            return "AGC_Visit_" & LAL.Text (Typ.P_Defining_Name);
+            return "AGC_Visit_" & Normalized_Name;
          end if;
       else
          return "AGC.No_Op";
