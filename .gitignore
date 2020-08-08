@@ -7,3 +7,6 @@
 
 bin/
 obj/
+
+# Python cache
+__pycache__/

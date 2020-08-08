@@ -1,15 +1,13 @@
 import os
-import tempfile
 import subprocess
 import sys
 
+sys.path.append(os.path.join(
+    os.path.dirname(os.path.realpath(__file__)),
+    ".."
+))
 
-gpr_template = """
-with "agc_runtime";
-project Test is
-    for Main use ("{}");
-end Test;
-"""
+import support
 
 
 def format_valgrind_output(output):
@@ -19,38 +17,10 @@ def format_valgrind_output(output):
 
 
 def run(src_file):
-    with tempfile.TemporaryDirectory() as d:
-        # Run AGC
-        agc_out = subprocess.run(
-            ["agc", src_file, "--output-dir", d],
-            capture_output=True,
-            text=True
-        )
-        if agc_out.returncode != 0:
-            print(agc_out.stderr)
-            return
-
-        # Create GPR project file
-        gpr_path = os.path.join(d, "test.gpr")
-        with open(gpr_path, "wb") as gpr:
-            gpr_content = gpr_template.format(src_file).encode()
-            gpr.write(gpr_content)
-            gpr.flush()
-
-        # Build generated project
-        gprbuild_out = subprocess.run(
-            ["gprbuild", "-p", "-P", gpr_path],
-            capture_output=True,
-            text=True
-        )
-        if gprbuild_out.returncode != 0:
-            print(gprbuild_out.stderr)
-            return
-
+    with support.agc_build(src_file) as main:
         # Run valgrind on resulting binary
         valgrind_out = subprocess.run(
-            ["valgrind",
-             os.path.join(d, src_file[:-4])],
+            ["valgrind", main],
             capture_output=True,
             text=True
         )
