@@ -54,6 +54,7 @@ procedure Test is
            (System.Address, Rec_Access);
          R : aliased U := Conv (X).all;
       begin
+         Test.Pkg_T.AGC_Visit_T (X);
          declare
             C : aliased Test.Integer_Access := R.Y;
          begin
@@ -67,7 +68,7 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end Pkg_U;
-   function AGC_Func_0 return Pkg_T.T'Class is
+   function AGC_Func_0 return Pkg_U.U is
       AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
       AGC_Temp_1          : aliased Test.Integer_Access := new Integer'(2);
    begin
@@ -78,15 +79,15 @@ procedure Test is
       begin
          AGC.Push_Root
            (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-         return
-           AGC_Ret : Pkg_T.T'Class :=
-             Pkg_U.U'(X => AGC_Temp_0, Y => AGC_Temp_1) do
+         return AGC_Ret : Pkg_U.U := (X => AGC_Temp_0, Y => AGC_Temp_1) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end;
    end AGC_Func_0;
-   X : Pkg_T.T'Class := AGC_Func_0;
+   X : aliased Pkg_U.U := AGC_Func_0;
 begin
+   AGC.Push_Root (X'Address, Test.Pkg_U.AGC_Visit_U'Address);
+   X.Print;
    AGC.Collect;
    X.Print;
    AGC.Pop_Roots (AGC_Base_Root_Count);

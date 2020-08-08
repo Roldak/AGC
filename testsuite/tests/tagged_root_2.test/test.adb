@@ -34,6 +34,7 @@ procedure Test is
 
    X : Pkg_T.T'Class := Pkg_U.U'(X => new Integer'(1), Y => new Integer'(2));
 begin
+   X.Print;
    AGC.Collect;
    X.Print;
 end Test;

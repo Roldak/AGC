@@ -133,6 +133,21 @@ is
       Rec_Def : LAL.Base_Record_Def'Class :=
          Utils.Get_Record_Def (Decl.As_Type_Decl);
 
+      procedure Handle_Base_Record
+        (Stmts : LALRW.Node_Rewriting_Handle)
+      is
+         Base_Type : LAL.Base_Type_Decl'Class :=
+            Decl.P_Base_Type;
+      begin
+         if not Base_Type.Is_Null then
+            LALRW.Append_Child (Stmts, LALRW.Create_From_Template
+              (RH,
+               Utils.Visitor_Name (Base_Type) & "(X);",
+               (1 .. 0 => <>),
+               LALCO.Call_Stmt_Rule));
+         end if;
+      end Handle_Base_Record;
+
       procedure Handle_Component_List
         (Stmts : LALRW.Node_Rewriting_Handle; List : LAL.Component_List'Class)
       is
@@ -241,6 +256,8 @@ is
       do
          LALRW.Remove_Child
            (LALRW.Child (LALRW.Child (Res, 5), 1), 1);
+         Handle_Base_Record
+           (LALRW.Child (LALRW.Child (Res, 5), 1));
          Handle_Component_List
            (LALRW.Child (LALRW.Child (Res, 5), 1),
             Rec_Def.F_Components);
