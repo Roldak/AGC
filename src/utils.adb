@@ -201,4 +201,19 @@ package body Utils is
          return "AGC.No_Op";
       end if;
    end Visitor_Name;
+
+   function Child_Index
+     (Node : LALRW.Node_Rewriting_Handle) return Natural
+   is
+      use type LALRW.Node_Rewriting_Handle;
+
+      Parent : LALRW.Node_Rewriting_Handle := LALRW.Parent (Node);
+	begin
+      for I in 1 .. LALRW.Children_Count (Parent) loop
+         if LALRW.Child (Parent, I) = Node then
+            return I;
+         end if;
+      end loop;
+		return 0;
+   end Child_Index;
 end Utils;

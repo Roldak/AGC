@@ -39,4 +39,7 @@ package Utils is
    function Visitor_Name
      (Typ : LAL.Base_Type_Decl'Class;
       Is_Ref : Boolean := True) return Langkit_Support.Text.Text_Type;
+
+   function Child_Index
+     (Node : LALRW.Node_Rewriting_Handle) return Natural;
 end Utils;

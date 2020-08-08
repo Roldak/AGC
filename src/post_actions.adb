@@ -2,6 +2,8 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Rewriting;
 
+with Utils;
+
 package body Post_Actions is
    package LAL   renames Libadalang.Analysis;
    package LALRW renames Libadalang.Rewriting;
@@ -22,7 +24,8 @@ package body Post_Actions is
                Dest   : LAL.Ada_Node := Action.Dest;
             begin
                LALRW.Remove_Child
-                 (LALRW.Handle (Source.Parent), Source.Child_Index + 1);
+                 (LALRW.Handle (Source.Parent),
+                  Utils.Child_Index (LALRW.Handle (Source)));
                LALRW.Insert_Child
                  (LALRW.Handle (Dest), 1, LALRW.Handle (Source));
             end;
