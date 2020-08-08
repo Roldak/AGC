@@ -15,8 +15,7 @@ def run(arg):
             text=True
         )
         if agc_out.returncode != 0:
-            print(agc_out.stderr)
-            return
+            raise RuntimeError(agc_out.stderr)
 
         gpr_path = os.path.join(d, "prj.gpr")
         with open(gpr_path, "w") as gpr:

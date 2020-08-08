@@ -23,8 +23,7 @@ def agc_build(src_file):
             text=True
         )
         if agc_out.returncode != 0:
-            print(agc_out.stderr)
-            return
+            raise RuntimeError(agc_out.stderr)
 
         # Create GPR project file
         gpr_path = os.path.join(d, "test.gpr")
@@ -40,8 +39,7 @@ def agc_build(src_file):
             text=True
         )
         if gprbuild_out.returncode != 0:
-            print(gprbuild_out.stderr)
-            return
+            raise RuntimeError(gprbuild_out.stderr)
 
         yield os.path.join(d, src_file[:-4])
 
