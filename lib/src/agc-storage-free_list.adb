@@ -16,7 +16,8 @@ package body AGC.Storage.Free_List is
    for Free_Info_Access'Size use Standard'Address_Size;
 
    function As_Info is new Ada.Unchecked_Conversion
-     (System.Address, Free_Info_Access);
+     (System.Address, Free_Info_Access)
+         with Inline;
 
    procedure Collect
      (Self : in out Free_List_Pool; X : System.Address)

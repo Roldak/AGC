@@ -34,7 +34,8 @@ package body AGC is
    for Alloc_State_Access'Size use Standard'Address_Size;
 
    function As_Alloc_State_Access is new
-      Ada.Unchecked_Conversion (Address, Alloc_State_Access);
+      Ada.Unchecked_Conversion (Address, Alloc_State_Access)
+         with Inline;
 
    type Root is record
       Addr    : Address;
@@ -89,22 +90,27 @@ package body AGC is
       function Conv is new Ada.Unchecked_Conversion
         (Address, T_Access_Access);
 
-      Acc       : aliased constant T_Access := Conv (X).all;
-      Elem_Addr : constant Address          := Acc.all'Address;
       Type_Offset : constant Storage_Offset :=
-         T'Descriptor_Size / Storage_Unit + Acc.all'Finalization_Size;
-      Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
+         T'Descriptor_Size / Storage_Unit + T'Finalization_Size;
 
-      State : Alloc_State_Access :=
-         As_Alloc_State_Access (Header_Addr);
+      Acc         : aliased constant T_Access := Conv (X).all;
    begin
-      if not Validate_Addresses.Value
-         or else AGC.Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
-      then
-         if State.all /= Reachable then
-            State.all := Reachable;
-            Visit_Element (Elem_Addr);
-         end if;
+      if Acc /= null then
+         declare
+            Elem_Addr   : constant Address := Acc.all'Address;
+            Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
+
+            State : Alloc_State_Access := As_Alloc_State_Access (Header_Addr);
+         begin
+            if not Validate_Addresses.Value
+               or else AGC.Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
+            then
+               if State.all = Unknown then
+                  State.all := Reachable;
+                  Visit_Element (Elem_Addr);
+               end if;
+            end if;
+         end;
       end if;
    end Visit_Access_Type;
 
@@ -148,8 +154,9 @@ package body AGC is
       end loop;
    end Visit_Unconstrained_Array_Type;
 
+   New_Set : Address_Vectors.Vector;
+
    procedure Collect is
-      New_Set : Address_Vectors.Vector;
    begin
       for Root of Reach_Set loop
          As_Address_Visitor (Root.Visitor).all (Root.Addr);
@@ -159,7 +166,7 @@ package body AGC is
          declare
             State : Alloc_State_Access := As_Alloc_State_Access (Alloc);
          begin
-            if State.all /= Unknown then
+            if State.all = Reachable then
                State.all := Unknown;
                New_Set.Append (Alloc);
             else

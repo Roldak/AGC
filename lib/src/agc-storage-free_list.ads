@@ -6,10 +6,12 @@ package AGC.Storage.Free_List is
    type Free_List_Pool is new AGC_Pool with private;
 
    overriding procedure Collect
-     (Self : in out Free_List_Pool; X : System.Address);
+     (Self : in out Free_List_Pool; X : System.Address)
+         with Inline;
 
    function Is_Valid_Address
-     (Self : in out Free_List_Pool; X : System.Address) return Boolean;
+     (Self : in out Free_List_Pool; X : System.Address) return Boolean
+         with Inline;
 
    overriding procedure Finalize (Self : in out Free_List_Pool);
 private
@@ -28,7 +30,8 @@ private
      (Self : in out Free_List_Pool;
       Addr : out System.Address;
       Size : Storage_Count;
-      Alignment : Storage_Count);
+      Alignment : Storage_Count)
+         with Inline;
 
    overriding procedure Deallocate
      (Self : in out Free_List_Pool;

@@ -8,10 +8,12 @@ package AGC.Storage.Malloc_Free is
    type Malloc_Free_Pool is new AGC_Pool with private;
 
    overriding procedure Collect
-     (Self : in out Malloc_Free_Pool; X : System.Address);
+     (Self : in out Malloc_Free_Pool; X : System.Address)
+         with Inline;
 
    overriding function Is_Valid_Address
-     (Self : in out Malloc_Free_Pool; X : System.Address) return Boolean;
+     (Self : in out Malloc_Free_Pool; X : System.Address) return Boolean
+         with Inline;
 private
    function Address_Hash
      (X : System.Address) return Ada.Containers.Hash_Type
@@ -28,7 +30,8 @@ private
      (Self : in out Malloc_Free_Pool;
       Addr : out System.Address;
       Size : Storage_Count;
-      Alignment : Storage_Count);
+      Alignment : Storage_Count)
+         with Inline;
 
    overriding procedure Deallocate
      (Self : in out Malloc_Free_Pool;

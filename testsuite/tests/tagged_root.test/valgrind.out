@@ -1,42 +1,44 @@
-    at 0x40842D: test__pkg_u__print.5376 (in /tmp/tmp64j3yxlm/test)
-    by 0x408227: _ada_test (in /tmp/tmp64j3yxlm/test)
-    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
-  Address 0x4a8c084 is 4 bytes inside a block of size 8 free'd
+    at 0x405D4D: test__pkg_u__print.5376 (in /tmp/tmp2gyes0sd/test)
+    by 0x405B47: _ada_test (in /tmp/tmp2gyes0sd/test)
+    by 0x407418: main (in /tmp/tmp2gyes0sd/test)
+  Address 0x4a8c0b4 is 4 bytes inside a block of size 8 free'd
     at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-    by 0x4358A8: __gnat_free (in /tmp/tmp64j3yxlm/test)
-    by 0x411576: agc__collect (in /tmp/tmp64j3yxlm/test)
-    by 0x4081F8: _ada_test (in /tmp/tmp64j3yxlm/test)
-    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+    by 0x44C6C8: __gnat_free (in /tmp/tmp2gyes0sd/test)
+    by 0x416685: agc__storage__malloc_free__collect (agc-storage-malloc_free.adb:23)
+    by 0x42E0BA: agc__collect (agc.adb:173)
+    by 0x405B18: _ada_test (in /tmp/tmp2gyes0sd/test)
+    by 0x407418: main (in /tmp/tmp2gyes0sd/test)
   Block was alloc'd at
     at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-    by 0x43584E: __gnat_malloc (in /tmp/tmp64j3yxlm/test)
-    by 0x4181C1: agc__storage__malloc_free__allocate__2 (in /tmp/tmp64j3yxlm/test)
-    by 0x408BBA: test__agc_func_0.5437 (in /tmp/tmp64j3yxlm/test)
-    by 0x407F41: _ada_test (in /tmp/tmp64j3yxlm/test)
-    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+    by 0x44C66E: __gnat_malloc (in /tmp/tmp2gyes0sd/test)
+    by 0x4166FC: agc__storage__malloc_free__allocate__2 (agc-storage-malloc_free.adb:44)
+    by 0x4064DA: test__agc_func_0.5437 (in /tmp/tmp2gyes0sd/test)
+    by 0x405861: _ada_test (in /tmp/tmp2gyes0sd/test)
+    by 0x407418: main (in /tmp/tmp2gyes0sd/test)
  
  Invalid read of size 4
-    at 0x408486: test__pkg_u__print.5376 (in /tmp/tmp64j3yxlm/test)
-    by 0x408227: _ada_test (in /tmp/tmp64j3yxlm/test)
-    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
-  Address 0x4a8bf84 is 4 bytes inside a block of size 8 free'd
+    at 0x405DA6: test__pkg_u__print.5376 (in /tmp/tmp2gyes0sd/test)
+    by 0x405B47: _ada_test (in /tmp/tmp2gyes0sd/test)
+    by 0x407418: main (in /tmp/tmp2gyes0sd/test)
+  Address 0x4a8bfb4 is 4 bytes inside a block of size 8 free'd
     at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-    by 0x4358A8: __gnat_free (in /tmp/tmp64j3yxlm/test)
-    by 0x411576: agc__collect (in /tmp/tmp64j3yxlm/test)
-    by 0x4081F8: _ada_test (in /tmp/tmp64j3yxlm/test)
-    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+    by 0x44C6C8: __gnat_free (in /tmp/tmp2gyes0sd/test)
+    by 0x416685: agc__storage__malloc_free__collect (agc-storage-malloc_free.adb:23)
+    by 0x42E0BA: agc__collect (agc.adb:173)
+    by 0x405B18: _ada_test (in /tmp/tmp2gyes0sd/test)
+    by 0x407418: main (in /tmp/tmp2gyes0sd/test)
   Block was alloc'd at
     at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
-    by 0x43584E: __gnat_malloc (in /tmp/tmp64j3yxlm/test)
-    by 0x4181C1: agc__storage__malloc_free__allocate__2 (in /tmp/tmp64j3yxlm/test)
-    by 0x408B75: test__agc_func_0.5437 (in /tmp/tmp64j3yxlm/test)
-    by 0x407F41: _ada_test (in /tmp/tmp64j3yxlm/test)
-    by 0x409AEC: main (in /tmp/tmp64j3yxlm/test)
+    by 0x44C66E: __gnat_malloc (in /tmp/tmp2gyes0sd/test)
+    by 0x4166FC: agc__storage__malloc_free__allocate__2 (agc-storage-malloc_free.adb:44)
+    by 0x406495: test__agc_func_0.5437 (in /tmp/tmp2gyes0sd/test)
+    by 0x405861: _ada_test (in /tmp/tmp2gyes0sd/test)
+    by 0x407418: main (in /tmp/tmp2gyes0sd/test)
  
  
  HEAP SUMMARY:
      in use at exit: 3,592 bytes in 3 blocks
-   total heap usage: 10 allocs, 7 frees, 3,736 bytes allocated
+   total heap usage: 10 allocs, 7 frees, 3,784 bytes allocated
  
  LEAK SUMMARY:
     definitely lost: 0 bytes in 0 blocks
