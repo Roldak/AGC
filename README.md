@@ -35,10 +35,10 @@ To have an idea of the performance, single-run results for the `binary_tree` ben
 * **Raw** (no deallocation):                              `0,18s user 0,09s system 98% cpu 0,269 total`
 * **Manual** (user-managed):                              `0,23s user 0,00s system 99% cpu 0,230 total`
 * **Controlled** (ref-counted using controlled types):    `1,04s user 0,00s system 99% cpu 1,044 total`
-* **AGC** with `AGC_POOL=MALLOC_FREE`:                    `0,43s user 0,00s system 97% cpu 0,438 total`
-* **AGC** with `AGC_POOL=FREE_LIST`:                      `0,25s user 0,01s system 95% cpu 0,276 total`
+* **AGC** with `AGC_POOL=MALLOC_FREE`:                    `0,30s user 0,00s system 96% cpu 0,318 total`
+* **AGC** with `AGC_POOL=FREE_LIST`:                      `0,21s user 0,01s system 94% cpu 0,235 total`
 
-As you can see AGC's performance using its own free-list based storage pool gives results on-par with manually managed memory, and even the malloc/free-based storage pool yields better performance than a controlled-types based implementation, without having to write any additional memory-management code.
+As you can see AGC's performance using its own free-list based storage pool gives results on-par with manually managed memory, and even the malloc/free-based storage pool yields better performance (more than 3x faster) than a controlled-types based implementation, without having to write any additional memory-management code.
 
 ## Internals
 
