@@ -8,11 +8,13 @@ library project AGC_Runtime is
    Validate_Addrs : Address_Validation_Type :=
       external ("VALIDATE_ADDRESSES", "yes");
 
+   Qualifier := Pool_Getter & "-" & Validate_Addrs;
+
    for Source_Dirs use
      ("src", "src/get_" & Pool_Getter, "src/addr_valid_" & Validate_Addrs);
-   for Object_Dir use "obj";
+   for Object_Dir use "obj/" & Qualifier;
+   for Library_Dir use "bin/" & Qualifier;
    for Library_Name use "agc_runtime";
-   for Library_Dir use ".";
 
    package Compiler is
       Mode := external("BUILD_MODE", "debug");

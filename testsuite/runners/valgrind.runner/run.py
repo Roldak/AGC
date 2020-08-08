@@ -39,7 +39,7 @@ def run(src_file):
 
         # Build generated project
         gprbuild_out = subprocess.run(
-            ["gprbuild", "-P", gpr_path],
+            ["gprbuild", "-p", "-P", gpr_path],
             capture_output=True,
             text=True
         )
