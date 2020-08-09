@@ -92,6 +92,8 @@ package body Utils is
          or else Expr.Parent.Kind in LALCO.Ada_Qual_Expr
       then
          return False;
+      elsif Expr.Kind in LALCO.Ada_Defining_Name then
+         return False;
       end if;
       return True;
    end Is_Actual_Expr;
@@ -106,7 +108,8 @@ package body Utils is
             begin
                return
                   Decl.Kind in
-                     LALCO.Ada_Object_Decl
+                     LALCO.Ada_Object_Decl_Range
+                   | LALCO.Ada_For_Loop_Var_Decl
                    | LALCO.Ada_Param_Spec
                    | LALCO.Ada_Component_Decl;
             end;

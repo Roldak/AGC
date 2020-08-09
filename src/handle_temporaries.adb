@@ -164,13 +164,10 @@ is
          when LALCO.Ada_Expr =>
             declare
                Expr      : LAL.Expr := Node.As_Expr;
-               Expr_Type : LAL.Base_Type_Decl;
             begin
-               Expr_Type := Expr.P_Expression_Type;
                if
-                  not Expr_Type.Is_Null
-                  and then Utils.Is_Relevant_Type (Expr_Type)
-                  and then Utils.Is_Actual_Expr (Expr)
+                  Utils.Is_Actual_Expr (Expr)
+                  and then Utils.Is_Relevant_Type (Expr.P_Expression_Type)
                   and then not Utils.Is_Named_Expr (Expr)
                   and then Expr.Parent.Kind not in
                     LALCO.Ada_Paren_Expr
