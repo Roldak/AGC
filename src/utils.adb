@@ -5,14 +5,21 @@ package body Utils is
    function Is_Relevant_Type
      (Typ  : LAL.Base_Type_Decl'Class) return Boolean
    is
+      Full_Typ : LAL.Base_Type_Decl;
    begin
+      if Typ.Is_Null then
+         return False;
+      end if;
+
+      Full_Typ := Typ.P_Full_View;
+
       return
-         Typ.P_Is_Access_Type
-         or else Typ.P_Is_Record_Type
-         or else (Typ.P_Is_Array_Type
-                  and then Is_Relevant_Type (Typ.P_Comp_Type))
-         or else (Typ.P_Is_Classwide
-                  and then Is_Relevant_Type (Typ.Parent.As_Base_Type_Decl));
+         Full_Typ.P_Is_Access_Type
+         or else Full_Typ.P_Is_Record_Type
+         or else (Full_Typ.P_Is_Array_Type
+                  and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
+         or else (Full_Typ.P_Is_Classwide
+                  and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl));
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
