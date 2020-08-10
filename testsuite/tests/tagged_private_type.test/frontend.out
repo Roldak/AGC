@@ -1,0 +1,178 @@
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, False, AGC.No_Op);
+   package P is
+      type T is tagged private;
+      procedure AGC_Visit_T_Private (X : System.Address);
+      procedure AGC_Visit_T_Private_Classwide (X : System.Address);
+      function Create (X : Integer) return T'Class;
+      procedure Print (X : T);
+   private
+      type T is tagged record
+         X : Integer_Access;
+      end record;
+      procedure AGC_Visit_T (X : System.Address);
+      procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
+   end P;
+   package body P is
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+      procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all T;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : aliased T := Conv (X).all;
+      begin
+         declare
+            C : aliased Test.Integer_Access := R.X;
+         begin
+            Test.AGC_Visit_Integer_Access (C'Address);
+         end;
+      end AGC_Visit_T;
+      procedure AGC_Visit_T_Private_Classwide (X : System.Address) renames
+        Test.P.AGC_Visit_T_Classwide;
+      procedure AGC_Visit_T_Private (X : System.Address) renames
+        Test.P.AGC_Visit_T;
+      function Create (X : Integer) return T'Class is
+         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      begin
+         declare
+            AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(X);
+         begin
+            AGC.Push_Root
+              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+            return AGC_Ret : T'Class := T'(X => AGC_Temp_0) do
+               AGC.Pop_Roots (AGC_Base_Root_Count);
+            end return;
+         end;
+      end Create;
+      procedure Print (X : T) is
+         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      begin
+         Put_Line (X.X.all'Image);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end Print;
+   end P;
+   package Q is
+      type T is new P.T with private;
+      procedure AGC_Visit_T_Private (X : System.Address);
+      procedure AGC_Visit_T_Private_Classwide (X : System.Address);
+      function Create (X, Y : Integer) return T'Class;
+      overriding procedure Print (X : T);
+   private
+      type T is new P.T with record
+         Y : Integer_Access;
+      end record;
+      procedure AGC_Visit_T (X : System.Address);
+      procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
+   end Q;
+   package body Q is
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+      procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all T;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : aliased T := Conv (X).all;
+      begin
+         Test.P.AGC_Visit_T_Private (X);
+         declare
+            C : aliased Test.Integer_Access := R.Y;
+         begin
+            Test.AGC_Visit_Integer_Access (C'Address);
+         end;
+      end AGC_Visit_T;
+      procedure AGC_Visit_T_Private_Classwide (X : System.Address) renames
+        Test.Q.AGC_Visit_T_Classwide;
+      procedure AGC_Visit_T_Private (X : System.Address) renames
+        Test.Q.AGC_Visit_T;
+      function Create (X, Y : Integer) return T'Class is
+         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+         function AGC_Func_0 return T is
+            AGC_Base_Root_Count : Natural := AGC.Root_Count;
+            AGC_Temp_2 : aliased Test.Integer_Access := new Integer'(Y);
+         begin
+            AGC.Push_Root
+              (AGC_Temp_2'Address, Test.AGC_Visit_Integer_Access'Address);
+            declare
+               AGC_Temp_1 : aliased Test.P.T'Class := P.Create (X);
+            begin
+               AGC.Push_Root
+                 (AGC_Temp_1'Address,
+                  Test.P.AGC_Visit_T_Private_Classwide'Address);
+               declare
+                  AGC_Temp_0 : aliased Test.P.T := P.T (AGC_Temp_1);
+               begin
+                  AGC.Push_Root
+                    (AGC_Temp_0'Address, Test.P.AGC_Visit_T_Private'Address);
+                  return AGC_Ret : T := (AGC_Temp_0 with Y => AGC_Temp_2) do
+                     AGC.Pop_Roots (AGC_Base_Root_Count);
+                  end return;
+               end;
+            end;
+         end AGC_Func_0;
+         R : aliased T := AGC_Func_0;
+      begin
+         AGC.Push_Root (R'Address, Test.Q.AGC_Visit_T'Address);
+         return AGC_Ret : T'Class := R do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end Create;
+      procedure Print (X : T) is
+         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      begin
+         declare
+            AGC_Root_Count : Natural          := AGC.Root_Count;
+            AGC_Temp_0     : aliased Test.P.T := P.T (X);
+         begin
+            AGC.Push_Root
+              (AGC_Temp_0'Address, Test.P.AGC_Visit_T_Private'Address);
+            AGC_Temp_0.Print;
+            AGC.Pop_Roots (AGC_Root_Count);
+         end;
+         Put_Line (X.Y.all'Image);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end Print;
+   end Q;
+   X : aliased P.T'Class := Q.Create (1, 2);
+begin
+   AGC.Push_Root (X'Address, Test.P.AGC_Visit_T_Private_Classwide'Address);
+   X.Print;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
