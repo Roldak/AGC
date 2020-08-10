@@ -30,8 +30,7 @@ package Utils is
      (Decl : LAL.Type_Decl'Class) return LAL.Base_Record_Def'Class;
 
    function Generate_Type_Reference
-     (RH  : LALRW.Rewriting_Handle;
-      Typ : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle;
+     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
 
    function Unique_Identifier
      (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type;

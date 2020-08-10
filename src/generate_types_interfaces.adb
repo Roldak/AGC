@@ -204,8 +204,8 @@ is
                   Comp_Type : LAL.Base_Type_Decl'Class :=
                      Comp.P_Formal_Type;
 
-                  Comp_Type_Ref : LALRW.Node_Rewriting_Handle :=
-                     Utils.Generate_Type_Reference (RH, Comp_Type);
+                  Comp_Type_Ref : Langkit_Support.Text.Text_Type :=
+                     Utils.Generate_Type_Reference (Comp_Type);
 
                   Comp_Name : LAL.Defining_Name :=
                      Comp.P_Defining_Name;
@@ -217,11 +217,12 @@ is
                      LALRW.Append_Child (Stmts, LALRW.Create_From_Template
                        (RH,
                         "declare"
-                        & "   C : aliased {} := R." & Comp_Text & ";"
+                        & "   C : aliased " & Comp_Type_Ref
+                        & " := R." & Comp_Text & ";"
                         & "begin "
                         & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
                         & "end;",
-                        (1 => Comp_Type_Ref), LALCO.Block_Stmt_Rule));
+                        (1 .. 0 => <>), LALCO.Block_Stmt_Rule));
                   end if;
                end;
             end if;

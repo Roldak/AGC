@@ -140,9 +140,10 @@ is
          Obj_Decl : LALRW.Node_Rewriting_Handle :=
             LALRW.Create_From_Template
               (RH,
-               Temp_Name & " : {} := null;",
-               (1 => Utils.Generate_Type_Reference
-                       (RH, Expr.P_Expression_Type)),
+               Temp_Name & " : "
+               & Utils.Generate_Type_Reference (Expr.P_Expression_Type)
+               & " := null;",
+               (1 .. 0 => <>),
                LALCO.Object_Decl_Rule);
       begin
          LALRW.Replace (EH, LALRW.Create_From_Template

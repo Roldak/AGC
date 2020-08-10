@@ -163,8 +163,7 @@ package body Utils is
    end Get_Record_Def;
 
    function Generate_Type_Reference
-     (RH  : LALRW.Rewriting_Handle;
-      Typ : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
+     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
    is
       Is_Classwide : Boolean := Typ.Kind in LALCO.Ada_Classwide_Type_Decl;
 
@@ -178,9 +177,7 @@ package body Utils is
          then "'Class"
          else "");
    begin
-      return LALRW.Create_From_Template
-        (RH, Base & Suffix,
-         (1 .. 0 => <>), LALCO.Type_Expr_Rule);
+      return Base & Suffix;
    end Generate_Type_Reference;
 
    function Unique_Identifier
