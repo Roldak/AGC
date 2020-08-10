@@ -79,6 +79,8 @@ package body Utils is
                and then N.P_Called_Subp_Spec = P.P_Called_Subp_Spec
             then
                return False;
+            elsif not N.P_Name_Designated_Type.Is_Null then
+               return False;
             end if;
          end;
       elsif
