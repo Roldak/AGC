@@ -166,9 +166,20 @@ package body Utils is
      (RH  : LALRW.Rewriting_Handle;
       Typ : LAL.Base_Type_Decl'Class) return LALRW.Node_Rewriting_Handle
    is
+      Is_Classwide : Boolean := Typ.Kind in LALCO.Ada_Classwide_Type_Decl;
+
+      Base : Langkit_Support.Text.Text_Type :=
+        (if Is_Classwide
+         then Typ.Parent.As_Base_Type_Decl.P_Fully_Qualified_Name
+         else Typ.P_Fully_Qualified_Name);
+
+      Suffix : Langkit_Support.Text.Text_Type :=
+        (if Is_Classwide
+         then "'Class"
+         else "");
    begin
       return LALRW.Create_From_Template
-        (RH, LAL.P_Fully_Qualified_Name (Typ),
+        (RH, Base & Suffix,
          (1 .. 0 => <>), LALCO.Type_Expr_Rule);
    end Generate_Type_Reference;
 
