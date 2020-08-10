@@ -206,17 +206,20 @@ package body Utils is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Typ.P_Defining_Name);
 
-      Normalized_Name : Langkit_Support.Text.Text_Type :=
-        (if Typ.P_Is_Classwide
-         then Type_Name & "_Classwide"
-         else Type_Name);
+      function Normalized_Name
+        (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+      is (if    Typ.P_Is_Classwide
+          then  Normalized_Name (Typ.Parent.As_Base_Type_Decl) & "_Classwide"
+          elsif Typ.P_Is_Private
+          then  Type_Name & "_Private"
+          else  Type_Name);
    begin
       if Is_Relevant_Type (Typ) then
          if Is_Ref then
             return Fully_Qualified_Decl_Part_Of (Typ)
-               & "AGC_Visit_" & Normalized_Name;
+               & "AGC_Visit_" & Normalized_Name (Typ);
          else
-            return "AGC_Visit_" & Normalized_Name;
+            return "AGC_Visit_" & Normalized_Name (Typ);
          end if;
       else
          return "AGC.No_Op";

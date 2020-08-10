@@ -1,0 +1,91 @@
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package body Pkg is
+   procedure AGC_Visit_T_Classwide (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type T_Access is access all T'Class;
+      for T_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
+   begin
+      Conv (X).AGC_Visit;
+   end AGC_Visit_T_Classwide;
+   procedure AGC_Visit (X : access T) is
+   begin
+      AGC_Visit_T (X.all'Address);
+   end AGC_Visit;
+   procedure AGC_Visit_T (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all T;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased T := Conv (X).all;
+   begin
+      declare
+         C : aliased Pkg.Integer_Access := R.X;
+      begin
+         Pkg.AGC_Visit_Integer_Access (C'Address);
+      end;
+   end AGC_Visit_T;
+   procedure AGC_Visit_T_Private (X : System.Address) renames Pkg.AGC_Visit_T;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   function Create (X : Integer) return T is
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   begin
+      declare
+         AGC_Temp_0 : aliased Pkg.Integer_Access := new Integer'(X);
+      begin
+         AGC.Push_Root
+           (AGC_Temp_0'Address, Pkg.AGC_Visit_Integer_Access'Address);
+         return AGC_Ret : T := (X => AGC_Temp_0) do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end;
+   end Create;
+   function Get (X : T) return Integer is
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   begin
+      return AGC_Ret : Integer := X.X.all do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end Get;
+end Pkg;
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package Pkg is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type T is private;
+   procedure AGC_Visit_T_Private (X : System.Address);
+   function Create (X : Integer) return T;
+   function Get (X : T) return Integer;
+private
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
+     (Integer, Integer_Access, False, AGC.No_Op);
+   type T is tagged record
+      X : Integer_Access;
+   end record;
+   procedure AGC_Visit_T (X : System.Address);
+   procedure AGC_Visit (X : access T);
+   procedure AGC_Visit_T_Classwide (X : System.Address);
+end Pkg;
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+with Pkg;
+procedure Test is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   X : aliased Pkg.T := Pkg.Create (2);
+begin
+   AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Private'Address);
+   AGC.Collect;
+   Put_Line (Pkg.Get (X)'Image);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

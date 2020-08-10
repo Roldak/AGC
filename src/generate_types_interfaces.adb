@@ -99,6 +99,36 @@ is
         LALCO.Basic_Decl_Rule));
    end Generate_Visitor_Prototype;
 
+   procedure Generate_Private_Type_Visitor
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
+   is
+      procedure Generate_Renaming (Classwide : Boolean)
+      is
+         Suffix : Langkit_Support.Text.Text_Type :=
+           (if Classwide then "_Classwide" else "");
+      begin
+         Append (LALRW.Create_From_Template
+           (RH,
+            "procedure " & Visit_Name & Suffix & " (X : System.Address) "
+            & "renames " & Utils.Visitor_Name (Decl.P_Full_View) & Suffix
+            & ";",
+            (1 .. 0 => <>),
+            LALCO.Basic_Decl_Rule));
+      end Generate_Renaming;
+
+      Is_Tagged : Boolean := Decl.P_Is_Tagged_Type;
+   begin
+      Generate_Visitor_Prototype (Visit_Name, Decl, False, Append);
+      Generate_Renaming (False);
+      if Is_Tagged then
+         Generate_Visitor_Prototype
+           (Visit_Name & "_Classwide", Decl, False, Append);
+         Generate_Renaming (True);
+      end if;
+   end Generate_Private_Type_Visitor;
+
    procedure Generate_Access_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class;
@@ -365,7 +395,9 @@ is
       Visit_Name : Langkit_Support.Text.Text_Type :=
          Utils.Visitor_Name (Decl, Is_Ref => False);
    begin
-      if Decl.P_Is_Access_Type then
+      if Decl.P_Is_Private then
+         Generate_Private_Type_Visitor (Visit_Name, Decl, Append);
+      elsif Decl.P_Is_Access_Type then
          Generate_Access_Type_Visitor (Visit_Name, Decl, Append);
       elsif Decl.P_Is_Record_Type then
          Generate_Record_Type_Visitor (Visit_Name, Decl, Append);

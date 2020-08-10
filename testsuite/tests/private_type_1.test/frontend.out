@@ -1,0 +1,43 @@
+with AGC;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   package P is
+      type T is private;
+      procedure AGC_Visit_T_Private (X : System.Address);
+      function Create (X : Integer) return T;
+      function Get (X : T) return Integer;
+   private
+      type T is access all Integer;
+      procedure AGC_Visit_T is new AGC.Visit_Access_Type
+        (Integer, T, True, AGC.No_Op);
+   end P;
+   package body P is
+      procedure AGC_Visit_T_Private (X : System.Address) renames
+        Test.P.AGC_Visit_T;
+      function Create (X : Integer) return T is
+         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      begin
+         return AGC_Ret : T := new Integer'(X) do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end Create;
+      function Get (X : T) return Integer is
+         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      begin
+         return AGC_Ret : Integer := X.all do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end Get;
+   end P;
+   X : aliased P.T := P.Create (2);
+begin
+   AGC.Push_Root (X'Address, Test.P.AGC_Visit_T_Private'Address);
+   AGC.Collect;
+   Put_Line (P.Get (X)'Image);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
