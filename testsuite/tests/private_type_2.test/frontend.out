@@ -1,4 +1,5 @@
 with AGC;
+with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
@@ -53,6 +54,7 @@ package body Pkg is
    end Get;
 end Pkg;
 with AGC;
+with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
@@ -74,6 +76,7 @@ private
    procedure AGC_Visit_T_Classwide (X : System.Address);
 end Pkg;
 with AGC;
+with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;

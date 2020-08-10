@@ -464,6 +464,56 @@ is
       end if;
    end Handle_Type_Decl;
 
+   Element_Type_Name : Langkit_Support.Text.Unbounded_Text_Type :=
+      Langkit_Support.Text.To_Unbounded_Text ("Element_Type");
+
+   procedure Handle_Package_Instantiation
+     (Inst : LAL.Generic_Package_Instantiation'Class)
+   is
+      Inst_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Inst.F_Name);
+
+      G_Pkg : LAL.Generic_Package_Decl'Class :=
+         Inst.P_Designated_Generic_Decl.As_Generic_Package_Decl;
+
+      function Gen_Vectors_Visitors return LALRW.Node_Rewriting_Handle is
+         Zipped : LAL.Param_Actual_Array :=
+            Inst.F_Params.P_Zip_With_Params;
+
+         Elem_Type : LAL.Base_Type_Decl := LAL.No_Base_Type_Decl;
+      begin
+         for Param_Actual of Zipped loop
+            if LAL.P_Name_Is (LAL.Param (Param_Actual), Element_Type_Name) then
+               Elem_Type :=
+                  LAL.Actual (Param_Actual).As_Name.P_Name_Designated_Type;
+               exit;
+            end if;
+         end loop;
+         return LALRW.Create_From_Template
+           (RH,
+            "package AGC_" & Inst_Name & "_Visitors "
+            & "is new AGC.Standard.Ada_Containers_Vectors_Visitors "
+            & "(" & Inst_Name & ", " & Utils.Visitor_Name (Elem_Type) & ");",
+            (1 .. 0 => <>),
+            LALCO.Basic_Decl_Rule);
+      end Gen_Vectors_Visitors;
+
+      FQN : Langkit_Support.Text.Text_Type :=
+         G_Pkg.P_Canonical_Fully_Qualified_Name;
+
+      Decl_Part : LAL.Ada_Node := Inst.Parent.As_Ada_Node;
+
+      DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl_Part);
+
+      Index : Natural :=
+         Inst.Child_Index + Node_Counters.Get (Decl_Part_Count, Decl_Part);
+   begin
+      if FQN = "ada.containers.vectors" then
+         LALRW.Insert_Child (DH, Index + 2, Gen_Vectors_Visitors);
+         Node_Counters.Increase (Decl_Part_Count, Decl_Part);
+      end if;
+   end Handle_Package_Instantiation;
+
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
@@ -471,6 +521,9 @@ is
       case Node.Kind is
          when LALCO.Ada_Base_Type_Decl =>
             Handle_Type_Decl (Node.As_Base_Type_Decl);
+         when LALCO.Ada_Generic_Package_Instantiation =>
+            Handle_Package_Instantiation
+              (Node.As_Generic_Package_Instantiation);
          when others =>
             null;
       end case;

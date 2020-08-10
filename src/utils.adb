@@ -196,6 +196,15 @@ package body Utils is
       return Name;
    end Unique_Identifier;
 
+   function Is_Standard_Unit (U : LAL.Compilation_Unit) return Boolean is
+      use type Langkit_Support.Text.Unbounded_Text_Type;
+
+      FQN : LAL.Unbounded_Text_Type_Array :=
+         U.P_Syntactic_Fully_Qualified_Name;
+   begin
+      return FQN (FQN'First) = Langkit_Support.Text.To_Unbounded_Text ("ada");
+   end Is_Standard_Unit;
+
    function Fully_Qualified_Decl_Part_Of
      (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
    is
@@ -212,12 +221,34 @@ package body Utils is
       return FQN;
    end Fully_Qualified_Decl_Part_Of;
 
+   function Relevant_Qualified_Decl_Part_Of
+     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
+   is
+      Is_Standard : Boolean :=
+         Is_Standard_Unit (Decl.P_Enclosing_Compilation_Unit);
+   begin
+      if Is_Standard then
+         declare
+            Parent : LAl.Basic_Decl := Decl.P_Parent_Basic_Decl;
+         begin
+            return
+               Relevant_Qualified_Decl_Part_Of (Parent)
+               & "AGC_" & LAL.Text (Parent.P_Defining_Name) & "_Visitors.";
+         end;
+      else
+         return Fully_Qualified_Decl_Part_Of (Decl);
+      end if;
+   end Relevant_Qualified_Decl_Part_Of;
+
    function Visitor_Name
      (Typ    : LAL.Base_Type_Decl'Class;
       Is_Ref : Boolean := True) return Langkit_Support.Text.Text_Type
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Typ.P_Defining_Name);
+
+      Is_Standard_Type : Boolean :=
+         Is_Standard_Unit (Typ.P_Enclosing_Compilation_Unit);
 
       function Normalized_Name
         (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
@@ -229,7 +260,7 @@ package body Utils is
    begin
       if Is_Relevant_Type (Typ) then
          if Is_Ref then
-            return Fully_Qualified_Decl_Part_Of (Typ)
+            return Relevant_Qualified_Decl_Part_Of (Typ)
                & "AGC_Visit_" & Normalized_Name (Typ);
          else
             return "AGC_Visit_" & Normalized_Name (Typ);
