@@ -20,19 +20,6 @@ procedure Test is
       procedure Print (X : T);
    end Pkg_T;
    package body Pkg_T is
-      procedure AGC_Visit_T_Classwide (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
-         type T_Access is access all T'Class;
-         for T_Access'Size use Standard'Address_Size;
-         function Conv is new Ada.Unchecked_Conversion
-           (System.Address, T_Access);
-      begin
-         Conv (X).AGC_Visit;
-      end AGC_Visit_T_Classwide;
-      procedure AGC_Visit (X : access T) is
-      begin
-         AGC_Visit_T (X.all'Address);
-      end AGC_Visit;
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (Accessibility_Check);
          type Rec_Access is access all T;
@@ -47,6 +34,19 @@ procedure Test is
             Test.AGC_Visit_Integer_Access (C'Address);
          end;
       end AGC_Visit_T;
+      procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
       procedure Print (X : T) is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;
       begin
@@ -64,19 +64,6 @@ procedure Test is
       procedure Print (X : U);
    end Pkg_U;
    package body Pkg_U is
-      procedure AGC_Visit_U_Classwide (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
-         type T_Access is access all U'Class;
-         for T_Access'Size use Standard'Address_Size;
-         function Conv is new Ada.Unchecked_Conversion
-           (System.Address, T_Access);
-      begin
-         Conv (X).AGC_Visit;
-      end AGC_Visit_U_Classwide;
-      procedure AGC_Visit (X : access U) is
-      begin
-         AGC_Visit_U (X.all'Address);
-      end AGC_Visit;
       procedure AGC_Visit_U (X : System.Address) is
          pragma Suppress (Accessibility_Check);
          type Rec_Access is access all U;
@@ -92,6 +79,19 @@ procedure Test is
             Test.AGC_Visit_Integer_Access (C'Address);
          end;
       end AGC_Visit_U;
+      procedure AGC_Visit (X : access U) is
+      begin
+         AGC_Visit_U (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_U_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all U'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_U_Classwide;
       procedure Print (X : U) is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;
       begin

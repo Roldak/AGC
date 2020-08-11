@@ -2,11 +2,14 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Rewriting;
 
+with Node_Counters;
 with Utils;
 
 package body Post_Actions is
    package LAL   renames Libadalang.Analysis;
    package LALRW renames Libadalang.Rewriting;
+
+   Insertions : Node_Counters.Counter;
 
    protected body Actions is
       procedure Register (Action : Move_Action) is
@@ -22,12 +25,15 @@ package body Post_Actions is
             declare
                Source : LAL.Ada_Node := Action.Source;
                Dest   : LAL.Ada_Node := Action.Dest;
+               Index  : Natural      := Node_Counters.Get (Insertions, Dest);
             begin
                LALRW.Remove_Child
                  (LALRW.Handle (Source.Parent),
                   Utils.Child_Index (LALRW.Handle (Source)));
                LALRW.Insert_Child
-                 (LALRW.Handle (Dest), 1, LALRW.Handle (Source));
+                 (LALRW.Handle (Dest), Index + 1, LALRW.Handle (Source));
+
+               Node_Counters.Increase (Insertions, Dest);
             end;
          end loop;
 
