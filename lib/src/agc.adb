@@ -93,13 +93,18 @@ package body AGC is
       function Conv is new Ada.Unchecked_Conversion
         (Address, T_Access_Access);
 
-      Type_Offset : constant Storage_Offset :=
-         T'Descriptor_Size / Storage_Unit + T'Finalization_Size;
-
       Acc         : aliased constant T_Access := Conv (X).all;
    begin
       if Acc /= null then
          declare
+            Finalization_Size : constant Storage_Offset :=
+               Storage_Offset (Integer'(Acc.all'Finalization_Size));
+            --  Workaround of a weird GNAT bug where 'Finalization_Size
+            --  doesn't seem to take the right type when used inline.
+
+            Type_Offset : constant Storage_Offset :=
+               T'Descriptor_Size / Storage_Unit + Finalization_Size;
+
             Elem_Addr   : constant Address := Acc.all'Address;
             Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
 
