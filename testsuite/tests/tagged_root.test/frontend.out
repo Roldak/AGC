@@ -25,11 +25,11 @@ procedure Test is
    package body Pkg_T is
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (Accessibility_Check);
-         type Rec_Access is access all T;
+         type Rec_Access is access all T'Class;
          for Rec_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, Rec_Access);
-         R : aliased T := Conv (X).all;
+         R : aliased T'Class := Conv (X).all;
       begin
          declare
             C : aliased Test.Integer_Access := R.X;
@@ -69,11 +69,11 @@ procedure Test is
    package body Pkg_U is
       procedure AGC_Visit_U (X : System.Address) is
          pragma Suppress (Accessibility_Check);
-         type Rec_Access is access all U;
+         type Rec_Access is access all U'Class;
          for Rec_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, Rec_Access);
-         R : aliased U := Conv (X).all;
+         R : aliased U'Class := Conv (X).all;
       begin
          Test.Pkg_T.AGC_Visit_T (X);
          declare

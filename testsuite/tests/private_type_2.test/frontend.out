@@ -11,11 +11,11 @@ package body Pkg is
      AGC_Visit_Integer_Access_Implem;
    procedure AGC_Visit_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all T;
+      type Rec_Access is access all T'Class;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
-      R : aliased T := Conv (X).all;
+      R : aliased T'Class := Conv (X).all;
    begin
       declare
          C : aliased Pkg.Integer_Access := R.X;

@@ -288,16 +288,18 @@ is
       end Handle_Component_List;
 
       procedure Generate_Visitor_Body is
+         Full_Type : Langkit_Support.Text.Text_Type :=
+            Type_Name & (if Is_Tagged then "'Class" else "");
          Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
            (RH,
             "procedure " & Visit_Name
             & "(X : System.Address) is "
             & "pragma Suppress (Accessibility_Check);"
-            & "type Rec_Access is access all " & Type_Name & ";"
+            & "type Rec_Access is access all " & Full_Type & ";"
             & "for Rec_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
             & "  (System.Address, Rec_Access);"
-            & "R : aliased " & Type_Name & " := Conv (X).all;"
+            & "R : aliased " & Full_Type & " := Conv (X).all;"
             &" begin null; end;",
             (1 .. 0 => <>),
             LALCO.Basic_Decl_Rule);
