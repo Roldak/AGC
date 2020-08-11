@@ -5,6 +5,10 @@ with System;
 with Ada.Unchecked_Conversion;
 package body Pkg is
    procedure AGC_Visit_T_Private (X : System.Address) renames Pkg.AGC_Visit_T;
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
    procedure AGC_Visit_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all T;
@@ -66,8 +70,7 @@ package Pkg is
    function Get (X : T) return Integer;
 private
    type Integer_Access is access Integer;
-   procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
-     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address);
    type T is tagged record
       X : Integer_Access;
    end record;

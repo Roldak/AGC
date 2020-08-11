@@ -146,13 +146,22 @@ is
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
    begin
+      Generate_Visitor_Prototype (Visit_Name, Decl, False, Append);
+
       Append (LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & " is new AGC.Visit_Access_Type ("
+        "procedure " & Visit_Name & "_Implem is new AGC.Visit_Access_Type ("
         & Element_Type_Name & ", "
         & Access_Type_Name & ", "
         & Is_Generalized & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
+        (1 .. 0 => <>),
+        LALCO.Basic_Decl_Rule));
+
+      Append (LALRW.Create_From_Template
+        (RH,
+        "procedure " & Visit_Name & " (X : System.Address) "
+        & "renames " & Visit_Name & "_Implem;",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
    end Generate_Access_Type_Visitor;

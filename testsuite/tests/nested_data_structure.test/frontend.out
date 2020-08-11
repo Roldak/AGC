@@ -21,8 +21,11 @@ procedure Test is
       null;
    end AGC_Visit_T;
    type T_Access is access T;
-   procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_T_Access (X : System.Address);
+   procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
      (Test.T, T_Access, False, Test.AGC_Visit_T);
+   procedure AGC_Visit_T_Access (X : System.Address) renames
+     AGC_Visit_T_Access_Implem;
    type U is record
       A : T_Access;
    end record;
@@ -42,8 +45,11 @@ procedure Test is
       end;
    end AGC_Visit_U;
    type U_Access is access U;
-   procedure AGC_Visit_U_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_U_Access (X : System.Address);
+   procedure AGC_Visit_U_Access_Implem is new AGC.Visit_Access_Type
      (Test.U, U_Access, False, Test.AGC_Visit_U);
+   procedure AGC_Visit_U_Access (X : System.Address) renames
+     AGC_Visit_U_Access_Implem;
    function AGC_Func_0 return U_Access is
       AGC_Base_Root_Count : Natural               := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.T_Access := new T'(X => 1);

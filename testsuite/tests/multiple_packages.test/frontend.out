@@ -10,11 +10,14 @@ procedure Test is
    package Pkg is
       type T is new Integer;
       type T_Access is access T;
-      procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-        (Test.Pkg.T, T_Access, False, AGC.No_Op);
+      procedure AGC_Visit_T_Access (X : System.Address);
       function Create (X : Integer) return T_Access;
    end Pkg;
    package body Pkg is
+      procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
+        (Test.Pkg.T, T_Access, False, AGC.No_Op);
+      procedure AGC_Visit_T_Access (X : System.Address) renames
+        AGC_Visit_T_Access_Implem;
       function Create (X : Integer) return T_Access is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;
       begin

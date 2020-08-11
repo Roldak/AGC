@@ -22,8 +22,11 @@ procedure Test is
       end case;
    end record;
    procedure AGC_Visit_Expr (X : System.Address);
-   procedure AGC_Visit_Expr_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Expr_Access (X : System.Address);
+   procedure AGC_Visit_Expr_Access_Implem is new AGC.Visit_Access_Type
      (Test.Expr, Expr_Access, False, Test.AGC_Visit_Expr);
+   procedure AGC_Visit_Expr_Access (X : System.Address) renames
+     AGC_Visit_Expr_Access_Implem;
    procedure AGC_Visit_Expr (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Expr;

@@ -8,8 +8,11 @@ procedure Test is
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    subtype My_Natural is Integer range 0 .. Integer'Last;
    type My_Nat_Access is access My_Natural;
-   procedure AGC_Visit_My_Nat_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_My_Nat_Access (X : System.Address);
+   procedure AGC_Visit_My_Nat_Access_Implem is new AGC.Visit_Access_Type
      (Test.My_Natural, My_Nat_Access, False, AGC.No_Op);
+   procedure AGC_Visit_My_Nat_Access (X : System.Address) renames
+     AGC_Visit_My_Nat_Access_Implem;
    X : aliased My_Nat_Access := new My_Natural'(2);
 begin
    AGC.Push_Root (X'Address, Test.AGC_Visit_My_Nat_Access'Address);

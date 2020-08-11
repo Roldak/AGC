@@ -15,8 +15,11 @@ procedure Test is
       Nodes : Quad_Tree_Access_Array (1 .. 4);
    end record;
    procedure AGC_Visit_Quad_Tree (X : System.Address);
-   procedure AGC_Visit_Quad_Tree_Access is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Quad_Tree_Access (X : System.Address);
+   procedure AGC_Visit_Quad_Tree_Access_Implem is new AGC.Visit_Access_Type
      (Test.Quad_Tree, Quad_Tree_Access, False, Test.AGC_Visit_Quad_Tree);
+   procedure AGC_Visit_Quad_Tree_Access (X : System.Address) renames
+     AGC_Visit_Quad_Tree_Access_Implem;
    procedure AGC_Visit_Quad_Tree_Access_Array is new AGC
      .Visit_Unconstrained_Array_Type
      (Quad_Tree_Access, Positive, Quad_Tree_Access_Array,

@@ -14,12 +14,14 @@ procedure Test is
       function Get (X : T) return Integer;
    private
       type T is access all Integer;
-      procedure AGC_Visit_T is new AGC.Visit_Access_Type
-        (Standard.Integer, T, True, AGC.No_Op);
+      procedure AGC_Visit_T (X : System.Address);
    end P;
    package body P is
       procedure AGC_Visit_T_Private (X : System.Address) renames
         Test.P.AGC_Visit_T;
+      procedure AGC_Visit_T_Implem is new AGC.Visit_Access_Type
+        (Standard.Integer, T, True, AGC.No_Op);
+      procedure AGC_Visit_T (X : System.Address) renames AGC_Visit_T_Implem;
       function Create (X : Integer) return T is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;
       begin

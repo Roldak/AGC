@@ -17,7 +17,7 @@ is
    package LAL     renames Libadalang.Analysis;
    package LALCO   renames Libadalang.Common;
 
-   procedure Handle_Body (Node : LAL.Body_Node'Class) is
+   procedure Handle_Body (Node : LAL.Basic_Decl'Class) is
       GGP : LAL.Ada_Node'Class := Node.Parent.Parent.Parent;
    begin
       if not GGP.Is_Null and then GGP.Kind in LALCO.Ada_Base_Package_Decl then
@@ -34,13 +34,27 @@ is
       end if;
    end Handle_Body;
 
+   procedure Handle_Instantiation (Node : LAL.Generic_Instantiation'Class) is
+      Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Node.P_Defining_Name);
+   begin
+      if Name'Length >= 10
+         and then Name (Name'First .. Name'First + 2) = "AGC"
+         and then Name (Name'Last - 5.. Name'Last) = "Implem"
+      then
+         Handle_Body (Node);
+      end if;
+   end Handle_Instantiation;
+
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
    begin
       case Node.Kind is
          when LALCO.Ada_Body_Node =>
-            Handle_Body (Node.As_Body_Node);
+            Handle_Body (Node.As_Basic_Decl);
+         when LALCO.Ada_Generic_Instantiation =>
+            Handle_Instantiation (Node.As_Generic_Instantiation);
          when others =>
             null;
       end case;
