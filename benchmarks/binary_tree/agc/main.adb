@@ -1,4 +1,5 @@
 with AGC;
+with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
@@ -21,8 +22,11 @@ procedure Main is
       end case;
    end record;
    procedure AGC_Visit_Tree (X : System.Address);
-   procedure AGC_Visit_Tree_Access is new AGC.Visit_Access_Type
-     (Tree, Tree_Access, False, Main.AGC_Visit_Tree);
+   procedure AGC_Visit_Tree_Access (X : System.Address);
+   procedure AGC_Visit_Tree_Access_Implem is new AGC.Visit_Access_Type
+     (Main.Tree, Tree_Access, False, Main.AGC_Visit_Tree);
+   procedure AGC_Visit_Tree_Access (X : System.Address) renames
+     AGC_Visit_Tree_Access_Implem;
    procedure AGC_Visit_Tree (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all Tree;
