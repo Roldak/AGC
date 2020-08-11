@@ -11,7 +11,7 @@ procedure Test is
    type T is null record;
    procedure AGC_Visit_T (X : System.Address);
    procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-     (T, T_Access, False, Test.AGC_Visit_T);
+     (Test.T, T_Access, False, Test.AGC_Visit_T);
    procedure AGC_Visit_T (X : System.Address) is
       pragma Suppress (Accessibility_Check);
       type Rec_Access is access all T;

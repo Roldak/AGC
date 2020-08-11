@@ -11,7 +11,7 @@ procedure Test is
       type T is new Integer;
       type T_Access is access T;
       procedure AGC_Visit_T_Access is new AGC.Visit_Access_Type
-        (T, T_Access, False, AGC.No_Op);
+        (Test.Pkg.T, T_Access, False, AGC.No_Op);
       function Create (X : Integer) return T_Access;
    end Pkg;
    package body Pkg is

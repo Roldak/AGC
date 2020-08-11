@@ -10,7 +10,7 @@ procedure Test is
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
    procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
-     (Integer, Integer_Access, True, AGC.No_Op);
+     (Standard.Integer, Integer_Access, True, AGC.No_Op);
    type Arr is array (1 .. 2) of aliased Integer;
    R : aliased Arr := (others => 0);
 begin

@@ -15,7 +15,7 @@ procedure Test is
    private
       type T is access all Integer;
       procedure AGC_Visit_T is new AGC.Visit_Access_Type
-        (Integer, T, True, AGC.No_Op);
+        (Standard.Integer, T, True, AGC.No_Op);
    end P;
    package body P is
       procedure AGC_Visit_T_Private (X : System.Address) renames

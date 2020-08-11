@@ -9,7 +9,7 @@ procedure Test is
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access Integer;
    procedure AGC_Visit_Integer_Access is new AGC.Visit_Access_Type
-     (Integer, Integer_Access, False, AGC.No_Op);
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
    function Inner (X : Integer) return Integer_Access is
       AGC_Base_Root_Count : Natural                := AGC.Root_Count;
       Tmp                 : aliased Integer_Access := new Integer'(X);
