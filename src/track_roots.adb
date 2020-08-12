@@ -53,6 +53,7 @@ is
                return
                   Ends_With_Return_Stmt (If_Stmt.F_Then_Stmts)
                   and then not If_Stmt.F_Else_Stmts.Is_Null
+                  and then If_Stmt.F_Else_Stmts.Children_Count /= 0
                   and then Ends_With_Return_Stmt (If_Stmt.F_Else_Stmts)
                   and then (for all Alt of If_Stmt.F_Alternatives
                               => Ends_With_Return_Stmt (Alt.F_Stmts));
