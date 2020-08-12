@@ -84,17 +84,12 @@ is
    procedure Generate_Visitor_Prototype
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class;
-      Real_Type  : Boolean;
       Append     : RWNode_Processor)
    is
-      Type_Name : Langkit_Support.Text.Text_Type :=
-        (if Real_Type
-         then "access " & LAL.Text (Decl.P_Defining_Name)
-         else "System.Address");
    begin
       Append (LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & " (X : " & Type_Name & ");",
+        "procedure " & Visit_Name & " (X : System.Address);",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
    end Generate_Visitor_Prototype;
@@ -120,11 +115,11 @@ is
 
       Is_Tagged : Boolean := Decl.P_Is_Tagged_Type;
    begin
-      Generate_Visitor_Prototype (Visit_Name, Decl, False, Append);
+      Generate_Visitor_Prototype (Visit_Name, Decl, Append);
       Generate_Renaming (False);
       if Is_Tagged then
          Generate_Visitor_Prototype
-           (Visit_Name & "_Classwide", Decl, False, Append);
+           (Visit_Name & "_Classwide", Decl, Append);
          Generate_Renaming (True);
       end if;
    end Generate_Private_Type_Visitor;
@@ -146,7 +141,7 @@ is
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
    begin
-      Generate_Visitor_Prototype (Visit_Name, Decl, False, Append);
+      Generate_Visitor_Prototype (Visit_Name, Decl, Append);
 
       Append (LALRW.Create_From_Template
         (RH,
@@ -314,16 +309,30 @@ is
          Append (Res);
       end Generate_Visitor_Body;
 
-      procedure Generate_Dispatcher_Body is
-         Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
-           (RH,
-            "procedure AGC_Visit (X : access " & Type_Name & ") is "
-            & "begin " & Visit_Name & " (X.all'Address); end;",
-            (1 .. 0 => <>),
-            LALCO.Basic_Decl_Rule);
+      procedure Generate_Dispatcher (For_Body : Boolean) is
+         Has_Public_Base : Boolean :=
+           (for some T of Decl.P_Ancestor_Types
+               => not T.P_Is_Private);
+
+         Indicator : Langkit_Support.Text.Text_Type :=
+           (if Has_Public_Base
+            then "overriding "
+            else "");
+
+         Spec : Langkit_Support.Text.Text_Type :=
+            Indicator & "procedure AGC_Visit (X : access " & Type_Name & ")";
       begin
-         Append (Res);
-      end Generate_Dispatcher_Body;
+         if For_Body then
+            Append (LALRW.Create_From_Template
+              (RH,
+               Spec & "is begin " & Visit_Name & " (X.all'Address); end;",
+               (1 .. 0 => <>),
+               LALCO.Basic_Decl_Rule));
+         else
+            Append (LALRW.Create_From_Template
+              (RH, Spec & ";", (1 .. 0 => <>), LALCO.Basic_Decl_Rule));
+         end if;
+      end Generate_Dispatcher;
 
       procedure Generate_Classwide_Visitor_Body is
          Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
@@ -344,10 +353,10 @@ is
    begin
       if not Is_Handled (Decl) then
          Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
-         Generate_Visitor_Prototype (Visit_Name, Decl, False, Append);
+         Generate_Visitor_Prototype (Visit_Name, Decl, Append);
          if Is_Tagged then
-            Generate_Visitor_Prototype ("AGC_Visit", Decl, True, Append);
-            Generate_Visitor_Prototype (CW_Visit_Name, Decl, False, Append);
+            Generate_Dispatcher (For_Body => False);
+            Generate_Visitor_Prototype (CW_Visit_Name, Decl, Append);
          end if;
          return;
       end if;
@@ -356,7 +365,7 @@ is
       begin
          Generate_Visitor_Body;
          if Is_Tagged then
-            Generate_Dispatcher_Body;
+            Generate_Dispatcher (For_Body => True);
             Generate_Classwide_Visitor_Body;
          end if;
       end;
