@@ -292,4 +292,10 @@ package body Utils is
       end loop;
 		return 0;
    end Child_Index;
+
+   function To_String (X : Integer) return Langkit_Support.Text.Text_Type is
+      Img : Langkit_Support.Text.Text_Type := X'Wide_Wide_Image;
+   begin
+      return Img (Img'First + 1 .. Img'Last);
+   end To_String;
 end Utils;

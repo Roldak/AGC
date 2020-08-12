@@ -131,7 +131,7 @@ package body AGC is
       end if;
    end Visit_Access_Type;
 
-   procedure Visit_Constrained_Array_Type (X : Address) is
+   procedure Visit_Constrained_Array_1_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
 
       type T_Array_Access is access all T_Array;
@@ -149,9 +149,9 @@ package body AGC is
             Visit_Element (C'Address);
          end;
       end loop;
-   end Visit_Constrained_Array_Type;
+   end Visit_Constrained_Array_1_Type;
 
-   procedure Visit_Unconstrained_Array_Type (X : Address) is
+   procedure Visit_Unconstrained_Array_1_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
 
       type T_Array_Access is access all T_Array;
@@ -169,7 +169,51 @@ package body AGC is
             Visit_Element (C'Address);
          end;
       end loop;
-   end Visit_Unconstrained_Array_Type;
+   end Visit_Unconstrained_Array_1_Type;
+
+   procedure Visit_Constrained_Array_2_Type (X : Address) is
+      pragma Suppress (Accessibility_Check);
+
+      type T_Array_Access is access all T_Array;
+      for T_Array_Access'Size use Standard'Address_Size;
+
+      function Conv is new Ada.Unchecked_Conversion
+        (Address, T_Array_Access);
+
+      Arr : T_Array_Access := Conv (X);
+   begin
+      for I in Arr.all'Range (1) loop
+         for J in Arr.all'Range (2) loop
+            declare
+               C : aliased T := Arr.all (I, J);
+            begin
+               Visit_Element (C'Address);
+            end;
+         end loop;
+      end loop;
+   end Visit_Constrained_Array_2_Type;
+
+   procedure Visit_Unconstrained_Array_2_Type (X : Address) is
+      pragma Suppress (Accessibility_Check);
+
+      type T_Array_Access is access all T_Array;
+      for T_Array_Access'Size use Standard'Address_Size;
+
+      function Conv is new Ada.Unchecked_Conversion
+        (Address, T_Array_Access);
+
+      Arr : T_Array_Access := Conv (X);
+   begin
+      for I in Arr.all'Range (1) loop
+         for J in Arr.all'Range (2) loop
+            declare
+               C : aliased T := Arr.all (I, J);
+            begin
+               Visit_Element (C'Address);
+            end;
+         end loop;
+      end loop;
+   end Visit_Unconstrained_Array_2_Type;
 
    procedure Reset_Modified is
    begin

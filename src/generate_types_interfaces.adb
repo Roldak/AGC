@@ -376,33 +376,46 @@ is
       Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
    is
+      N_Dims : Integer := Decl.P_Array_Ndims;
+
+      function Index_Type_Names
+        (Dim : Natural := 0) return Langkit_Support.Text.Text_Type
+      is
+         Dim_Text : Langkit_Support.Text.Text_Type :=
+            LAL.Text (Decl.P_Index_Type (Dim).F_Name);
+      begin
+         if Dim = N_Dims - 1 then
+            return Dim_Text;
+         else
+            return Dim_Text & ", "
+               & Langkit_Support.Text.Text_Type'(Index_Type_Names (Dim + 1));
+         end if;
+      end Index_Type_Names;
+
       Is_Constrained : Boolean := Decl.P_Is_Definite_Subtype;
 
       Element_Type : LAL.Base_Type_Decl'Class :=
          Decl.P_Comp_Type;
 
-      Index_Type : LAL.Base_Type_Decl'Class :=
-         Decl.P_Index_Type (0);
-
       Element_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Element_Type.F_Name);
-
-      Index_Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Index_Type.F_Name);
 
       Array_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
 
+      AGC_Dim : Langkit_Support.Text.Text_Type :=
+         Utils.To_String (N_Dims);
+
       Generic_Visitor_Name : Langkit_Support.Text.Text_Type :=
         (if Is_Constrained
-         then "AGC.Visit_Constrained_Array_Type"
-         else "AGC.Visit_Unconstrained_Array_Type");
+         then "AGC.Visit_Constrained_Array_" & AGC_Dim & "_Type"
+         else "AGC.Visit_Unconstrained_Array_" & AGC_Dim & "_Type");
    begin
       Append (LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " is new " & Generic_Visitor_Name &" ("
         & Element_Type_Name & ", "
-        & Index_Type_Name & ", "
+        & Index_Type_Names & ", "
         & Array_Type_Name & ", "
         & Utils.Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
