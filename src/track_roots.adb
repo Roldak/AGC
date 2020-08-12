@@ -125,9 +125,11 @@ is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
       if Node.Parent.Kind in LALCO.Ada_Object_Decl then
-         if Utils.Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
-            LALRW.Replace
-              (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+         if Node.Parent.As_Object_Decl.F_Renaming_Clause.Is_Null then
+            if Utils.Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
+               LALRW.Replace
+                 (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+            end if;
          end if;
       end if;
    end Handle_Aliased_Annot;
