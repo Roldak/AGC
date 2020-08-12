@@ -1,0 +1,89 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Q;
+package body P is
+   procedure AGC_Visit_U_Access_Implem is new AGC.Visit_Access_Type
+     (Q.U, U_Access, False, Q.AGC_Visit_U);
+   procedure AGC_Visit_U_Access (X : System.Address) renames
+     AGC_Visit_U_Access_Implem;
+   procedure AGC_Visit_Rec (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all Rec;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased Rec := Conv (X).all;
+   begin
+      declare
+         C : aliased P.U_Access := R.X;
+      begin
+         P.AGC_Visit_U_Access (C'Address);
+      end;
+   end AGC_Visit_Rec;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   procedure Bar (X : Rec) is
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   begin
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+   end Bar;
+end P;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+limited with Q;
+package P is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type U_Access is access Q.U;
+   procedure AGC_Visit_U_Access (X : System.Address);
+   type Rec is record
+      X : U_Access;
+   end record;
+   procedure AGC_Visit_Rec (X : System.Address);
+   procedure Bar (X : Rec);
+end P;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package body Q is
+   procedure AGC_Visit_U (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all U;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : aliased U := Conv (X).all;
+   begin
+      declare
+         C : aliased P.Rec := R.Y;
+      begin
+         P.AGC_Visit_Rec (C'Address);
+      end;
+   end AGC_Visit_U;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   procedure Foo (X : U) is
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   begin
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+   end Foo;
+end Q;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with P;
+package Q is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type U is record
+      Y : P.Rec;
+   end record;
+   procedure AGC_Visit_U (X : System.Address);
+   procedure Foo (X : U);
+end Q;
