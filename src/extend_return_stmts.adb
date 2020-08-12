@@ -33,6 +33,10 @@ is
       Subp     : LAL.Base_Subp_Body := Utils.Enclosing_Subp_Body (Stmt);
       Ret_Type : LAL.Type_Expr := Subp.F_Subp_Spec.F_Subp_Returns;
    begin
+      if Ret_Type.Is_Null then
+         return;
+      end if;
+
       LALRW.Replace
         (LALRW.Handle (Stmt),
          LALRW.Create_From_Template

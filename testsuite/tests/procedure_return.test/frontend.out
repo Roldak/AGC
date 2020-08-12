@@ -1,0 +1,47 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access all Integer;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, Integer_Access, True, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+   function Id (X : Integer_Access) return Integer_Access is
+      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   begin
+      return AGC_Ret : Integer_Access := X do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end Id;
+   procedure Foo is
+      AGC_Base_Root_Count : Natural                := AGC.Root_Count;
+      X                   : aliased Integer_Access := new Integer'(2);
+   begin
+      AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
+      if X.all = 2 then
+         declare
+            AGC_Root_Count : Natural                     := AGC.Root_Count;
+            AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(42);
+         begin
+            AGC.Push_Root
+              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+            X := Id (AGC_Temp_0);
+            AGC.Pop_Roots (AGC_Root_Count);
+         end;
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return;
+      end if;
+      X.all := 3;
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+   end Foo;
+begin
+   Foo;
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

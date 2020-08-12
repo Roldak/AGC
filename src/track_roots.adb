@@ -92,7 +92,8 @@ is
 
    procedure Pop_Objects
      (Stmts        : LALRW.Node_Rewriting_Handle;
-      Leaving_Subp : Boolean)
+      Leaving_Subp : Boolean;
+      Index        : Integer := -1)
    is
    begin
       if
@@ -101,13 +102,21 @@ is
       then
          LALRW.Remove_Child (Stmts, 1);
       end if;
-      LALRW.Append_Child
-        (Stmts,
-         LALRW.Create_From_Template
-           (RH,
-            "AGC.Pop_Roots (" & Root_Count_Name (Leaving_Subp) & ");",
-            (1 .. 0 => <>),
-            LALCO.Call_Stmt_Rule));
+
+      declare
+         Stmt : LALRW.Node_Rewriting_Handle :=
+            LALRW.Create_From_Template
+              (RH,
+               "AGC.Pop_Roots (" & Root_Count_Name (Leaving_Subp) & ");",
+               (1 .. 0 => <>),
+               LALCO.Call_Stmt_Rule);
+      begin
+         if Index = -1 then
+            LALRW.Append_Child (Stmts, Stmt);
+         else
+            LALRW.Insert_Child (Stmts, Index, Stmt);
+         end if;
+      end;
    end Pop_Objects;
 
    procedure Handle_Aliased_Annot (Node : LAL.Aliased_Absent'Class)
@@ -178,13 +187,25 @@ is
    end Handle_Handled_Stmts;
 
    procedure Handle_Return_Stmt
+     (Stmt : LAL.Return_Stmt'Class)
+   is
+      SH : LALRW.Node_Rewriting_Handle :=
+         LALRW.Handle (Stmt);
+
+      PH : LALRW.Node_Rewriting_Handle :=
+         LALRW.Handle (Stmt.Parent);
+   begin
+      Pop_Objects (PH, True, Utils.Child_Index (SH));
+   end Handle_Return_Stmt;
+
+   procedure Handle_Extended_Return_Stmt
      (Stmt : LAL.Extended_Return_Stmt'Class)
    is
       SH : LALRW.Node_Rewriting_Handle :=
          LALRW.Handle (Stmt.F_Stmts.F_Stmts);
    begin
       Pop_Objects (SH, True);
-   end Handle_Return_Stmt;
+   end Handle_Extended_Return_Stmt;
 
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
@@ -195,8 +216,10 @@ is
             Handle_Aliased_Annot (Node.As_Aliased_Absent);
          when LALCO.Ada_Handled_Stmts =>
             Handle_Handled_Stmts (Node.As_Handled_Stmts);
+         when LALCO.Ada_Return_Stmt =>
+            Handle_Return_Stmt (Node.As_Return_Stmt);
          when LALCO.Ada_Extended_Return_Stmt =>
-            Handle_Return_Stmt (Node.As_Extended_Return_Stmt);
+            Handle_Extended_Return_Stmt (Node.As_Extended_Return_Stmt);
          when others =>
             null;
       end case;
