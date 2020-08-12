@@ -130,25 +130,19 @@ procedure Test is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;
          function AGC_Func_0 return T is
             AGC_Base_Root_Count : Natural := AGC.Root_Count;
-            AGC_Temp_2 : aliased Test.Integer_Access := new Integer'(Y);
+            AGC_Temp_1 : aliased Test.Integer_Access := new Integer'(Y);
          begin
             AGC.Push_Root
-              (AGC_Temp_2'Address, Test.AGC_Visit_Integer_Access'Address);
+              (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
             declare
-               AGC_Temp_1 : aliased Test.P.T'Class := P.Create (X);
+               AGC_Temp_0 : aliased Test.P.T'Class := P.Create (X);
             begin
                AGC.Push_Root
-                 (AGC_Temp_1'Address,
+                 (AGC_Temp_0'Address,
                   Test.P.AGC_Visit_T_Private_Classwide'Address);
-               declare
-                  AGC_Temp_0 : aliased Test.P.T := P.T (AGC_Temp_1);
-               begin
-                  AGC.Push_Root
-                    (AGC_Temp_0'Address, Test.P.AGC_Visit_T_Private'Address);
-                  return AGC_Ret : T := (AGC_Temp_0 with Y => AGC_Temp_2) do
-                     AGC.Pop_Roots (AGC_Base_Root_Count);
-                  end return;
-               end;
+               return AGC_Ret : T := (P.T (AGC_Temp_0) with Y => AGC_Temp_1) do
+                  AGC.Pop_Roots (AGC_Base_Root_Count);
+               end return;
             end;
          end AGC_Func_0;
          R : aliased T := AGC_Func_0;
@@ -161,15 +155,7 @@ procedure Test is
       procedure Print (X : T) is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;
       begin
-         declare
-            AGC_Root_Count : Natural          := AGC.Root_Count;
-            AGC_Temp_0     : aliased Test.P.T := P.T (X);
-         begin
-            AGC.Push_Root
-              (AGC_Temp_0'Address, Test.P.AGC_Visit_T_Private'Address);
-            AGC_Temp_0.Print;
-            AGC.Pop_Roots (AGC_Root_Count);
-         end;
+         P.T (X).Print;
          Put_Line (X.Y.all'Image);
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
