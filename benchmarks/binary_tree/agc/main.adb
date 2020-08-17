@@ -84,9 +84,8 @@ procedure Main is
                   end return;
                end;
             else
-               return AGC_Ret : Tree_Access := T do
-                  AGC.Pop_Roots (AGC_Base_Root_Count);
-               end return;
+               AGC.Pop_Roots (AGC_Base_Root_Count);
+               return T;
             end if;
          when Leaf =>
             return

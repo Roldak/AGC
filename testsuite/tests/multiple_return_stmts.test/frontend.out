@@ -32,9 +32,8 @@ procedure Test is
    begin
       AGC.Push_Root
         (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-      return AGC_Ret : Integer := AGC_Temp_0.all do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+      return AGC_Temp_0.all;
    end AGC_Func_0;
    A : Integer := AGC_Func_0;
 begin

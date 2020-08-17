@@ -113,13 +113,14 @@ package body Utils is
                      LALCO.Ada_Object_Decl_Range
                    | LALCO.Ada_For_Loop_Var_Decl
                    | LALCO.Ada_Param_Spec
-                   | LALCO.Ada_Component_Decl;
+                   | LALCO.Ada_Component_Decl
+                   | LALCO.Ada_Enum_Literal_Decl;
             end;
 
          when LALCO.Ada_Dotted_Name =>
             return Is_Named_Expr (Expr.As_Dotted_Name.F_Suffix);
 
-         when LALCO.Ada_Null_Literal =>
+         when LALCO.Ada_Null_Literal | LALCO.Ada_Num_Literal =>
             return True;
 
          when LALCO.Ada_Call_Expr =>

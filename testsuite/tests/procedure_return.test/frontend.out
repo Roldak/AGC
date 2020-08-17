@@ -15,9 +15,8 @@ procedure Test is
    function Id (X : Integer_Access) return Integer_Access is
       AGC_Base_Root_Count : Natural := AGC.Root_Count;
    begin
-      return AGC_Ret : Integer_Access := X do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+      return X;
    end Id;
    procedure Foo is
       AGC_Base_Root_Count : Natural                := AGC.Root_Count;

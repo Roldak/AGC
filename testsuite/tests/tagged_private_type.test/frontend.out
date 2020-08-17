@@ -148,9 +148,8 @@ procedure Test is
          R : aliased T := AGC_Func_0;
       begin
          AGC.Push_Root (R'Address, Test.Q.AGC_Visit_T'Address);
-         return AGC_Ret : T'Class := R do
-            AGC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return R;
       end Create;
       procedure Print (X : T) is
          AGC_Base_Root_Count : Natural := AGC.Root_Count;

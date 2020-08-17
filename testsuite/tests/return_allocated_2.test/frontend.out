@@ -18,9 +18,8 @@ procedure Test is
       Tmp                 : aliased Integer_Access := new Integer'(X);
    begin
       AGC.Push_Root (Tmp'Address, Test.AGC_Visit_Integer_Access'Address);
-      return AGC_Ret : Integer_Access := Tmp do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+      return Tmp;
    end Inner;
    function Add (A, B : Integer_Access) return Integer is
       AGC_Base_Root_Count : Natural := AGC.Root_Count;

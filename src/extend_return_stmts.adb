@@ -33,7 +33,7 @@ is
       Subp     : LAL.Base_Subp_Body := Utils.Enclosing_Subp_Body (Stmt);
       Ret_Type : LAL.Type_Expr := Subp.F_Subp_Spec.F_Subp_Returns;
    begin
-      if Ret_Type.Is_Null then
+      if Ret_Type.Is_Null or else Utils.Is_Named_Expr (Ret_Expr) then
          return;
       end if;
 

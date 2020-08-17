@@ -144,13 +144,11 @@ procedure Test is
                end;
             end if;
          when Lit =>
-            return AGC_Ret : Expr_Access := Ex do
-               AGC.Pop_Roots (AGC_Base_Root_Count);
-            end return;
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+            return Ex;
          when Var =>
-            return AGC_Ret : Expr_Access := Ex do
-               AGC.Pop_Roots (AGC_Base_Root_Count);
-            end return;
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+            return Ex;
       end case;
    end Simplify;
    function Substitute (Ex : Expr_Access; Ev : Env) return Expr_Access is
@@ -200,9 +198,8 @@ procedure Test is
                end;
             end;
          when Lit =>
-            return AGC_Ret : Expr_Access := Ex do
-               AGC.Pop_Roots (AGC_Base_Root_Count);
-            end return;
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+            return Ex;
          when Var =>
             return AGC_Ret : Expr_Access := new Expr'(Lit, Ev (Ex.Name)) do
                AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -225,9 +222,8 @@ procedure Test is
    begin
       AGC.Push_Root (Simplified'Address, Test.AGC_Visit_Expr_Access'Address);
       if Simplified.K = Lit then
-         return AGC_Ret : Integer := Simplified.Value do
-            AGC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return Simplified.Value;
       else
          return AGC_Ret : Integer := Evaluate (Simplified, Ev) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
