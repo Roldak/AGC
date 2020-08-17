@@ -37,7 +37,7 @@ package body Pkg is
    end AGC_Visit_T_Classwide;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create (X : Integer) return T is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
          AGC_Temp_0 : aliased Pkg.Integer_Access := new Integer'(X);
@@ -50,7 +50,7 @@ package body Pkg is
       end;
    end Create;
    function Get (X : T) return Integer is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       AGC.Pop_Roots (AGC_Base_Root_Count);
       return X.X.all;
@@ -85,7 +85,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
 procedure Test is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    X : aliased Pkg.T := Pkg.Create (2);
 begin

@@ -6,7 +6,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
 procedure Main is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    X : aliased Pkg.T_Access := Pkg.Create (3);
 begin
@@ -36,7 +36,7 @@ package body Pkg is
      AGC_Visit_T_Access_Implem;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create (X : Integer) return T_Access is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       return AGC_Ret : T_Access := new T'(X => X) do
          AGC.Pop_Roots (AGC_Base_Root_Count);

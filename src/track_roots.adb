@@ -163,7 +163,7 @@ is
                LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
                  (RH,
                   Root_Count_Name (Subp_Level)
-                  & " : Natural := AGC.Root_Count;",
+                  & " : constant Natural := AGC.Root_Count;",
                   (1 .. 0 => <>),
                   LALCO.Object_Decl_Rule));
             end if;

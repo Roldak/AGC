@@ -5,7 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Pkg is
       type T is new Integer;
@@ -19,7 +19,7 @@ procedure Test is
       procedure AGC_Visit_T_Access (X : System.Address) renames
         AGC_Visit_T_Access_Implem;
       function Create (X : Integer) return T_Access is
-         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          return AGC_Ret : T_Access := new T'(T (X)) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -52,7 +52,7 @@ procedure Test is
             end;
          end AGC_Visit_Rec;
          procedure Foo (X : Rec) is
-            AGC_Base_Root_Count : Natural              := AGC.Root_Count;
+            AGC_Base_Root_Count : constant Natural     := AGC.Root_Count;
             V                   : aliased Pkg.T_Access := X.X;
          begin
             AGC.Push_Root (V'Address, Test.Pkg.AGC_Visit_T_Access'Address);

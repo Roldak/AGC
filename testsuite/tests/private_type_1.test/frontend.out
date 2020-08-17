@@ -5,7 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package P is
       type T is private;
@@ -23,14 +23,14 @@ procedure Test is
         (Standard.Integer, T, True, AGC.No_Op);
       procedure AGC_Visit_T (X : System.Address) renames AGC_Visit_T_Implem;
       function Create (X : Integer) return T is
-         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          return AGC_Ret : T := new Integer'(X) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end Create;
       function Get (X : T) return Integer is
-         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          AGC.Pop_Roots (AGC_Base_Root_Count);
          return X.all;

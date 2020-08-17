@@ -6,7 +6,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Main is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Tree;
    type Tree_Kind is (Node, Leaf);
@@ -53,13 +53,13 @@ procedure Main is
    end AGC_Visit_Tree;
    Empty_Tree : aliased Tree_Access := new Tree'(K => Leaf);
    function Insert (T : Tree_Access; V : Integer) return Tree_Access is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       case T.K is
          when Node =>
             if T.Value > V then
                declare
-                  AGC_Root_Count : Natural                  := AGC.Root_Count;
+                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_0 : aliased Main.Tree_Access := Insert (T.Left, V);
                begin
                   AGC.Push_Root
@@ -72,7 +72,7 @@ procedure Main is
                end;
             elsif T.Value < V then
                declare
-                  AGC_Root_Count : Natural                  := AGC.Root_Count;
+                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_0 : aliased Main.Tree_Access := Insert (T.Right, V);
                begin
                   AGC.Push_Root
@@ -96,7 +96,7 @@ procedure Main is
       end case;
    end Insert;
    function To_String (T : Tree_Access) return String is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       case T.K is
          when Node =>
@@ -114,13 +114,13 @@ procedure Main is
       end case;
    end To_String;
    procedure Bench (Rng : Integer) is
-      AGC_Base_Root_Count : Natural             := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural    := AGC.Root_Count;
       T                   : aliased Tree_Access := Insert (Empty_Tree, 0);
    begin
       AGC.Push_Root (T'Address, Main.AGC_Visit_Tree_Access'Address);
       for I in Integer range 1 .. Rng loop
          declare
-            AGC_Root_Count : Natural                  := AGC.Root_Count;
+            AGC_Root_Count : constant Natural         := AGC.Root_Count;
             AGC_Temp_0     : aliased Main.Tree_Access := Insert (T, I);
          begin
             AGC.Push_Root

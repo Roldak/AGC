@@ -5,7 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Expr_Kind is (Add, Mul, Lit, Var);
    type Expr;
@@ -55,14 +55,14 @@ procedure Test is
    end AGC_Visit_Expr;
    type Env is array (Character) of Integer;
    function Is_Lit (Ex : Expr_Access; V : Integer) return Boolean is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       return AGC_Ret : Boolean := Ex.K = Lit and then Ex.Value = V do
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end Is_Lit;
    function Simplify (Ex : Expr_Access) return Expr_Access is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       case Ex.K is
          when Add =>
@@ -82,7 +82,7 @@ procedure Test is
                end return;
             else
                declare
-                  AGC_Root_Count : Natural                  := AGC.Root_Count;
+                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_1 : aliased Test.Expr_Access := Simplify (Ex.Rhs);
                begin
                   AGC.Push_Root
@@ -123,7 +123,7 @@ procedure Test is
                end return;
             else
                declare
-                  AGC_Root_Count : Natural                  := AGC.Root_Count;
+                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_1 : aliased Test.Expr_Access := Simplify (Ex.Rhs);
                begin
                   AGC.Push_Root
@@ -152,12 +152,12 @@ procedure Test is
       end case;
    end Simplify;
    function Substitute (Ex : Expr_Access; Ev : Env) return Expr_Access is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       case Ex.K is
          when Add =>
             declare
-               AGC_Root_Count : Natural                  := AGC.Root_Count;
+               AGC_Root_Count : constant Natural         := AGC.Root_Count;
                AGC_Temp_1     : aliased Test.Expr_Access :=
                  Substitute (Ex.Rhs, Ev);
             begin
@@ -178,7 +178,7 @@ procedure Test is
             end;
          when Mul =>
             declare
-               AGC_Root_Count : Natural                  := AGC.Root_Count;
+               AGC_Root_Count : constant Natural         := AGC.Root_Count;
                AGC_Temp_1     : aliased Test.Expr_Access :=
                  Substitute (Ex.Rhs, Ev);
             begin
@@ -207,9 +207,9 @@ procedure Test is
       end case;
    end Substitute;
    function Evaluate (Ex : Expr_Access; Ev : Env) return Integer is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       function AGC_Func_0 return Expr_Access is
-         AGC_Base_Root_Count : Natural                  := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
          AGC_Temp_0          : aliased Test.Expr_Access := Substitute (Ex, Ev);
       begin
          AGC.Push_Root
@@ -231,7 +231,7 @@ procedure Test is
       end if;
    end Evaluate;
    function To_String (Ex : Expr_Access) return String is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       return
         AGC_Ret : String :=
@@ -246,9 +246,9 @@ procedure Test is
       end return;
    end To_String;
    procedure Main is
-      AGC_Base_Root_Count : Natural := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       function AGC_Func_0 return Expr_Access is
-         AGC_Base_Root_Count : Natural                  := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
          AGC_Temp_3          : aliased Test.Expr_Access := new Expr'(Lit, 1);
       begin
          AGC.Push_Root
@@ -280,7 +280,7 @@ procedure Test is
       end AGC_Func_0;
       X : aliased Expr_Access := AGC_Func_0;
       function AGC_Func_1 return Expr_Access is
-         AGC_Base_Root_Count : Natural                  := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
          AGC_Temp_1          : aliased Test.Expr_Access := new Expr'(Lit, 4);
       begin
          AGC.Push_Root
@@ -312,7 +312,7 @@ procedure Test is
             begin
                Put_Line (To_String (Z));
                declare
-                  AGC_Root_Count : Natural                  := AGC.Root_Count;
+                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_0     : aliased Test.Expr_Access := Simplify (Z);
                begin
                   AGC.Push_Root
@@ -321,7 +321,7 @@ procedure Test is
                   AGC.Pop_Roots (AGC_Root_Count);
                end;
                declare
-                  AGC_Root_Count : Natural                  := AGC.Root_Count;
+                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_0 : aliased Test.Expr_Access := Substitute (Z, Ev);
                begin
                   AGC.Push_Root

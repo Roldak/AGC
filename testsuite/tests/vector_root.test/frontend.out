@@ -6,7 +6,7 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Containers.Vectors;
 procedure Test is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
    procedure AGC_Visit_Integer_Access (X : System.Address);
@@ -25,7 +25,7 @@ begin
      (V'Address,
       Test.AGC_Int_Vectors_Visitors.AGC_Visit_Vector_Private'Address);
    declare
-      AGC_Root_Count : Natural                     := AGC.Root_Count;
+      AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(1);
    begin
       AGC.Push_Root
@@ -34,7 +34,7 @@ begin
       AGC.Pop_Roots (AGC_Root_Count);
    end;
    declare
-      AGC_Root_Count : Natural                     := AGC.Root_Count;
+      AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(2);
    begin
       AGC.Push_Root
@@ -43,7 +43,7 @@ begin
       AGC.Pop_Roots (AGC_Root_Count);
    end;
    declare
-      AGC_Root_Count : Natural                     := AGC.Root_Count;
+      AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(3);
    begin
       AGC.Push_Root

@@ -5,7 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   AGC_Base_Root_Count : Natural := AGC.Root_Count;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access Integer;
    procedure AGC_Visit_Integer_Access (X : System.Address);
@@ -51,7 +51,7 @@ procedure Test is
          Conv (X).AGC_Visit;
       end AGC_Visit_T_Classwide;
       procedure Print (X : T) is
-         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          Put_Line (X.X.all'Image);
          AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -96,14 +96,14 @@ procedure Test is
          Conv (X).AGC_Visit;
       end AGC_Visit_U_Classwide;
       procedure Print (X : U) is
-         AGC_Base_Root_Count : Natural := AGC.Root_Count;
+         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          Put_Line (X.X.all'Image & " " & X.Y.all'Image);
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end Pkg_U;
    function AGC_Func_0 return Pkg_T.T'Class is
-      AGC_Base_Root_Count : Natural                     := AGC.Root_Count;
+      AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_1          : aliased Test.Integer_Access := new Integer'(2);
    begin
       AGC.Push_Root
