@@ -59,7 +59,6 @@ procedure Main is
          when Node =>
             if T.Value > V then
                declare
-                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_0 : aliased Main.Tree_Access := Insert (T.Left, V);
                begin
                   AGC.Push_Root
@@ -72,7 +71,6 @@ procedure Main is
                end;
             elsif T.Value < V then
                declare
-                  AGC_Root_Count : constant Natural         := AGC.Root_Count;
                   AGC_Temp_0 : aliased Main.Tree_Access := Insert (T.Right, V);
                begin
                   AGC.Push_Root
@@ -96,7 +94,6 @@ procedure Main is
       end case;
    end Insert;
    function To_String (T : Tree_Access) return String is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       case T.K is
          when Node =>
@@ -105,11 +102,11 @@ procedure Main is
                 "(" & To_String (T.Left) & T.Value'Image & " " &
                 To_String (T.Right) & ")"
             do
-               AGC.Pop_Roots (AGC_Base_Root_Count);
+               null;
             end return;
          when Leaf =>
             return AGC_Ret : String := "<>" do
-               AGC.Pop_Roots (AGC_Base_Root_Count);
+               null;
             end return;
       end case;
    end To_String;

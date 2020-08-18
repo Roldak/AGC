@@ -14,9 +14,8 @@ procedure Test is
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    procedure Inner (X, Y : Integer_Access) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      AGC.Pop_Roots (AGC_Base_Root_Count);
+      null;
    end Inner;
 begin
    declare

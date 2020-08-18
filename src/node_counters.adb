@@ -41,4 +41,16 @@ package body Node_Counters is
          return Maps.Element (Cursor);
       end if;
    end Get_Or_Set;
+
+   procedure Iterate
+     (C : Counter;
+      P : not null access procedure (K : LAL.Ada_Node; V : Natural))
+   is
+      procedure Iter (X : Maps.Cursor) is
+      begin
+         P (Maps.Key (X), Maps.Element (X));
+      end Iter;
+   begin
+      Maps.Iterate (C, Iter'Access);
+   end Iterate;
 end Node_Counters;

@@ -26,10 +26,9 @@ package body Pkg is
      AGC_Visit_T_Access_Implem;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create (X : Integer) return T_Access is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       return AGC_Ret : T_Access := new T'(T (X)) do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
+         null;
       end return;
    end Create;
 end Pkg;

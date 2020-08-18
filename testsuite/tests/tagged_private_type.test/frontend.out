@@ -73,10 +73,8 @@ procedure Test is
          end;
       end Create;
       procedure Print (X : T) is
-         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          Put_Line (X.X.all'Image);
-         AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end P;
    package Q is
@@ -152,11 +150,9 @@ procedure Test is
          return R;
       end Create;
       procedure Print (X : T) is
-         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          P.T (X).Print;
          Put_Line (X.Y.all'Image);
-         AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end Q;
    X : aliased P.T'Class := Q.Create (1, 2);

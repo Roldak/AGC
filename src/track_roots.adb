@@ -10,6 +10,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
+with Node_Counters;
 with Utils;
 
 procedure Track_Roots
@@ -24,6 +25,7 @@ is
      (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
 
    Handled_Stmts : Node_Sets.Set;
+   Subp_Roots : Node_Counters.Counter;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
@@ -83,6 +85,9 @@ is
                     (RH, LALCO.Ada_Identifier,
                      Utils.Visitor_Name (Obj_Type))),
             LALCO.Call_Stmt_Rule));
+
+      Node_Counters.Increase
+        (Subp_Roots, Utils.Enclosing_Subp_Body (X).As_Ada_Node);
    end Push_Object;
 
    function Root_Count_Name
@@ -90,6 +95,19 @@ is
    is
      (if Subp_Level then "AGC_Base_Root_Count"
       else "AGC_Root_Count");
+
+   procedure Store_Root_Count
+     (Decls : LALRW.Node_Rewriting_Handle;
+      Leaving_Subp : Boolean)
+   is
+   begin
+      LALRW.Insert_Child (Decls, 1, LALRW.Create_From_Template
+        (RH,
+         Root_Count_Name (Leaving_Subp)
+         & " : constant Natural := AGC.Root_Count;",
+         (1 .. 0 => <>),
+         LALCO.Object_Decl_Rule));
+   end Store_Root_Count;
 
    procedure Pop_Objects
      (Stmts        : LALRW.Node_Rewriting_Handle;
@@ -156,17 +174,10 @@ is
                not Handled_Stmts.Contains (Node.Parent.Parent.Parent)
                or else Node.Parent.Child_Index
                           /= Node.Parent.Parent.Children_Count - 1;
+
+            Has_Any_Root : Boolean := False;
          begin
             Handled_Stmts.Insert (Node.As_Ada_Node);
-
-            if Should_Pop_Roots then
-               LALRW.Insert_Child (DH, 1, LALRW.Create_From_Template
-                 (RH,
-                  Root_Count_Name (Subp_Level)
-                  & " : constant Natural := AGC.Root_Count;",
-                  (1 .. 0 => <>),
-                  LALCO.Object_Decl_Rule));
-            end if;
 
             for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
                declare
@@ -175,14 +186,18 @@ is
                   if C.Kind = LALCO.Ada_Object_Decl then
                      if Utils.Is_Relevant_Root (C.As_Basic_Decl) then
                         Push_Object (SH, C.As_Object_Decl);
+                        Has_Any_Root := True;
                      end if;
                   end if;
                end;
             end loop;
 
-            if Should_Pop_Roots then
-               if not Ends_With_Return_Stmt (Node.F_Stmts) then
-                  Pop_Objects (SH, Subp_Level);
+            if not Subp_Level then
+               if Should_Pop_Roots and Has_Any_Root then
+                  if not Ends_With_Return_Stmt (Node.F_Stmts) then
+                     Store_Root_Count (DH, False);
+                     Pop_Objects (SH, False);
+                  end if;
                end if;
             end if;
          end;
@@ -197,8 +212,13 @@ is
 
       PH : LALRW.Node_Rewriting_Handle :=
          LALRW.Handle (Stmt.Parent);
+
+      Subp_Body : LAL.Ada_Node :=
+         Utils.Enclosing_Subp_Body (Stmt).As_Ada_Node;
    begin
-      Pop_Objects (PH, True, Utils.Child_Index (SH));
+      if Node_Counters.Get (Subp_Roots, Subp_Body) > 0 then
+         Pop_Objects (PH, True, Utils.Child_Index (SH));
+      end if;
    end Handle_Return_Stmt;
 
    procedure Handle_Extended_Return_Stmt
@@ -206,8 +226,13 @@ is
    is
       SH : LALRW.Node_Rewriting_Handle :=
          LALRW.Handle (Stmt.F_Stmts.F_Stmts);
+
+      Subp_Body : LAL.Ada_Node :=
+         Utils.Enclosing_Subp_Body (Stmt).As_Ada_Node;
    begin
-      Pop_Objects (SH, True);
+      if Node_Counters.Get (Subp_Roots, Subp_Body) > 0 then
+         Pop_Objects (SH, True);
+      end if;
    end Handle_Extended_Return_Stmt;
 
    function Process_Node
@@ -228,8 +253,30 @@ is
       end case;
       return LALCO.Into;
    end Process_Node;
+
+   procedure Process_Subp_Body (Node : LAL.Ada_Node; Roots : Natural) is
+   begin
+      if Roots > 0 then
+         declare
+            Subp : LAL.Subp_Body := Node.As_Subp_Body;
+
+            DH : LALRW.Node_Rewriting_Handle :=
+               LALRW.Handle (Subp.F_Decls.F_Decls);
+
+            SH : LALRW.Node_Rewriting_Handle :=
+               LALRW.Handle (Subp.F_Stmts.F_Stmts);
+         begin
+            Store_Root_Count (DH, True);
+
+            if not Ends_With_Return_Stmt (Subp.F_Stmts.F_Stmts) then
+               Pop_Objects (SH, True);
+            end if;
+         end;
+      end if;
+   end Process_Subp_Body;
 begin
    Unit.Root.Traverse (Process_Node'Access);
+   Node_Counters.Iterate (Subp_Roots, Process_Subp_Body'Access);
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "track_roots: could not apply rewritings";
    end if;

@@ -25,9 +25,8 @@ package body P is
    end AGC_Visit_Rec;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Bar (X : Rec) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      AGC.Pop_Roots (AGC_Base_Root_Count);
+      null;
    end Bar;
 end P;
 with AGC;
@@ -68,9 +67,8 @@ package body Q is
    end AGC_Visit_U;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Foo (X : U) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      AGC.Pop_Roots (AGC_Base_Root_Count);
+      null;
    end Foo;
 end Q;
 with AGC;

@@ -13,10 +13,9 @@ procedure Test is
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    function F return Integer_Access is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       return AGC_Ret : Integer_Access := new Integer'(15) do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
+         null;
       end return;
    end F;
    X : aliased Integer_Access := (new Integer'(3));

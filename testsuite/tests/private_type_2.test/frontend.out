@@ -50,9 +50,7 @@ package body Pkg is
       end;
    end Create;
    function Get (X : T) return Integer is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      AGC.Pop_Roots (AGC_Base_Root_Count);
       return X.X.all;
    end Get;
 end Pkg;

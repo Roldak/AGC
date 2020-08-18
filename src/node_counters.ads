@@ -22,4 +22,9 @@ package Node_Counters is
      (C     : in out Counter;
       Node  : Libadalang.Analysis.Ada_Node;
       Value : Natural) return Natural;
+
+   procedure Iterate
+     (C : Counter;
+      P : not null access procedure
+            (K : Libadalang.Analysis.Ada_Node; V : Natural));
 end Node_Counters;

@@ -4,7 +4,6 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Integer_Access is access all Integer;
    procedure AGC_Visit_Integer_Access (X : System.Address);
@@ -13,9 +12,7 @@ procedure Test is
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    function Id (X : Integer_Access) return Integer_Access is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      AGC.Pop_Roots (AGC_Base_Root_Count);
       return X;
    end Id;
    procedure Foo is
@@ -42,5 +39,4 @@ procedure Test is
 begin
    Foo;
    AGC.Collect;
-   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

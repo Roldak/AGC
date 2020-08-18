@@ -42,7 +42,6 @@ procedure Test is
 begin
    AGC.Push_Root (X'Address, Test.AGC_Visit_Quad_Tree_Access'Address);
    declare
-      AGC_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
          AGC_Temp_2 : aliased Test.Quad_Tree_Access_Array :=
@@ -67,7 +66,6 @@ begin
             end;
          end;
       end;
-      AGC.Pop_Roots (AGC_Root_Count);
    end;
    AGC.Collect;
    AGC.Pop_Roots (AGC_Base_Root_Count);

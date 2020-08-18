@@ -51,10 +51,8 @@ procedure Test is
          Conv (X).AGC_Visit;
       end AGC_Visit_T_Classwide;
       procedure Print (X : T) is
-         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          Put_Line (X.X.all'Image);
-         AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end Pkg_T;
    package Pkg_U is
@@ -96,10 +94,8 @@ procedure Test is
          Conv (X).AGC_Visit;
       end AGC_Visit_U_Classwide;
       procedure Print (X : U) is
-         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          Put_Line (X.X.all'Image & " " & X.Y.all'Image);
-         AGC.Pop_Roots (AGC_Base_Root_Count);
       end Print;
    end Pkg_U;
    function AGC_Func_0 return Pkg_T.T'Class is

@@ -19,10 +19,9 @@ procedure Test is
       procedure AGC_Visit_T_Access (X : System.Address) renames
         AGC_Visit_T_Access_Implem;
       function Create (X : Integer) return T_Access is
-         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       begin
          return AGC_Ret : T_Access := new T'(T (X)) do
-            AGC.Pop_Roots (AGC_Base_Root_Count);
+            null;
          end return;
       end Create;
    end Pkg;
