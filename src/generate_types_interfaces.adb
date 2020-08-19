@@ -294,7 +294,7 @@ is
             & "for Rec_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
             & "  (System.Address, Rec_Access);"
-            & "R : aliased " & Full_Type & " := Conv (X).all;"
+            & "R : " & Full_Type & " renames Conv (X).all;"
             &" begin null; end;",
             (1 .. 0 => <>),
             LALCO.Basic_Decl_Rule);

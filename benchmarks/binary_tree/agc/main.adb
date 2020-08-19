@@ -33,7 +33,7 @@ procedure Main is
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
-      R : aliased Tree := Conv (X).all;
+      R : Tree renames Conv (X).all;
    begin
       case R.K is
          when Node =>

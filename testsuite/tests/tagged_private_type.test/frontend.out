@@ -38,7 +38,7 @@ procedure Test is
          for Rec_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, Rec_Access);
-         R : aliased T'Class := Conv (X).all;
+         R : T'Class renames Conv (X).all;
       begin
          declare
             C : aliased Test.Integer_Access := R.X;
@@ -102,7 +102,7 @@ procedure Test is
          for Rec_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, Rec_Access);
-         R : aliased T'Class := Conv (X).all;
+         R : T'Class renames Conv (X).all;
       begin
          Test.P.AGC_Visit_T_Private (X);
          declare
