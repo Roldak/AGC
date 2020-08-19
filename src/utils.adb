@@ -146,6 +146,9 @@ package body Utils is
          when LALCO.Ada_Explicit_Deref =>
             return True;
 
+         when LALCO.Ada_Attribute_Ref =>
+            return Expr.As_Attribute_Ref.P_Is_Access_Attribute;
+
          when others =>
             return False;
       end case;
