@@ -22,12 +22,21 @@ package body Utils is
                   and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl));
    end Is_Relevant_Type;
 
-   function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean is
+   function Is_Relevant_Root (Decl : LAL.Object_Decl'Class) return Boolean is
       Type_Expr : LAL.Type_Expr := Decl.P_Type_Expression;
       Type_Decl : LAL.Base_Type_Decl := Type_Expr.P_Designated_Type_Decl;
    begin
-      return Is_Relevant_Type (Type_Decl);
+      return Is_Relevant_Type (Type_Decl) and then not Is_Alias (Decl);
    end Is_Relevant_Root;
+
+   function Is_Alias (Decl : LAL.Object_Decl'Class) return Boolean is
+      Is_Constant : Boolean :=
+         Decl.F_Has_Constant.Kind in LALCO.Ada_Constant_Present;
+   begin
+      return not Decl.F_Renaming_Clause.Is_Null
+             or else (Is_Constant
+                      and then Utils.Is_Named_Expr (Decl.F_Default_Expr));
+   end is_Alias;
 
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
    is

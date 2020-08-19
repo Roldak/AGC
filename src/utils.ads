@@ -12,7 +12,9 @@ package Utils is
    function Is_Relevant_Type
      (Typ  : LAL.Base_Type_Decl'Class) return Boolean;
 
-   function Is_Relevant_Root (Decl : LAL.Basic_Decl'Class) return Boolean;
+   function Is_Relevant_Root (Decl : LAL.Object_Decl'Class) return Boolean;
+
+   function Is_Alias (Decl : LAL.Object_Decl'Class) return Boolean;
 
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class;
 

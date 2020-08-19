@@ -144,7 +144,7 @@ is
    begin
       if Node.Parent.Kind in LALCO.Ada_Object_Decl then
          if Node.Parent.As_Object_Decl.F_Renaming_Clause.Is_Null then
-            if Utils.Is_Relevant_Root (Node.Parent.As_Basic_Decl) then
+            if Utils.Is_Relevant_Root (Node.Parent.As_Object_Decl) then
                LALRW.Replace
                  (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
             end if;
@@ -184,7 +184,7 @@ is
                   C : LAL.Ada_Node := LAL.Child (Decls, N);
                begin
                   if C.Kind = LALCO.Ada_Object_Decl then
-                     if Utils.Is_Relevant_Root (C.As_Basic_Decl) then
+                     if Utils.Is_Relevant_Root (C.As_Object_Decl) then
                         Push_Object (SH, C.As_Object_Decl);
                         Has_Any_Root := True;
                      end if;
