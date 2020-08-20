@@ -90,6 +90,10 @@ is
 
       SH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node.F_Stmts);
    begin
+      if Node.Parent.Kind in LALCO.Ada_Package_Body then
+         return;
+      end if;
+
       if Sibling.Kind = LALCO.Ada_Declarative_Part then
          declare
             Decl_Part : LAL.Declarative_Part := Sibling.As_Declarative_Part;
