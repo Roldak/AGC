@@ -69,14 +69,11 @@ package body Worlds is
       W.New_Entities.Append (E);
    end Spawn;
    procedure Update (W : in out World) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       for I in reverse W.Entities.First_Index .. W.Entities.Last_Index loop
          declare
-            AGC_Root_Count : constant Natural      := AGC.Root_Count;
-            E              : aliased Entity_Access := W.Entities (I);
+            E : constant Entity_Access := W.Entities (I);
          begin
-            AGC.Push_Root (E'Address, Worlds.AGC_Visit_Entity_Access'Address);
             E.all.Update (W);
             if not E.all.Is_Alive then
                W.Entities.Delete (I);
@@ -88,7 +85,6 @@ package body Worlds is
                   end;
                end if;
             end if;
-            AGC.Pop_Roots (AGC_Root_Count);
          end;
       end loop;
       for E of W.New_Entities loop
@@ -103,7 +99,6 @@ package body Worlds is
          end if;
       end loop;
       W.New_Entities.Clear;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
    end Update;
    procedure Move
      (W : in out World; I : Positioned_Access; Old_X, Old_Y : Natural)

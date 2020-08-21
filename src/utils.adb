@@ -133,15 +133,7 @@ package body Utils is
             return True;
 
          when LALCO.Ada_Call_Expr =>
-            if Expr.As_Call_Expr.P_Is_Call then
-               return False;
-            elsif
-               not Expr.As_Call_Expr.F_Name.P_Name_Designated_Type.Is_Null
-            then
-               return True;
-            else
-               return Expr.As_Call_Expr.F_Name.P_Expression_Type.P_Is_Array_Type;
-            end if;
+            return not Expr.As_Call_Expr.P_Is_Call;
 
          when LALCO.Ada_Explicit_Deref =>
             return True;

@@ -17,7 +17,7 @@ package body Worlds is
    begin
       for I in reverse W.Entities.First_Index .. W.Entities.Last_Index loop
          declare
-            E : Entity_Access := W.Entities (I);
+            E : constant Entity_Access := W.Entities (I);
          begin
             E.all.Update (W);
             if not E.all.Is_Alive then
