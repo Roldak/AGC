@@ -39,10 +39,11 @@ procedure AGC is
      (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array);
 
    package App is new Helpers.App
-     (Name             => "AGC",
-      Description      => "Garbage collection for Ada",
-      Process_Unit     => Process_Unit,
-      App_Post_Process => Post_Process);
+     (Name               => "AGC",
+      Description        => "Garbage collection for Ada",
+      Process_Unit       => Process_Unit,
+      App_Post_Process   => Post_Process,
+      Enable_Parallelism => True);
 
    package Output_Dir is new GNATCOLL.Opt_Parse.Parse_Option
      (Parser      => App.Args.Parser,
@@ -73,19 +74,49 @@ procedure AGC is
       end if;
    end Process_Unit;
 
+   procedure Reparse_All_Units
+     (Dest      : LAL.Analysis_Context;
+      Jobs      : Helpers.App_Job_Context_Array;
+      All_Units : in out Helpers.Unit_Vectors.Vector)
+   is
+   begin
+      for Job_Ctx of Jobs loop
+         for Unit of Job_Ctx.Units_Processed loop
+            declare
+               Reparsed : LAL.Analysis_Unit := LAL.Get_From_Buffer
+                 (Context  => Dest,
+                  Filename => LAL.Get_Filename (Unit),
+                  Buffer   => Langkit_Support.Text.Encode
+                    (LAL.Text (Unit).all,
+                     LAL.Get_Charset (Unit)));
+            begin
+               All_Units.Append (Reparsed);
+            end;
+         end loop;
+      end loop;
+   end Reparse_All_Units;
+
    procedure Post_Process
      (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
    is
+      use type Helpers.Job_ID;
+
       First_Context : LAL.Analysis_Context :=
          Jobs (Jobs'First).Analysis_Ctx;
+
+      All_Units : Helpers.Unit_Vectors.Vector :=
+         Jobs (Jobs'First).Units_Processed;
    begin
+      Reparse_All_Units
+        (First_Context,
+         Jobs (Jobs'First + 1 .. Jobs'Last),
+         All_Units);
+
       To_Do.Perform_Actions (First_Context);
 
       --  output units
-      for Job_Ctx of Jobs loop
-         for Unit of Job_Ctx.Units_Processed loop
-            Output_Unit (Job_Ctx, Unit, Output_Dir.Get);
-         end loop;
+      for Unit of All_Units loop
+         Output_Unit (Unit, Output_Dir.Get);
       end loop;
    end Post_Process;
 begin

@@ -1,12 +1,14 @@
 with Ada.Containers.Vectors;
 
+with Langkit_Support.Slocs;
+
 with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Common;
 
 package Post_Actions is
    type Move_Action is record
-      Source : Ada_Node;
-      Dest   : Ada_Node;
+      Unit : Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location;
    end record;
 
    package Move_Actions is new Ada.Containers.Vectors

@@ -12,8 +12,7 @@ with Libadalang.Helpers;
 with Libadalang.Unparsing;
 
 procedure Output_Unit
-  (Job_Ctx      : Libadalang.Helpers.App_Job_Context;
-   Unit         : Libadalang.Analysis.Analysis_Unit;
+  (Unit         : Libadalang.Analysis.Analysis_Unit;
    Out_Dir_Path : Strings.XString)
 is
    package LAL     renames Libadalang.Analysis;

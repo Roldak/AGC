@@ -18,19 +18,14 @@ is
    package LALCO   renames Libadalang.Common;
 
    procedure Handle_Body (Node : LAL.Basic_Decl'Class) is
+      use Langkit_Support.Slocs;
+
       GGP : LAL.Ada_Node'Class := Node.Parent.Parent.Parent;
    begin
       if not GGP.Is_Null and then GGP.Kind in LALCO.Ada_Base_Package_Decl then
-         declare
-            Pkg      : LAL.Base_Package_Decl  := GGP.As_Base_Package_Decl;
-            Pkg_Body : LAL.Package_Body'Class := Pkg.P_Body_Part;
-         begin
-            if not Pkg_Body.Is_Null then
-               To_Do.Register (Post_Actions.Move_Action'
-                 (Source => Node.As_Ada_Node,
-                  Dest => Pkg_Body.F_Decls.F_Decls.As_Ada_Node));
-            end if;
-         end;
+         To_Do.Register (Post_Actions.Move_Action'
+           (Unit => Node.Unit,
+            Sloc => Start_Sloc (LAL.Sloc_Range (Node))));
       end if;
    end Handle_Body;
 
