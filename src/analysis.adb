@@ -64,6 +64,7 @@ package body Analysis is
          exception
             when LALCO.Property_Error =>
                Put_Line ("Abandonning analysis of " & LAL.Image (Target));
+               Self_Allocates := True;
                return LALCO.Stop;
          end Process_Node;
       begin
