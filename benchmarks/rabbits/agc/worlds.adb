@@ -116,8 +116,8 @@ package body Worlds is
       end return;
    end Is_Running;
    function Located (W : in World; X, Y : Natural) return Positioned_Array is
-      AGC_Base_Root_Count : constant Natural                 := AGC.Root_Count;
-      Acc : aliased Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+      Acc : aliased constant Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
    begin
       AGC.Push_Root
         (Acc'Address,

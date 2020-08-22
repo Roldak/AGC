@@ -74,7 +74,7 @@ package body Worlds is
    function Located
      (W : in World; X, Y : Natural) return Positioned_Array
    is
-      Acc : Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
+      Acc : constant Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
    begin
       return Res : Positioned_Array (Acc.First_Index .. Acc.Last_Index) do
          for I in Res'Range loop
