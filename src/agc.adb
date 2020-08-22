@@ -12,6 +12,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
+with Analysis;
 with Post_Actions;
 
 with Add_With_Clauses;
@@ -32,6 +33,9 @@ procedure AGC is
    package LALRW   renames Libadalang.Rewriting;
    package LALU    renames Libadalang.Unparsing;
 
+   procedure Setup
+     (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array);
+
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit);
 
@@ -41,6 +45,7 @@ procedure AGC is
    package App is new Helpers.App
      (Name               => "AGC",
       Description        => "Garbage collection for Ada",
+      App_Setup          => Setup,
       Process_Unit       => Process_Unit,
       App_Post_Process   => Post_Process,
       Enable_Parallelism => True);
@@ -54,7 +59,21 @@ procedure AGC is
       Help        =>
          "The directory in which to save the transformed ada units.");
 
-   To_Do : Post_Actions.Actions;
+   package Optimize is new GNATCOLL.Opt_Parse.Parse_Flag
+     (Parser  => App.Args.Parser,
+      Long    => "--optimize",
+      Help    => "Turn on optimizations");
+
+   To_Do     : Post_Actions.Actions;
+
+   procedure Setup
+     (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
+   is
+   begin
+      if Optimize.Get then
+         Analysis.Summaries := new Analysis.Summaries_Map;
+      end if;
+   end Setup;
 
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit)

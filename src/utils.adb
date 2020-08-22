@@ -1,6 +1,8 @@
 with Libadalang.Analysis;
 with Libadalang.Common;
 
+with Analysis;
+
 package body Utils is
    function Is_Relevant_Type
      (Typ  : LAL.Base_Type_Decl'Class) return Boolean
@@ -112,6 +114,7 @@ package body Utils is
    end Is_Actual_Expr;
 
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean is
+      use type Analysis.Summaries_Access;
    begin
       case Expr.Kind is
          when LALCO.Ada_Identifier =>
@@ -135,7 +138,30 @@ package body Utils is
             return True;
 
          when LALCO.Ada_Call_Expr =>
-            return not Expr.As_Call_Expr.P_Is_Call;
+            if not Expr.As_Call_Expr.P_Is_Call then
+               return True;
+            end if;
+
+            if Analysis.Summaries = null then
+               return False;
+            end if;
+
+            declare
+               Call_Expr     : LAL.Call_Expr := Expr.As_Call_Expr;
+               Called_Subp   : LAL.Basic_Decl :=
+                  Call_Expr.P_Called_Subp_Spec.Parent.As_Basic_Decl;
+               Called_Body   : LAL.Body_Node :=
+                  (if Called_Subp.Kind in LALCO.Ada_Body_Node
+                   then Called_Subp.As_Body_Node
+                   else Called_Subp.P_Body_Part_For_Decl);
+
+               Summary       : Analysis.Summary_Access;
+               Does_Allocate : Boolean;
+            begin
+               Analysis.Summaries.Get_Summary (Called_Body, Summary);
+               Summary.Get (Does_Allocate);
+               return not Does_Allocate;
+            end;
 
          when LALCO.Ada_Explicit_Deref =>
             return True;
