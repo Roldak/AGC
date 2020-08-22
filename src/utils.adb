@@ -146,22 +146,9 @@ package body Utils is
                return False;
             end if;
 
-            declare
-               Call_Expr     : LAL.Call_Expr := Expr.As_Call_Expr;
-               Called_Subp   : LAL.Basic_Decl :=
-                  Call_Expr.P_Called_Subp_Spec.Parent.As_Basic_Decl;
-               Called_Body   : LAL.Body_Node :=
-                  (if Called_Subp.Kind in LALCO.Ada_Body_Node
-                   then Called_Subp.As_Body_Node
-                   else Called_Subp.P_Body_Part_For_Decl);
-
-               Summary       : Analysis.Summary_Access;
-               Does_Allocate : Boolean;
-            begin
-               Analysis.Summaries.Get_Summary (Called_Body, Summary);
-               Summary.Get (Does_Allocate);
-               return not Does_Allocate;
-            end;
+            return not Analysis.Does_Allocate
+              (Get_Body
+                 (Expr.As_Call_Expr.P_Called_Subp_Spec.Parent.As_Basic_Decl));
 
          when LALCO.Ada_Explicit_Deref =>
             return True;
@@ -173,6 +160,15 @@ package body Utils is
             return False;
       end case;
    end Is_Named_Expr;
+
+   function Get_Body
+     (Decl : LAL.Basic_Decl'Class) return LAL.Body_Node
+   is
+   begin
+      return (if Decl.Kind in LALCO.Ada_Body_Node
+              then Decl.As_Body_Node
+              else Decl.P_Body_Part_For_Decl);
+   end Get_Body;
 
    function Is_Generalized_Access_Type
      (Typ : LAL.Base_Type_Decl'Class) return Boolean

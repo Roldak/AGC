@@ -116,18 +116,12 @@ package body Worlds is
       end return;
    end Is_Running;
    function Located (W : in World; X, Y : Natural) return Positioned_Array is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-      Acc : aliased constant Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
+      Acc : constant Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
    begin
-      AGC.Push_Root
-        (Acc'Address,
-         Worlds.Grid.AGC_Item_Vectors_Visitors.AGC_Visit_Vector_Private'
-           Address);
       return Res : Positioned_Array (Acc.First_Index .. Acc.Last_Index) do
          for I in Res'Range loop
             Res (I) := Acc (I);
          end loop;
-         AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end Located;
    procedure Stats (W : World; Rabbits, Wolves, Grass : out Natural) is
@@ -147,26 +141,12 @@ package body Worlds is
       Grass   := G;
    end Stats;
    function Has_Grass (W : World; X, Y : Natural) return Boolean is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      declare
-         AGC_Root_Count : constant Natural := AGC.Root_Count;
-         AGC_Temp_0     : aliased Worlds.Grid.Item_Vectors.Vector :=
-           W.Cells.Get (X, Y);
-      begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address,
-            Worlds.Grid.AGC_Item_Vectors_Visitors.AGC_Visit_Vector_Private'
-              Address);
-         for E of AGC_Temp_0 loop
-            if E.all in Entities.Grass.Grass'Class then
-               AGC.Pop_Roots (AGC_Base_Root_Count);
-               return True;
-            end if;
-         end loop;
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
+      for E of W.Cells.Get (X, Y) loop
+         if E.all in Entities.Grass.Grass'Class then
+            return True;
+         end if;
+      end loop;
       return False;
    end Has_Grass;
 end Worlds;

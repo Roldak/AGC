@@ -97,8 +97,7 @@ package body Entities.Rabbits is
       end if;
    end Try_Eat;
    overriding procedure Update (R : in out Rabbit; W : in out World) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-      X                   : Natural          := R.X;
+      X : Natural := R.X;
    begin
       declare
          Y : Natural := R.Y;
@@ -112,23 +111,14 @@ package body Entities.Rabbits is
          while not Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) loop
             null;
          end loop;
-         declare
-            AGC_Root_Count : constant Natural                := AGC.Root_Count;
-            AGC_Temp_0 : aliased Worlds.Positioned_Array := W.Located (X, Y);
-         begin
-            AGC.Push_Root
-              (AGC_Temp_0'Address, Worlds.AGC_Visit_Positioned_Array'Address);
-            for E of AGC_Temp_0 loop
-               if E.all in Rabbit'Class then
-                  Try_Reproducing (R, Rabbit (E.all), W);
-               elsif E.all in Grass.Grass'Class then
-                  Try_Eat (R, Grass.Grass (E.all));
-               end if;
-            end loop;
-            AGC.Pop_Roots (AGC_Root_Count);
-         end;
+         for E of W.Located (X, Y) loop
+            if E.all in Rabbit'Class then
+               Try_Reproducing (R, Rabbit (E.all), W);
+            elsif E.all in Grass.Grass'Class then
+               Try_Eat (R, Grass.Grass (E.all));
+            end if;
+         end loop;
          R.Relocate (W, X, Y);
       end;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
    end Update;
 end Entities.Rabbits;

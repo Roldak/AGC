@@ -98,8 +98,7 @@ package body Entities.Wolves is
       Rabbit.Delete;
    end Try_Eat;
    overriding procedure Update (R : in out Wolf; W : in out World) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-      X                   : Natural          := R.X;
+      X : Natural := R.X;
    begin
       declare
          Y : Natural := R.Y;
@@ -117,27 +116,16 @@ package body Entities.Wolves is
             loop
                null;
             end loop;
-            declare
-               AGC_Root_Count : constant Natural := AGC.Root_Count;
-               AGC_Temp_0     : aliased Worlds.Positioned_Array :=
-                 W.Located (X, Y);
-            begin
-               AGC.Push_Root
-                 (AGC_Temp_0'Address,
-                  Worlds.AGC_Visit_Positioned_Array'Address);
-               for E of AGC_Temp_0 loop
-                  if E.all in Wolf'Class and not Already_Reproduced then
-                     Try_Reproducing (R, Wolf (E.all), W);
-                     Already_Reproduced := True;
-                  elsif E.all in Rabbits.Rabbit'Class then
-                     Try_Eat (R, Rabbits.Rabbit (E.all), W);
-                  end if;
-               end loop;
-               AGC.Pop_Roots (AGC_Root_Count);
-            end;
+            for E of W.Located (X, Y) loop
+               if E.all in Wolf'Class and not Already_Reproduced then
+                  Try_Reproducing (R, Wolf (E.all), W);
+                  Already_Reproduced := True;
+               elsif E.all in Rabbits.Rabbit'Class then
+                  Try_Eat (R, Rabbits.Rabbit (E.all), W);
+               end if;
+            end loop;
             R.Relocate (W, X, Y);
          end;
       end;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
    end Update;
 end Entities.Wolves;
