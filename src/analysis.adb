@@ -44,17 +44,18 @@ package body Analysis is
                   declare
                      Called_Spec : LAL.Base_Formal_Param_Holder'Class :=
                         Node.As_Name.P_Called_Subp_Spec;
+
+                     Subp_Body : LAL.Body_Node :=
+                       (if Called_Spec.Is_Null
+                        then LAL.No_Body_Node
+                        else Utils.Get_Body
+                          (Called_Spec.Parent.As_Basic_Decl));
                   begin
-                     if not Called_Spec.Is_Null then
-                        declare
-                           Subp_Body : LAL.Body_Node := Utils.Get_Body
-                             (Called_Spec.Parent.As_Basic_Decl);
-                        begin
-                           Calls.Include
-                             ((Subp_Body,
-                               To_Unbounded_Text
-                                 (Subp_Body.P_Unique_Identifying_Name)));
-                        end;
+                     if not Subp_Body.Is_Null then
+                        Calls.Include
+                          ((Subp_Body,
+                            To_Unbounded_Text
+                              (Subp_Body.P_Unique_Identifying_Name)));
                      end if;
                   end;
                when others =>
