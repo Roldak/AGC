@@ -46,6 +46,20 @@ package Analysis is
       Does_Allocate : out Boolean;
       Called_Subps  : out Subp_Sets.Set) is abstract;
 
+   type Tristate is (Unknown, False, True);
+
+   procedure Set_Global_Allocates
+     (Self  : in out Summary_Holder;
+      Value : Boolean) is abstract;
+
+   procedure Get_Global_Allocates
+     (Self  : in out Summary_Holder;
+      Value : out Tristate) is abstract;
+
+   procedure Get_Global_Allocates_Blocking
+     (Self  : in out Summary_Holder;
+      Value : out Boolean) is abstract;
+
    type Summaries_Map is synchronized new Summaries_Holder with private;
 
    Summaries : Summaries_Access;
@@ -65,11 +79,18 @@ private
       overriding entry Get_Blocking
         (Does_Allocate : out Boolean;
          Called_Subps  : out Subp_Sets.Set);
+
+      overriding procedure Set_Global_Allocates (Value : Boolean);
+      overriding procedure Get_Global_Allocates (Value : out Tristate);
+      overriding entry     Get_Global_Allocates_Blocking
+        (Value : out Boolean);
    private
-      Target      : Libadalang.Analysis.Basic_Decl;
-      Is_Computed : Boolean := False;
-      Allocates   : Boolean;
-      Calls       : Subp_Sets.Set;
+      Target         : Libadalang.Analysis.Basic_Decl;
+      Is_Computed    : Boolean := False;
+      Self_Allocates : Boolean;
+      Calls          : Subp_Sets.Set;
+
+      Global_Allocates : Tristate := Unknown;
    end Local_Summary;
 
    subtype Key is Unbounded_Text_Type;

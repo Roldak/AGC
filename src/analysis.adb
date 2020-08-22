@@ -39,7 +39,7 @@ package body Analysis is
          begin
             case Node.Kind is
                when LALCO.Ada_Allocator =>
-                  Allocates := True;
+                  Self_Allocates := True;
                when LALCO.Ada_Name =>
                   declare
                      Called_Spec : LAL.Base_Formal_Param_Holder'Class :=
@@ -67,7 +67,7 @@ package body Analysis is
                return LALCO.Stop;
          end Process_Node;
       begin
-         Allocates := False;
+         Self_Allocates := False;
          Target.Traverse (Process_Node'Access);
       end Compute_Summary;
 
@@ -84,7 +84,7 @@ package body Analysis is
             Put_Line ("Reusing summary");
          end if;
 
-         Does_Allocate := Allocates;
+         Does_Allocate := Self_Allocates;
          Called_Subps  := Calls;
       end Get;
 
@@ -95,9 +95,27 @@ package body Analysis is
       is
       begin
          Put_Line ("Reusing summary (potentially waited)");
-         Does_Allocate := Allocates;
+         Does_Allocate := Self_Allocates;
          Called_Subps  := Calls;
       end Get_Blocking;
+
+      procedure Set_Global_Allocates (Value : Boolean) is
+      begin
+         Global_Allocates := (if Value then True else False);
+      end Set_Global_Allocates;
+
+      procedure Get_Global_Allocates (Value : out Tristate) is
+      begin
+         Value := Global_Allocates;
+      end Get_Global_Allocates;
+
+      entry Get_Global_Allocates_Blocking
+        (Value : out Boolean)
+         when Global_Allocates /= Unknown
+      is
+      begin
+         Value := Global_Allocates = True;
+      end Get_Global_Allocates_Blocking;
    end Local_Summary;
 
    protected body Summaries_Map is
@@ -146,19 +164,28 @@ package body Analysis is
       Ctx : LAL.Analysis_Context := Subprogram.Unit.Context;
 
       function Recurse (Info : Subp_Info) return Boolean is
-         Summary        : Summary_Access;
-         Self_Allocates : Boolean;
-         Called_Subps   : Subp_Sets.Set;
+         Summary          : Summary_Access;
+         Self_Allocates   : Boolean;
+         Global_Allocates : Tristate;
+         Called_Subps     : Subp_Sets.Set;
       begin
          if Info.Subp.Unit.Context /= Ctx then
             Summaries.Get_Existing_Summary (Info.Id, Summary);
-            Summary.Get_Blocking (Self_Allocates, Called_Subps);
-         else
-            Summaries.Get_Summary (Info.Subp, Summary);
-            Summary.Get (Self_Allocates, Called_Subps);
+            Summary.Get_Global_Allocates_Blocking (Self_Allocates);
+            return Self_Allocates;
          end if;
 
+         Summaries.Get_Summary (Info.Subp, Summary);
+         Summary.Get_Global_Allocates (Global_Allocates);
+
+         if Global_Allocates /= Unknown then
+            return Global_Allocates = True;
+         end if;
+
+         Summary.Get (Self_Allocates, Called_Subps);
+
          if Self_Allocates then
+            Summary.Set_Global_Allocates (True);
             return True;
          end if;
 
@@ -167,11 +194,13 @@ package body Analysis is
          for Called_Info of Called_Subps loop
             if not Visited.Contains (Called_Info) then
                if Recurse (Called_Info) then
+                  Summary.Set_Global_Allocates (True);
                   return True;
                end if;
             end if;
          end loop;
 
+         Summary.Set_Global_Allocates (False);
          return False;
       end Recurse;
    begin
