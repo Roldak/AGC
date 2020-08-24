@@ -6,9 +6,13 @@ AGC adds a garbage collector to your Ada programs.
 1. The sources of your project must be processed by AGC as a first step before
    you invoke gprbuild. Run
    ```
-   agc -P <project_file.gpr> --output-dir <new-project-dir>
+   agc -P <project_file.gpr> --output-dir <new-project-dir> [--jobs|-j JOBS] [--optimize]
    ```
-   This will generate a new set of sources in the directory specified by `<new-project-dir>`.
+   * A new set of sources will be generated in the directory specified by `<new-project-dir>`.
+   * Using `-j0` allows AGC to treat several source files in parallel, which can heavily speed up this part.
+   * AGC will try to generate optimized code when using `--optimize`, but will take more time.
+   
+   Run `agc --help` to find out all the available options.
    
 2. Then, you must write a new project file that can compile the set of generated sources.
    Typically (but not necessarily), this project file will be similar to that of your original project,
@@ -18,7 +22,7 @@ AGC adds a garbage collector to your Ada programs.
    ```
    Don't forget to rectify the relative paths appearing in the project file.
    
-3. You can now invoke `gprbuild` on this new project file. The built binary will behave as your original program, but will benefit from garbage collection.
+3. You can now invoke `gprbuild` on this new project file. The built binary will behave as your original program, but will benefit from garbage collection!
 
 Note that it is possible to configure the runtime behavior of AGC. For now, this is done using environment variables and the only configurable part is the kind of storage pool to use: simply set the `AGC_POOL` variable to either:
 * `MALLOC_FREE`: The storage pool is managed by the system using malloc/free.
@@ -28,7 +32,7 @@ Note that it is possible to configure the runtime behavior of AGC. For now, this
 
 ## Performance
 
-Although the main goal of AGC is to alleviate Ada programmers from memory management, it's very important to keep performance of resulting binaries reasonable. To keep track of this work, a set of benchmarks will be maintained in the `benchmarks` directory (there is only one for now).
+Although the main goal of AGC is to alleviate Ada programmers from memory management, it's very important to keep performance of resulting binaries reasonable. To keep track of this work, a set of benchmarks will be maintained in the `benchmarks` directory (there are only two of them for now).
 
 To have an idea of the performance, single-run results for the `binary_tree` benchmark on my machine give:
 
