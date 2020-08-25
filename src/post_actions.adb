@@ -1,3 +1,5 @@
+with Ada.Text_IO; use Ada.Text_IO;
+
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 
@@ -65,6 +67,9 @@ package body Post_Actions is
       Is_Library_Level : Boolean :=
          Pkg.Parent.Parent.Kind in LALCO.Ada_Compilation_Unit;
 
+      Allows_Body : Boolean :=
+         Pkg.P_Semantic_Parent.Kind not in LALCO.Ada_Base_Package_Decl;
+
       Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Pkg.F_Package_Name);
 
@@ -83,6 +88,11 @@ package body Post_Actions is
                 Root => New_Body,
                 Buff => <>));
          end;
+      elsif Allows_Body then
+         LALRW.Insert_Child
+           (LALRW.Handle (Pkg.Parent),
+            Utils.Child_Index (LALRW.Handle (Pkg)) + 1,
+            New_Body);
       else
          LALRW.Insert_Child
            (Find_Or_Create_Destination (Pkg, RH), 1, New_Body);
