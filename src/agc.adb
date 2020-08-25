@@ -131,7 +131,7 @@ procedure AGC is
          Jobs (Jobs'First + 1 .. Jobs'Last),
          All_Units);
 
-      To_Do.Perform_Actions (First_Context);
+      To_Do.Perform_Actions (First_Context, All_Units);
 
       --  output units
       for Unit of All_Units loop

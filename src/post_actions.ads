@@ -4,6 +4,7 @@ with Langkit_Support.Slocs;
 
 with Libadalang.Analysis; use Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Helpers;
 
 package Post_Actions is
    type Move_Action is record
@@ -17,7 +18,9 @@ package Post_Actions is
    protected type Actions is
       procedure Register (Action : Move_Action);
 
-      procedure Perform_Actions (Ctx : Analysis_Context);
+      procedure Perform_Actions
+        (Ctx   : Analysis_Context;
+         Units : in out Libadalang.Helpers.Unit_Vectors.Vector);
    private
       To_Move : Move_Actions.Vector;
    end Actions;
