@@ -21,7 +21,8 @@ package body Utils is
          or else (Full_Typ.P_Is_Array_Type
                   and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
          or else (Full_Typ.P_Is_Classwide
-                  and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl));
+                  and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl))
+         or else Full_Typ.P_Is_Generic_Formal;
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Object_Decl'Class) return Boolean is

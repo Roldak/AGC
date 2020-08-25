@@ -422,6 +422,19 @@ is
         LALCO.Basic_Decl_Rule));
    end Generate_Array_Type_Visitor;
 
+   procedure Generate_Formal_Type_Visitor
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
+   is
+   begin
+      Append (LALRW.Create_From_Template
+        (RH,
+        "with procedure " & Visit_Name & " (X : System.Address);",
+        (1 .. 0 => <>),
+        LALCO.Generic_Formal_Decl_Rule));
+   end Generate_Formal_Type_Visitor;
+
    procedure Generate_Visitors
      (Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
@@ -429,7 +442,9 @@ is
       Visit_Name : Langkit_Support.Text.Text_Type :=
          Utils.Visitor_Name (Decl, Is_Ref => False);
    begin
-      if Decl.P_Is_Private then
+      if Decl.P_Is_Generic_Formal then
+         Generate_Formal_Type_Visitor (Visit_Name, Decl, Append);
+      elsif Decl.P_Is_Private then
          Generate_Private_Type_Visitor (Visit_Name, Decl, Append);
       elsif Decl.P_Is_Access_Type then
          Generate_Access_Type_Visitor (Visit_Name, Decl, Append);
@@ -448,7 +463,10 @@ is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
 
-      Decl_Part : LAL.Ada_Node := Decl.Parent.As_Ada_Node;
+      Decl_Part : LAL.Ada_Node :=
+        (if Decl.P_Is_Generic_Formal
+         then Decl.Parent.Parent.As_Ada_Node
+         else Decl.Parent.As_Ada_Node);
 
       DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl_Part);
 

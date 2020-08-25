@@ -1,0 +1,26 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   generic
+      type T is private;
+      with procedure AGC_Visit_T_Private (X : System.Address);
+   package Pkg is
+      function Foo return T;
+   end Pkg;
+   package body Pkg is
+      function Foo return T is
+         AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+         X                   : aliased T;
+      begin
+         AGC.Push_Root (X'Address, Test.Pkg.AGC_Visit_T_Private'Address);
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return X;
+      end Foo;
+   end Pkg;
+begin
+   null;
+end Test;
