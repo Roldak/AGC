@@ -14,6 +14,7 @@ with Libadalang.Unparsing;
 
 with Analysis;
 with Post_Actions;
+with Session;
 
 with Add_With_Clauses;
 with Handle_Temporaries;
@@ -34,7 +35,9 @@ procedure AGC is
    package LALU    renames Libadalang.Unparsing;
 
    procedure Setup
-     (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array);
+     (Ctx   : Helpers.App_Context;
+      Jobs  : Helpers.App_Job_Context_Array;
+      Files : Helpers.String_Vectors.Vector);
 
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit);
@@ -64,12 +67,15 @@ procedure AGC is
       Long    => "--optimize",
       Help    => "Turn on optimizations");
 
-   To_Do     : Post_Actions.Actions;
+   To_Do            : Post_Actions.Actions;
 
    procedure Setup
-     (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
+     (Ctx   : Helpers.App_Context;
+      Jobs  : Helpers.App_Job_Context_Array;
+      Files : Helpers.String_Vectors.Vector)
    is
    begin
+      Session.Set_Files_To_Process (Files);
       if Optimize.Get then
          Analysis.Summaries := new Analysis.Summaries_Map;
       end if;

@@ -7,20 +7,25 @@ procedure Test is
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    generic
       type T is private;
+      type U is private;
       with procedure AGC_Visit_T_Private (X : System.Address);
+      with procedure AGC_Visit_U_Private (X : System.Address);
    package Pkg is
-      function Foo return T;
+      function Foo (X : U) return T;
    end Pkg;
    package body Pkg is
-      function Foo return T is
+      function Foo (X : U) return T is
          AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-         X                   : aliased T;
+         Y                   : aliased T;
       begin
-         AGC.Push_Root (X'Address, Test.Pkg.AGC_Visit_T_Private'Address);
+         AGC.Push_Root (Y'Address, Test.Pkg.AGC_Visit_T_Private'Address);
          AGC.Pop_Roots (AGC_Base_Root_Count);
-         return X;
+         return Y;
       end Foo;
    end Pkg;
+   package My_Pkg is new Pkg
+     (Integer, Boolean, AGC_Visit_T_Private => AGC.No_Op,
+      AGC_Visit_U_Private                   => AGC.No_Op);
 begin
    null;
 end Test;

@@ -12,6 +12,7 @@ with Libadalang.Unparsing;
 
 with Node_Counters;
 with Utils;
+with Session;
 
 procedure Track_Roots
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
@@ -235,6 +236,43 @@ is
       end if;
    end Handle_Extended_Return_Stmt;
 
+   procedure Handle_Generic_Instantiation
+     (Inst : LAL.Generic_Instantiation'Class)
+   is
+      Args : LAL.Assoc_List :=
+        (if Inst.Kind in LALCO.Ada_Generic_Subp_Instantiation
+         then Inst.As_Generic_Subp_Instantiation.F_Params
+         else Inst.As_Generic_Package_Instantiation.F_Params);
+
+      Gen_Decl : LAL.Basic_Decl := Inst.P_Designated_Generic_Decl;
+   begin
+      if not Session.Is_File_To_Process (LAL.Get_Filename (Gen_Decl.Unit)) then
+         return;
+      end if;
+
+      for Param_Actual of Args.P_Zip_With_Params loop
+         declare
+            Param  : LAL.Basic_Decl :=
+               LAL.Param (Param_Actual).P_Basic_Decl;
+            Actual : LAL.Expr'Class :=
+               LAL.Actual (Param_Actual);
+         begin
+            if Param.Kind in LALCO.Ada_Base_Type_Decl then
+               LALRW.Append_Child
+                 (LALRW.Handle (Args),
+                  LALRW.Create_From_Template
+                    (RH,
+                     Utils.Visitor_Name (Param.As_Base_Type_Decl, False)
+                     & " => "
+                     & Utils.Visitor_Name
+                       (Actual.As_Name.P_Name_Designated_Type),
+                     (1 .. 0 => <>),
+                     LALCO.Param_Assoc_Rule));
+            end if;
+         end;
+      end loop;
+   end Handle_Generic_Instantiation;
+
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
@@ -248,6 +286,8 @@ is
             Handle_Return_Stmt (Node.As_Return_Stmt);
          when LALCO.Ada_Extended_Return_Stmt =>
             Handle_Extended_Return_Stmt (Node.As_Extended_Return_Stmt);
+         when LALCO.Ada_Generic_Instantiation =>
+            Handle_Generic_Instantiation (Node.As_Generic_Instantiation);
          when others =>
             null;
       end case;

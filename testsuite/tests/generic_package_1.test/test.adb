@@ -8,11 +8,13 @@ procedure Test is
 
    package body Pkg is
       function Foo (X : U) return T is
-         X : T;
+         Y : T;
       begin
-         return X;
+         return Y;
       end Foo;
    end Pkg;
+
+   package My_Pkg is new Pkg (Integer, Boolean);
 begin
    null;
 end Test;
