@@ -1,0 +1,69 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+with Pkg;
+procedure Main is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Rec is record
+      X : Integer := 2;
+   end record;
+   procedure AGC_Visit_Rec (X : System.Address);
+   procedure AGC_Visit_Rec (X : System.Address) is
+      pragma Suppress (Accessibility_Check);
+      type Rec_Access is access all Rec;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : Rec renames Conv (X).all;
+   begin
+      null;
+   end AGC_Visit_Rec;
+   package Recs is new Pkg (Rec, AGC_Visit_T_Private => Main.AGC_Visit_Rec);
+begin
+   declare
+      AGC_Root_Count : constant Natural      := AGC.Root_Count;
+      X              : aliased Recs.T_Access := Recs.Create;
+   begin
+      AGC.Push_Root (X'Address, Main.Recs.AGC_Visit_T_Access'Address);
+      AGC.Collect;
+      Put_Line (X.all.X'Image);
+      AGC.Pop_Roots (AGC_Root_Count);
+   end;
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Main;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package body Pkg is
+   procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
+     (Pkg.T, T_Access, True, Pkg.AGC_Visit_T_Private);
+   procedure AGC_Visit_T_Access (X : System.Address) renames
+     AGC_Visit_T_Access_Implem;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   function Create return T_Access is
+   begin
+      return AGC_Ret : T_Access := new T do
+         null;
+      end return;
+   end Create;
+end Pkg;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+generic
+   type T is private;
+   with procedure AGC_Visit_T_Private (X : System.Address);
+package Pkg is
+   type T_Access is access all T;
+   procedure AGC_Visit_T_Access (X : System.Address);
+   function Create return T_Access;
+end Pkg;
