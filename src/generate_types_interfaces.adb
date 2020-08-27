@@ -463,8 +463,10 @@ is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
 
+      Is_Generic_Formal : Boolean := Decl.P_Is_Generic_Formal;
+
       Decl_Part : LAL.Ada_Node :=
-        (if Decl.P_Is_Generic_Formal
+        (if Is_Generic_Formal
          then Decl.Parent.Parent.As_Ada_Node
          else Decl.Parent.As_Ada_Node);
 
@@ -475,12 +477,22 @@ is
          then Decl.Child_Index
          else Base_Index) + Node_Counters.Get (Decl_Part_Count, Decl_Part);
 
-      procedure Add_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
+      procedure Insert_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
       begin
          LALRW.Insert_Child (DH, Index + 2, Visitor);
          Node_Counters.Increase (Decl_Part_Count, Decl_Part);
          Index := Index + 1;
-      end Add_Visitor;
+      end Insert_Visitor;
+
+      procedure Append_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
+      begin
+         LALRW.Append_Child (DH, Visitor);
+      end Append_Visitor;
+
+      Add_Visitor : RWNode_Processor :=
+        (if Is_Generic_Formal
+         then Append_Visitor'Unrestricted_Access
+         else Insert_Visitor'Unrestricted_Access);
    begin
       if Decl.Kind in LALCO.Ada_Incomplete_Type_Decl then
          return;
@@ -503,7 +515,7 @@ is
          return;
       end if;
 
-      Generate_Visitors (Decl, Add_Visitor'Unrestricted_Access);
+      Generate_Visitors (Decl, Add_Visitor);
 
       if not Handled_Types.Contains (Decl.As_Ada_Node) then
          Handled_Types.Insert (Decl.As_Ada_Node);

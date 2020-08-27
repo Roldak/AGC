@@ -1,12 +1,13 @@
 procedure Test is
    generic
       type T is private;
+      type U is private;
    package Pkg is
-      function Foo return T;
+      function Foo (X : U) return T;
    end Pkg;
 
    package body Pkg is
-      function Foo return T is
+      function Foo (X : U) return T is
          X : T;
       begin
          return X;
