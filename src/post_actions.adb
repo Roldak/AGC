@@ -5,8 +5,6 @@ with Ada.Containers.Vectors;
 
 with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 
-with Langkit_Support.Text;
-
 with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Rewriting;
@@ -34,16 +32,20 @@ package body Post_Actions is
    package Unit_Info_Vectors is new Ada.Containers.Vectors
      (Positive, Unit_Info);
 
+   function Actual_Unit
+     (Ctx    : LAL.Analysis_Context;
+      Origin : LAL.Analysis_Unit) return LAL.Analysis_Unit
+   is (Ctx.Get_From_File (LAL.Get_Filename (Origin)));
+
    function Lookup
      (Ctx    : LAL.Analysis_Context;
-      Action : Move_Action) return LAL.Basic_Decl
+      Origin : LAL.Analysis_Unit;
+      Sloc   : Langkit_Support.Slocs.Source_Location) return LAL.Basic_Decl
    is
       use Langkit_Support.Slocs;
 
-      Unit : LAL.Analysis_Unit :=
-         Ctx.Get_From_File (LAL.Get_Filename (Action.Unit));
-
-      Node : LAL.Ada_Node := LAL.Lookup (Unit.Root, Action.Sloc);
+      Unit : LAL.Analysis_Unit := Actual_Unit (Ctx, Origin);
+      Node : LAL.Ada_Node      := LAL.Lookup (Unit.Root, Sloc);
    begin
       while Node.Kind not in LALCO.Ada_Basic_Decl loop
          Node := Node.Parent;
@@ -137,6 +139,16 @@ package body Post_Actions is
          To_Move.Append (Action);
       end Register;
 
+      procedure Register (Action : Generate_External_Interface_Action) is
+      begin
+         To_Generate.Append (Action);
+      end Register;
+
+      procedure Register (Action : Add_With_Clause_Action) is
+      begin
+         To_With.Append (Action);
+      end Register;
+
       procedure Perform_Actions
         (Ctx   : Analysis_Context;
          Units : in out Helpers.Unit_Vectors.Vector)
@@ -147,9 +159,12 @@ package body Post_Actions is
       begin
          for Action of To_Move loop
             declare
-               Source : LAL.Basic_Decl := Lookup (Ctx, Action);
+               Source : LAL.Basic_Decl :=
+                  Lookup (Ctx, Action.Unit, Action.Sloc);
+
                Dest   : LALRW.Node_Rewriting_Handle :=
                   Find_Or_Create_Destination (Source, RH);
+
                Dest_Node : LAL.Ada_Node := LALRW.Node (Dest);
             begin
                if Dest /= LALRW.No_Node_Rewriting_Handle then
@@ -168,6 +183,49 @@ package body Post_Actions is
                      Node_Counters.Increase (Insertions, Dest_Node);
                   end if;
                end if;
+            end;
+         end loop;
+
+         for Action of To_Generate loop
+            declare
+               Typ : LAL.Base_Type_Decl :=
+                  Lookup (Ctx, Action.Unit, Action.Sloc).As_Base_Type_Decl;
+
+               Name : Langkit_Support.Text.Text_Type :=
+                  Utils.Visitor_Name (Typ);
+
+               Dest : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+                 (RH,
+                  "with System;"
+                  & "procedure " & Name & " (X : System.Address) is "
+                  & "begin null; end " & Name & ";",
+                  (1 .. 0 => <>),
+                  LALCO.Compilation_Rule);
+
+               Unit_Name : String := Libadalang.Unit_Files.File_From_Unit
+                 (Name, LALCO.Unit_Body);
+
+               New_Unit : Unit_Info :=
+                 (Name => To_Unbounded_String (Unit_Name),
+                  Root => Dest,
+                  Buff => <>);
+            begin
+               Created_Units.Append (New_Unit);
+            end;
+         end loop;
+
+         for Action of To_With loop
+            declare
+               Comp_Unit : LAL.Compilation_Unit :=
+                  Actual_Unit (Ctx, Action.Unit).Root.As_Compilation_Unit;
+            begin
+               LALRW.Append_Child
+                 (LALRW.Handle (LAL.F_Prelude (Comp_Unit)),
+                  LALRW.Create_From_Template
+                    (RH,
+                     "with " & Langkit_Support.Text.To_Text (Action.Ref) & ";",
+                     (1 .. 0 => <>),
+                     LALCO.With_Clause_Rule));
             end;
          end loop;
 

@@ -361,14 +361,11 @@ is
          return;
       end if;
 
-      declare
-      begin
-         Generate_Visitor_Body;
-         if Is_Tagged then
-            Generate_Dispatcher (For_Body => True);
-            Generate_Classwide_Visitor_Body;
-         end if;
-      end;
+      Generate_Visitor_Body;
+      if Is_Tagged then
+         Generate_Dispatcher (For_Body => True);
+         Generate_Classwide_Visitor_Body;
+      end if;
    end Generate_Record_Type_Visitor;
 
    procedure Generate_Array_Type_Visitor

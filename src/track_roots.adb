@@ -84,7 +84,7 @@ is
                     (RH, LALCO.Ada_Identifier, Name),
              2 => LALRW.Create_Token_Node
                     (RH, LALCO.Ada_Identifier,
-                     Utils.Visitor_Name (Obj_Type))),
+                     Utils.Visitor_Name (Obj_Type, Referenced_From => Unit))),
             LALCO.Call_Stmt_Rule));
 
       Node_Counters.Increase
@@ -265,7 +265,8 @@ is
                      Utils.Visitor_Name (Param.As_Base_Type_Decl, False)
                      & " => "
                      & Utils.Visitor_Name
-                       (Actual.As_Name.P_Name_Designated_Type),
+                       (Actual.As_Name.P_Name_Designated_Type,
+                        Referenced_From => Unit),
                      (1 .. 0 => <>),
                      LALCO.Param_Assoc_Rule));
             end if;

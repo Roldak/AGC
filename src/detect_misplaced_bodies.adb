@@ -3,6 +3,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
+with Session;
 with Post_Actions;
 
 with Libadalang.Analysis;
@@ -11,8 +12,7 @@ with Libadalang.Helpers;
 
 procedure Detect_Misplaced_Bodies
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
-   Unit    : Libadalang.Analysis.Analysis_Unit;
-   To_Do   : in out Post_Actions.Actions)
+   Unit    : Libadalang.Analysis.Analysis_Unit)
 is
    package LAL     renames Libadalang.Analysis;
    package LALCO   renames Libadalang.Common;
@@ -23,7 +23,7 @@ is
       GGP : LAL.Ada_Node'Class := Node.Parent.Parent.Parent;
    begin
       if not GGP.Is_Null and then GGP.Kind in LALCO.Ada_Base_Package_Decl then
-         To_Do.Register (Post_Actions.Move_Action'
+         Session.To_Do.Register (Post_Actions.Move_Action'
            (Unit => Node.Unit,
             Sloc => Start_Sloc (LAL.Sloc_Range (Node))));
       end if;

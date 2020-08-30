@@ -1,9 +1,13 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Langkit_Support.Slocs;
+
 with Libadalang.Analysis;
 with Libadalang.Common;
 
 with Analysis;
+with Post_Actions;
+with Session;
 
 package body Utils is
    function Is_Relevant_Type
@@ -264,15 +268,12 @@ package body Utils is
    function Relevant_Qualified_Decl_Part_Of
      (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
    is
-      Is_Standard : Boolean :=
-         Is_Standard_Unit (Decl.P_Enclosing_Compilation_Unit);
    begin
-      if Is_Standard then
+      if Is_Standard_Unit (Decl.P_Enclosing_Compilation_Unit) then
          declare
             Parent : LAl.Basic_Decl := Decl.P_Parent_Basic_Decl;
          begin
-            return
-               Relevant_Qualified_Decl_Part_Of (Parent)
+            return Relevant_Qualified_Decl_Part_Of (Parent)
                & "AGC_" & LAL.Text (Parent.P_Defining_Name) & "_Visitors.";
          end;
       else
@@ -281,8 +282,10 @@ package body Utils is
    end Relevant_Qualified_Decl_Part_Of;
 
    function Visitor_Name
-     (Typ    : LAL.Base_Type_Decl'Class;
-      Is_Ref : Boolean := True) return Langkit_Support.Text.Text_Type
+     (Typ                 : LAL.Base_Type_Decl'Class;
+      Is_Ref              : Boolean           := True;
+      Referenced_From     : LAL.Analysis_Unit := LAL.No_Analysis_Unit)
+      return Langkit_Support.Text.Text_Type
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Typ.P_Defining_Name);
@@ -297,11 +300,34 @@ package body Utils is
           elsif Typ.P_Is_Private
           then  Type_Name & "_Private"
           else  Type_Name);
+
+      procedure Handle_Reference (Result : Langkit_Support.Text.Text_Type) is
+         use type LAL.Analysis_Unit;
+      begin
+         if not Session.Is_File_To_Process (LAL.Get_Filename (Typ.Unit))
+            and then Referenced_From /= LAL.No_Analysis_Unit
+         then
+            Session.To_Do.Register
+              (Post_Actions.Generate_External_Interface_Action'
+                 (Typ.Unit,
+                  Langkit_Support.Slocs.Start_Sloc
+                    (LAL.Sloc_Range (Typ))));
+
+            Session.To_Do.Register
+              (Post_Actions.Add_With_Clause_Action'
+                 (Referenced_From,
+                  Langkit_Support.Text.To_Unbounded_Text (Result)));
+         end if;
+      end Handle_Reference;
    begin
       if Is_Relevant_Type (Typ) then
          if Is_Ref then
-            return Relevant_Qualified_Decl_Part_Of (Typ)
-               & "AGC_Visit_" & Normalized_Name (Typ);
+            return Result : Langkit_Support.Text.Text_Type :=
+               Relevant_Qualified_Decl_Part_Of (Typ)
+               & "AGC_Visit_" & Normalized_Name (Typ)
+            do
+               Handle_Reference (Result);
+            end return;
          else
             return "AGC_Visit_" & Normalized_Name (Typ);
          end if;

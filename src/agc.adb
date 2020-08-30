@@ -67,8 +67,6 @@ procedure AGC is
       Long    => "--optimize",
       Help    => "Turn on optimizations");
 
-   To_Do            : Post_Actions.Actions;
-
    procedure Setup
      (Ctx   : Helpers.App_Context;
       Jobs  : Helpers.App_Job_Context_Array;
@@ -95,7 +93,7 @@ procedure AGC is
          Nest_Declare_Blocks (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
-         Detect_Misplaced_Bodies (Job_Ctx, Unit, To_Do);
+         Detect_Misplaced_Bodies (Job_Ctx, Unit);
       end if;
    end Process_Unit;
 
@@ -137,7 +135,7 @@ procedure AGC is
          Jobs (Jobs'First + 1 .. Jobs'Last),
          All_Units);
 
-      To_Do.Perform_Actions (First_Context, All_Units);
+      Session.To_Do.Perform_Actions (First_Context, All_Units);
 
       --  output units
       for Unit of All_Units loop
