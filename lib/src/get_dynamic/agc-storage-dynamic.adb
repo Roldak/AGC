@@ -32,9 +32,9 @@ package body AGC.Storage.Dynamic is
             declare
                V : String := Value ("AGC_POOL");
             begin
-               if V = "MALLOC_FREE" then
+               if V = "malloc_free" then
                   Current_Pool.Pool := new Malloc_Free.Malloc_Free_Pool;
-               elsif V = "FREE_LIST" then
+               elsif V = "free_list" then
                   Current_Pool.Pool := new Free_List.Free_List_Pool;
                else
                   raise Program_Error with "Unknown Storage Pool";
