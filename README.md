@@ -44,6 +44,21 @@ To have an idea of the performance, single-run results for the `binary_tree` ben
 
 As you can see AGC's performance using its own free-list based storage pool gives results on-par with manually managed memory, and even the malloc/free-based storage pool yields better performance (more than 3x faster) than a controlled-types based implementation, without having to write any additional memory-management code.
 
+## Setup
+
+**Build requirements**:
+ - A relatively recent GNAT
+ - Libadalang from [here](https://github.com/Roldak/libadalang/tree/topic/T730-008)
+
+Run `gprbuild agc.gpr -p -j0 -XLIBRARY_TYPE=relocatable` to produce AGC's frontend binary in the `bin/` directory.
+
+**Test requirements**:
+ - Python3
+ - AGC's frontend available in the `$PATH`
+ - AGC's runtime project file available in `$GPR_PROJECT_PATH` (simply add the `lib/` directory)
+ 
+Run `python3 testsuite/run_testsuite.py`.
+
 ## Internals
 
 The implementation is similar to any garbage collector:
