@@ -1,0 +1,37 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+   package Pkg is
+      function Incr (X : Integer_Access) return Integer_Access;
+   end Pkg;
+   package body Pkg is
+      function Incr (X : Integer_Access) return Integer_Access is
+      begin
+         return AGC_Ret : Integer_Access := (new Integer'(X.all + 1)) do
+            null;
+         end return;
+      end Incr;
+   end Pkg;
+   X : aliased Integer_Access;
+begin
+   AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
+   declare
+      AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(2);
+   begin
+      AGC.Push_Root
+        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      X := Pkg.Incr (AGC_Temp_0);
+   end;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

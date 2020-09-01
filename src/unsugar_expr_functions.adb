@@ -25,18 +25,30 @@ is
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
    procedure Handle_Expr_Function (Fun : LAL.Expr_Function'Class) is
+      Has_Decl : Boolean  := not Fun.P_Previous_Part.Is_Null;
+
+      New_Fun : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+        (RH,
+         "{} is begin return {}; end {};",
+         (1 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec)),
+          2 => LALRW.Clone (LALRW.Handle (Fun.F_Expr)),
+          3 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec.F_Subp_Name))),
+         LALCO.Basic_Decl_Rule);
+
+      Index : Natural := Utils.Child_Index (LALRW.Handle (Fun));
    begin
-      LALRW.Replace
-        (LALRW.Handle (Fun),
-         LALRW.Create_From_Template
-           (RH,
-            "{} is begin "
-            & "return {}; "
-            & "end {};",
-            (1 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec)),
-             2 => LALRW.Clone (LALRW.Handle (Fun.F_Expr)),
-             3 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec.F_Subp_Name))),
-            LALCO.Basic_Decl_Rule));
+      if Has_Decl then
+         LALRW.Replace (LALRW.Handle (Fun), New_Fun);
+      else
+         LALRW.Replace
+           (LALRW.Handle (Fun),
+            LALRW.Create_From_Template
+              (RH, "{};",
+               (1 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec))),
+               LALCO.Basic_Decl_Rule));
+         LALRW.Insert_Child
+           (LALRW.Handle (Fun.Parent), Index + 1, New_Fun);
+      end if;
    end Handle_Expr_Function;
 
    function Process_Node
