@@ -17,6 +17,7 @@ with Post_Actions;
 with Session;
 
 with Add_With_Clauses;
+with Unsugar_Expr_Functions;
 with Handle_Temporaries;
 with Extend_Return_Stmts;
 with Nest_Declare_Blocks;
@@ -88,6 +89,7 @@ procedure AGC is
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
       else
          Add_With_Clauses (Job_Ctx, Unit);
+         Unsugar_Expr_Functions (Job_Ctx, Unit);
          Handle_Temporaries (Job_Ctx, Unit);
          Extend_Return_Stmts (Job_Ctx, Unit);
          Nest_Declare_Blocks (Job_Ctx, Unit);

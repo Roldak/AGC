@@ -164,7 +164,7 @@ is
       case Node.Kind is
          when LALCO.Ada_Expr =>
             declare
-               Expr      : LAL.Expr := Node.As_Expr;
+               Expr : LAL.Expr := Node.As_Expr;
             begin
                if
                   Utils.Is_Actual_Expr (Expr)
