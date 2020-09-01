@@ -24,9 +24,9 @@ AGC adds a garbage collector to your Ada programs.
    
 3. You can now invoke `gprbuild` on this new project file. The built binary will behave as your original program, but will benefit from garbage collection!
 
-Note that it is possible to configure the runtime behavior of AGC. For now, this is done using environment variables and the only configurable part is the kind of storage pool to use: simply set the `AGC_POOL` variable to either:
-* `MALLOC_FREE`: The storage pool is managed by the system using malloc/free.
-* `FREE_LIST`: The storage pool is managed by AGC which allocates a big chunk of memory and manages all allocations using a free-list based mechanism.
+Note that it is possible to configure the runtime behavior of AGC by choosing which storage pool it will choose internally. This can be done either statically at compile-time by passing the scenario variable `-XAGC_POOL=<POOL>`, or dynamically by compiling with `-XAGC_POOL=dynamic` and running your final executable with the environment variable `AGC_POOL` set to the desired pool identifier. Possible values for `AGC_POOL` are:
+* `malloc_free`: The storage pool is managed by the system using malloc/free.
+* `free_list`: The storage pool is managed by AGC which allocates a big chunk of memory and manages all allocations using a free-list based mechanism.
 
 *Warning: this is still in prototype phase. A lot of features are missing and a lot of Ada constructs are not supported yet. Check out the tests and benchmarks to have an idea of what is currently supported.*
 
