@@ -27,11 +27,13 @@ is
    procedure Handle_Expr_Function (Fun : LAL.Expr_Function'Class) is
       Has_Decl : Boolean  := not Fun.P_Previous_Part.Is_Null;
 
+      Actual_Expr : LAL.Expr := Fun.F_Expr.As_Paren_Expr.F_Expr;
+
       New_Fun : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
         (RH,
          "{} is begin return {}; end {};",
          (1 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec)),
-          2 => LALRW.Clone (LALRW.Handle (Fun.F_Expr)),
+          2 => LALRW.Clone (LALRW.Handle (Actual_Expr)),
           3 => LALRW.Clone (LALRW.Handle (Fun.F_Subp_Spec.F_Subp_Name))),
          LALCO.Basic_Decl_Rule);
 

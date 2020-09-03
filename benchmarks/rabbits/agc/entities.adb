@@ -32,9 +32,7 @@ package body Entities is
    end AGC_Visit_Entity_Classwide;
    function Is_Alive (E : in Entity) return Boolean is
    begin
-      return AGC_Ret : Boolean := (E.Alive) do
-         null;
-      end return;
+      return E.Alive;
    end Is_Alive;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Delete (E : in out Entity) is
