@@ -4,10 +4,13 @@ with System;
 with System.Storage_Elements;
 
 package AGC is
+   type Empty_Type is null record;
+
    function Root_Count return Natural
       with Inline;
 
-   procedure Push_Root (X, Visitor : System.Address)
+   function Push_Root
+     (X, Visitor : System.Address) return Empty_Type
       with Inline;
 
    procedure Pop_Roots (X : Natural)

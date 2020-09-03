@@ -54,9 +54,12 @@ package body AGC is
 
    function Root_Count return Natural is (Natural (Reach_Set.Length));
 
-   procedure Push_Root (X, Visitor : Address) is
+   function Push_Root
+     (X, Visitor : System.Address) return Empty_Type
+   is
    begin
       Reach_Set.Append ((X, Visitor));
+      return (null record);
    end Push_Root;
 
    procedure Pop_Roots (X : Natural) is

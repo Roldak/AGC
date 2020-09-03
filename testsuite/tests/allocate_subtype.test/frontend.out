@@ -13,9 +13,10 @@ procedure Test is
      (Test.My_Natural, My_Nat_Access, False, AGC.No_Op);
    procedure AGC_Visit_My_Nat_Access (X : System.Address) renames
      AGC_Visit_My_Nat_Access_Implem;
-   X : aliased My_Nat_Access := new My_Natural'(2);
+   X           : aliased My_Nat_Access   := new My_Natural'(2);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_My_Nat_Access'Address);
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_My_Nat_Access'Address);
    AGC.Collect;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

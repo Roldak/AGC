@@ -23,14 +23,16 @@ procedure Test is
          end return;
       end Incr;
    end Pkg;
-   X : aliased Integer_Access;
+   X           : aliased Integer_Access;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    declare
-      AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(2);
+      AGC_Temp_0  : aliased Test.Integer_Access := new Integer'(2);
+      AGC_Dummy_1 : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       X := Pkg.Incr (AGC_Temp_0);
    end;
    AGC.Pop_Roots (AGC_Base_Root_Count);

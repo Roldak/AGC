@@ -13,10 +13,11 @@ procedure Test is
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    procedure Foo (N : Natural) is
-      AGC_Base_Root_Count : constant Natural       := AGC.Root_Count;
-      X                   : aliased Integer_Access := new Integer'(42);
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      X                   : aliased Integer_Access  := new Integer'(42);
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
       if N < 100 then
          Foo (N + 1);
       end if;

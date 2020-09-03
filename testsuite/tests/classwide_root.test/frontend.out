@@ -101,24 +101,24 @@ procedure Test is
    function AGC_Func_0 return Pkg_T.T'Class is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_1          : aliased Test.Integer_Access := new Integer'(2);
+      AGC_Dummy_0         : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
+      AGC_Temp_0  : aliased Test.Integer_Access := new Integer'(1);
+      AGC_Dummy_1 : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-      declare
-         AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(1);
-      begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-         return
-           AGC_Ret : Pkg_T.T'Class :=
-             Pkg_U.U'(X => AGC_Temp_0, Y => AGC_Temp_1) do
-            AGC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
-      end;
+      return
+        AGC_Ret : Pkg_T.T'Class := Pkg_U.U'(X => AGC_Temp_0, Y => AGC_Temp_1)
+      do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
    end AGC_Func_0;
-   X : aliased Pkg_T.T'Class := AGC_Func_0;
+   X           : aliased Pkg_T.T'Class   := AGC_Func_0;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.Pkg_T.AGC_Visit_T_Classwide'Address);
 begin
-   AGC.Push_Root (X'Address, Test.Pkg_T.AGC_Visit_T_Classwide'Address);
    X.Print;
    AGC.Collect;
    X.Print;

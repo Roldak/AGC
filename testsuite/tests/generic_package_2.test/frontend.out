@@ -25,10 +25,11 @@ procedure Main is
    package Recs is new Pkg (Rec, AGC_Visit_T_Private => Main.AGC_Visit_Rec);
 begin
    declare
-      AGC_Root_Count : constant Natural      := AGC.Root_Count;
-      X              : aliased Recs.T_Access := Recs.Create;
+      AGC_Root_Count : constant Natural        := AGC.Root_Count;
+      X              : aliased Recs.T_Access   := Recs.Create;
+      AGC_Dummy_0    : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Main.Recs.AGC_Visit_T_Access'Address);
    begin
-      AGC.Push_Root (X'Address, Main.Recs.AGC_Visit_T_Access'Address);
       AGC.Collect;
       Put_Line (X.all.X'Image);
       AGC.Pop_Roots (AGC_Root_Count);

@@ -30,7 +30,12 @@ package body Entities is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_Entity_Classwide;
-   function Is_Alive (E : in Entity) return Boolean is (E.Alive);
+   function Is_Alive (E : in Entity) return Boolean is
+   begin
+      return AGC_Ret : Boolean := (E.Alive) do
+         null;
+      end return;
+   end Is_Alive;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Delete (E : in out Entity) is
    begin

@@ -51,7 +51,9 @@ procedure Main is
             null;
       end case;
    end AGC_Visit_Tree;
-   Empty_Tree : aliased Tree_Access := new Tree'(K => Leaf);
+   Empty_Tree  : aliased Tree_Access     := new Tree'(K => Leaf);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (Empty_Tree'Address, Main.AGC_Visit_Tree_Access'Address);
    function Insert (T : Tree_Access; V : Integer) return Tree_Access is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -59,10 +61,11 @@ procedure Main is
          when Node =>
             if T.Value > V then
                declare
-                  AGC_Temp_0 : aliased Main.Tree_Access := Insert (T.Left, V);
+                  AGC_Temp_0  : aliased Main.Tree_Access := Insert (T.Left, V);
+                  AGC_Dummy_0 : constant AGC.Empty_Type  :=
+                    AGC.Push_Root
+                      (AGC_Temp_0'Address, Main.AGC_Visit_Tree_Access'Address);
                begin
-                  AGC.Push_Root
-                    (AGC_Temp_0'Address, Main.AGC_Visit_Tree_Access'Address);
                   return
                     AGC_Ret : Tree_Access :=
                       new Tree'(Node, T.Value, AGC_Temp_0, T.Right) do
@@ -72,9 +75,10 @@ procedure Main is
             elsif T.Value < V then
                declare
                   AGC_Temp_0 : aliased Main.Tree_Access := Insert (T.Right, V);
+                  AGC_Dummy_1 : constant AGC.Empty_Type  :=
+                    AGC.Push_Root
+                      (AGC_Temp_0'Address, Main.AGC_Visit_Tree_Access'Address);
                begin
-                  AGC.Push_Root
-                    (AGC_Temp_0'Address, Main.AGC_Visit_Tree_Access'Address);
                   return
                     AGC_Ret : Tree_Access :=
                       new Tree'(Node, T.Value, T.Left, AGC_Temp_0) do
@@ -111,17 +115,19 @@ procedure Main is
       end case;
    end To_String;
    procedure Bench (Rng : Integer) is
-      AGC_Base_Root_Count : constant Natural    := AGC.Root_Count;
-      T                   : aliased Tree_Access := Insert (Empty_Tree, 0);
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      T                   : aliased Tree_Access     := Insert (Empty_Tree, 0);
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (T'Address, Main.AGC_Visit_Tree_Access'Address);
    begin
-      AGC.Push_Root (T'Address, Main.AGC_Visit_Tree_Access'Address);
       for I in Integer range 1 .. Rng loop
          declare
             AGC_Root_Count : constant Natural         := AGC.Root_Count;
             AGC_Temp_0     : aliased Main.Tree_Access := Insert (T, I);
+            AGC_Dummy_1    : constant AGC.Empty_Type  :=
+              AGC.Push_Root
+                (AGC_Temp_0'Address, Main.AGC_Visit_Tree_Access'Address);
          begin
-            AGC.Push_Root
-              (AGC_Temp_0'Address, Main.AGC_Visit_Tree_Access'Address);
             T := Insert (AGC_Temp_0, -I);
             AGC.Pop_Roots (AGC_Root_Count);
          end;
@@ -129,12 +135,9 @@ procedure Main is
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Bench;
 begin
-   AGC.Push_Root (Empty_Tree'Address, Main.AGC_Visit_Tree_Access'Address);
    if Ada.Command_Line.Argument_Count /= 1 then
       raise Program_Error with "Expected one argument";
    end if;
    Bench (Integer'Value (Ada.Command_Line.Argument (1)));
    AGC.Pop_Roots (AGC_Base_Root_Count);
-   AGC.Collect;
-   AGC.Print_Stats;
 end Main;

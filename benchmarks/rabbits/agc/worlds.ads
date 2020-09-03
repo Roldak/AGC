@@ -24,7 +24,9 @@ package Worlds is
    type World is tagged private;
    procedure AGC_Visit_World_Private (X : System.Address);
    procedure AGC_Visit_World_Private_Classwide (X : System.Address);
-   package Grid is new Grids (50, 50, Positioned_Access);
+   package Grid is new Grids
+     (50, 50, Positioned_Access,
+      AGC_Visit_Item_Private => Worlds.AGC_Visit_Positioned_Access);
    procedure Update (W : in out World);
    procedure Spawn (W : in out World; E : Entity_Access);
    procedure Move

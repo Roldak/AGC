@@ -18,22 +18,20 @@ procedure Test is
          null;
       end return;
    end F;
-   X : aliased Integer_Access := (new Integer'(3));
+   X           : aliased Integer_Access  := (new Integer'(3));
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    function AGC_Func_0 return Integer is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := F;
+      AGC_Dummy_0         : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       AGC.Pop_Roots (AGC_Base_Root_Count);
       return Integer_Access (AGC_Temp_0).all;
    end AGC_Func_0;
+   Y : Integer := AGC_Func_0;
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
-   declare
-      Y : Integer := AGC_Func_0;
-   begin
-      null;
-   end;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

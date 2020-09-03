@@ -48,10 +48,11 @@ package body Entities.Rabbits is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
-         AGC_Temp_0 : aliased Worlds.Entity_Access := new Rabbit;
+         AGC_Temp_0  : aliased Worlds.Entity_Access := new Rabbit;
+         AGC_Dummy_0 : constant AGC.Empty_Type      :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
       begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
          return R : Entity_Access := AGC_Temp_0 do
             Positioned_Access (R).Initialize (X, Y);
             AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -76,10 +77,11 @@ package body Entities.Rabbits is
          return;
       end if;
       declare
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Create (Self.X, Self.Y);
+         AGC_Temp_0  : aliased Worlds.Entity_Access := Create (Self.X, Self.Y);
+         AGC_Dummy_0 : constant AGC.Empty_Type      :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
       begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
          W.Spawn (AGC_Temp_0);
       end;
       AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -98,27 +100,24 @@ package body Entities.Rabbits is
    end Try_Eat;
    overriding procedure Update (R : in out Rabbit; W : in out World) is
       X : Natural := R.X;
+      Y : Natural := R.Y;
    begin
-      declare
-         Y : Natural := R.Y;
-      begin
-         if R.Age > 25 or R.Food < 3 then
-            R.Delete;
-            return;
+      if R.Age > 25 or R.Food < 3 then
+         R.Delete;
+         return;
+      end if;
+      R.Age  := R.Age + 1;
+      R.Food := R.Food - 3;
+      while not Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) loop
+         null;
+      end loop;
+      for E of W.Located (X, Y) loop
+         if E.all in Rabbit'Class then
+            Try_Reproducing (R, Rabbit (E.all), W);
+         elsif E.all in Grass.Grass'Class then
+            Try_Eat (R, Grass.Grass (E.all));
          end if;
-         R.Age  := R.Age + 1;
-         R.Food := R.Food - 3;
-         while not Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) loop
-            null;
-         end loop;
-         for E of W.Located (X, Y) loop
-            if E.all in Rabbit'Class then
-               Try_Reproducing (R, Rabbit (E.all), W);
-            elsif E.all in Grass.Grass'Class then
-               Try_Eat (R, Grass.Grass (E.all));
-            end if;
-         end loop;
-         R.Relocate (W, X, Y);
-      end;
+      end loop;
+      R.Relocate (W, X, Y);
    end Update;
 end Entities.Rabbits;

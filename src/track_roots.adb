@@ -72,23 +72,33 @@ is
       Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (X.P_Defining_Name);
 
+      Enclosing_Subp : LAL.Ada_Node :=
+         Utils.Enclosing_Subp_Body (X).As_Ada_Node;
+
       Obj_Type : LAL.Base_Type_Decl'Class :=
          X.P_Type_Expression.P_Designated_Type_Decl;
+
+      Dummy_Count : Natural := Node_Counters.Get (Subp_Roots, Enclosing_Subp);
+      Dummy_Index : Langkit_Support.Text.Text_Type :=
+         Dummy_Count'Wide_Wide_Image;
+      Dummy_Name  : Langkit_Support.Text.Text_Type :=
+         "AGC_Dummy_"
+         & Dummy_Index (Dummy_Index'First + 1 .. Dummy_Index'Last);
    begin
       LALRW.Insert_Child
-        (Stmts, 1,
+        (Stmts, Utils.Child_Index (LALRW.Handle (X)) + 1,
          LALRW.Create_From_Template
            (RH,
-            "AGC.Push_Root ({}'Address, {}'Address);",
+            Dummy_Name & " : constant AGC.Empty_Type := "
+            & "AGC.Push_Root ({}'Address, {}'Address);",
             (1 => LALRW.Create_Token_Node
                     (RH, LALCO.Ada_Identifier, Name),
              2 => LALRW.Create_Token_Node
                     (RH, LALCO.Ada_Identifier,
                      Utils.Visitor_Name (Obj_Type, Referenced_From => Unit))),
-            LALCO.Call_Stmt_Rule));
+            LALCO.Object_Decl_Rule));
 
-      Node_Counters.Increase
-        (Subp_Roots, Utils.Enclosing_Subp_Body (X).As_Ada_Node);
+      Node_Counters.Increase (Subp_Roots, Enclosing_Subp);
    end Push_Object;
 
    function Root_Count_Name
@@ -186,7 +196,7 @@ is
                begin
                   if C.Kind = LALCO.Ada_Object_Decl then
                      if Utils.Is_Relevant_Root (C.As_Object_Decl) then
-                        Push_Object (SH, C.As_Object_Decl);
+                        Push_Object (DH, C.As_Object_Decl);
                         Has_Any_Root := True;
                      end if;
                   end if;

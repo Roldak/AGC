@@ -51,10 +51,11 @@ procedure Test is
             end;
          end AGC_Visit_Rec;
          procedure Foo (X : Rec) is
-            AGC_Base_Root_Count : constant Natural     := AGC.Root_Count;
-            V                   : aliased Pkg.T_Access := X.X;
+            AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+            V                   : aliased Pkg.T_Access    := X.X;
+            AGC_Dummy_0         : constant AGC.Empty_Type :=
+              AGC.Push_Root (V'Address, Test.Pkg.AGC_Visit_T_Access'Address);
          begin
-            AGC.Push_Root (V'Address, Test.Pkg.AGC_Visit_T_Access'Address);
             Put_Line (V.all'Image);
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end Foo;
@@ -62,16 +63,16 @@ procedure Test is
    end Outer;
 begin
    declare
-      AGC_Temp_1 : aliased Test.Pkg.T_Access := Pkg.Create (2);
+      AGC_Temp_1  : aliased Test.Pkg.T_Access := Pkg.Create (2);
+      AGC_Dummy_0 : constant AGC.Empty_Type   :=
+        AGC.Push_Root
+          (AGC_Temp_1'Address, Test.Pkg.AGC_Visit_T_Access'Address);
+      AGC_Temp_0  : aliased Test.Outer.Inner.Rec := (X => AGC_Temp_1);
+      AGC_Dummy_1 : constant AGC.Empty_Type      :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.Outer.Inner.AGC_Visit_Rec'Address);
    begin
-      AGC.Push_Root (AGC_Temp_1'Address, Test.Pkg.AGC_Visit_T_Access'Address);
-      declare
-         AGC_Temp_0 : aliased Test.Outer.Inner.Rec := (X => AGC_Temp_1);
-      begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Test.Outer.Inner.AGC_Visit_Rec'Address);
-         Outer.Inner.Foo (AGC_Temp_0);
-      end;
+      Outer.Inner.Foo (AGC_Temp_0);
    end;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

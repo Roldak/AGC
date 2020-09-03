@@ -19,35 +19,39 @@ procedure Test is
    package AGC_Int_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
      (Int_Vectors, Test.AGC_Visit_Integer_Access);
-   V : aliased Int_Vectors.Vector;
+   V           : aliased Int_Vectors.Vector;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root
+       (V'Address,
+        Test.AGC_Int_Vectors_Visitors.AGC_Visit_Vector_Private'Address);
 begin
-   AGC.Push_Root
-     (V'Address,
-      Test.AGC_Int_Vectors_Visitors.AGC_Visit_Vector_Private'Address);
    declare
       AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(1);
+      AGC_Dummy_1    : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       V.Append (AGC_Temp_0);
       AGC.Pop_Roots (AGC_Root_Count);
    end;
    declare
       AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(2);
+      AGC_Dummy_2    : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       V.Append (AGC_Temp_0);
       AGC.Pop_Roots (AGC_Root_Count);
    end;
    declare
       AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(3);
+      AGC_Dummy_3    : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       V.Append (AGC_Temp_0);
       AGC.Pop_Roots (AGC_Root_Count);
    end;

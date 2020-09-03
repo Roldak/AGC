@@ -27,9 +27,10 @@ procedure Test is
    function AGC_Func_0 return Integer is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := Inner (True, 42);
+      AGC_Dummy_0         : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       AGC.Pop_Roots (AGC_Base_Root_Count);
       return AGC_Temp_0.all;
    end AGC_Func_0;

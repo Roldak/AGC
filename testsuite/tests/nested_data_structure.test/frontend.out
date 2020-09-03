@@ -51,17 +51,19 @@ procedure Test is
    procedure AGC_Visit_U_Access (X : System.Address) renames
      AGC_Visit_U_Access_Implem;
    function AGC_Func_0 return U_Access is
-      AGC_Base_Root_Count : constant Natural      := AGC.Root_Count;
-      AGC_Temp_0          : aliased Test.T_Access := new T'(X => 1);
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      AGC_Temp_0          : aliased Test.T_Access   := new T'(X => 1);
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (AGC_Temp_0'Address, Test.AGC_Visit_T_Access'Address);
    begin
-      AGC.Push_Root (AGC_Temp_0'Address, Test.AGC_Visit_T_Access'Address);
       return AGC_Ret : U_Access := new U'(A => AGC_Temp_0) do
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
-   X : aliased U_Access := AGC_Func_0;
+   X           : aliased U_Access        := AGC_Func_0;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_U_Access'Address);
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_U_Access'Address);
    AGC.Collect;
    X.A.X := 2;
    AGC.Pop_Roots (AGC_Base_Root_Count);

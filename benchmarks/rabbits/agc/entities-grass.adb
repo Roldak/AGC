@@ -43,10 +43,11 @@ package body Entities.Grass is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
-         AGC_Temp_0 : aliased Worlds.Entity_Access := new Grass;
+         AGC_Temp_0  : aliased Worlds.Entity_Access := new Grass;
+         AGC_Dummy_0 : constant AGC.Empty_Type      :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
       begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
          return G : Entity_Access := AGC_Temp_0 do
             Positioned_Access (G).Initialize (X, Y);
             AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -60,25 +61,23 @@ package body Entities.Grass is
    overriding procedure Update (G : in out Grass; W : in out World) is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       X                   : Natural          := G.X;
+      Y                   : Natural          := G.Y;
    begin
-      declare
-         Y : Natural := G.Y;
-      begin
-         if Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) then
-            if not W.Has_Grass (X, Y) then
-               declare
-                  AGC_Root_Count : constant Natural := AGC.Root_Count;
-                  AGC_Temp_0 : aliased Worlds.Entity_Access := Create (X, Y);
-               begin
-                  AGC.Push_Root
-                    (AGC_Temp_0'Address,
-                     Worlds.AGC_Visit_Entity_Access'Address);
-                  W.Spawn (AGC_Temp_0);
-                  AGC.Pop_Roots (AGC_Root_Count);
-               end;
-            end if;
+      if Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) then
+         if not W.Has_Grass (X, Y) then
+            declare
+               AGC_Root_Count : constant Natural             := AGC.Root_Count;
+               AGC_Temp_0     : aliased Worlds.Entity_Access := Create (X, Y);
+               AGC_Dummy_0    : constant AGC.Empty_Type      :=
+                 AGC.Push_Root
+                   (AGC_Temp_0'Address,
+                    Worlds.AGC_Visit_Entity_Access'Address);
+            begin
+               W.Spawn (AGC_Temp_0);
+               AGC.Pop_Roots (AGC_Root_Count);
+            end;
          end if;
-      end;
+      end if;
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Update;
    function Eat (G : in out Grass) return Boolean is

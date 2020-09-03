@@ -20,7 +20,6 @@ with Add_With_Clauses;
 with Unsugar_Expr_Functions;
 with Handle_Temporaries;
 with Extend_Return_Stmts;
-with Nest_Declare_Blocks;
 with Track_Roots;
 with Generate_Types_Interfaces;
 with Detect_Misplaced_Bodies;
@@ -92,7 +91,6 @@ procedure AGC is
          Unsugar_Expr_Functions (Job_Ctx, Unit);
          Handle_Temporaries (Job_Ctx, Unit);
          Extend_Return_Stmts (Job_Ctx, Unit);
-         Nest_Declare_Blocks (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
          Detect_Misplaced_Bodies (Job_Ctx, Unit);

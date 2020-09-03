@@ -8,9 +8,10 @@ with Pkg;
 procedure Main is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   X : aliased Pkg.T_Access := Pkg.Create (3);
+   X           : aliased Pkg.T_Access    := Pkg.Create (3);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Access'Address);
 begin
-   AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Access'Address);
    Put_Line (X.all'Image);
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Main;

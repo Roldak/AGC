@@ -29,15 +29,14 @@ procedure Test is
    begin
       null;
    end AGC_Visit_Rec;
-   R : aliased Rec := (others => 0);
+   R           : aliased Rec             := (others => 0);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (R'Address, Test.AGC_Visit_Rec'Address);
+   A           : aliased Integer_Access  := R.Y'Unchecked_Access;
+   AGC_Dummy_1 : constant AGC.Empty_Type :=
+     AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
 begin
-   AGC.Push_Root (R'Address, Test.AGC_Visit_Rec'Address);
-   declare
-      A : aliased Integer_Access := R.Y'Unchecked_Access;
-   begin
-      AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
-      AGC.Collect;
-      Put_Line (R.X'Image);
-   end;
+   AGC.Collect;
+   Put_Line (R.X'Image);
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

@@ -12,36 +12,28 @@ procedure Test is
      (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
-   X : aliased Integer_Access := new Integer'(1);
+   X           : aliased Integer_Access  := new Integer'(1);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
+   Y           : aliased Integer_Access  := new Integer'(2);
+   AGC_Dummy_1 : constant AGC.Empty_Type :=
+     AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
+   Z           : aliased Integer_Access  := new Integer'(3);
+   AGC_Dummy_2 : constant AGC.Empty_Type :=
+     AGC.Push_Root (Z'Address, Test.AGC_Visit_Integer_Access'Address);
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    declare
-      Y : aliased Integer_Access := new Integer'(2);
+      A           : aliased Integer_Access  := new Integer'(4);
+      AGC_Dummy_3 : constant AGC.Empty_Type :=
+        AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
+      B           : aliased Integer_Access  := new Integer'(5);
+      AGC_Dummy_4 : constant AGC.Empty_Type :=
+        AGC.Push_Root (B'Address, Test.AGC_Visit_Integer_Access'Address);
+      C           : aliased Integer_Access  := new Integer'(6);
+      AGC_Dummy_5 : constant AGC.Empty_Type :=
+        AGC.Push_Root (C'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
-      declare
-         Z : aliased Integer_Access := new Integer'(3);
-      begin
-         AGC.Push_Root (Z'Address, Test.AGC_Visit_Integer_Access'Address);
-         declare
-            A : aliased Integer_Access := new Integer'(4);
-         begin
-            AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
-            declare
-               B : aliased Integer_Access := new Integer'(5);
-            begin
-               AGC.Push_Root
-                 (B'Address, Test.AGC_Visit_Integer_Access'Address);
-               declare
-                  C : aliased Integer_Access := new Integer'(6);
-               begin
-                  AGC.Push_Root
-                    (C'Address, Test.AGC_Visit_Integer_Access'Address);
-                  null;
-               end;
-            end;
-         end;
-      end;
+      null;
    end;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

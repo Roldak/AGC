@@ -14,20 +14,21 @@ procedure Test is
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    procedure Inner (X : Integer_Access) is
-      AGC_Base_Root_Count : constant Natural       := AGC.Root_Count;
-      Y                   : aliased Integer_Access := new Integer'(2);
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      Y                   : aliased Integer_Access  := new Integer'(2);
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
-      null;
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Inner;
 begin
    declare
       AGC_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(1);
+      AGC_Dummy_0    : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       Inner (AGC_Temp_0);
       AGC.Pop_Roots (AGC_Root_Count);
    end;

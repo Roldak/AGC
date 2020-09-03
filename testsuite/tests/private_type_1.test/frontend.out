@@ -33,9 +33,10 @@ procedure Test is
          return X.all;
       end Get;
    end P;
-   X : aliased P.T := P.Create (2);
+   X           : aliased P.T             := P.Create (2);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.P.AGC_Visit_T_Private'Address);
 begin
-   AGC.Push_Root (X'Address, Test.P.AGC_Visit_T_Private'Address);
    AGC.Collect;
    Put_Line (P.Get (X)'Image);
    AGC.Pop_Roots (AGC_Base_Root_Count);

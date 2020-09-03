@@ -15,14 +15,12 @@ procedure Test is
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    type Arr is array (1 .. 2) of aliased Integer;
-   R : aliased Arr := (others => 0);
+   R           : aliased Arr             := (others => 0);
+   A           : aliased Integer_Access  := R (2)'Unchecked_Access;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
 begin
-   declare
-      A : aliased Integer_Access := R (2)'Unchecked_Access;
-   begin
-      AGC.Push_Root (A'Address, Test.AGC_Visit_Integer_Access'Address);
-      AGC.Collect;
-      Put_Line (R (1)'Image);
-   end;
+   AGC.Collect;
+   Put_Line (R (1)'Image);
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

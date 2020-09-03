@@ -12,18 +12,13 @@ procedure Test is
      (Standard.Integer, Integer_Access, True, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
-   X : aliased Integer_Access := new Integer'(2);
+   X           : aliased Integer_Access  := new Integer'(2);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
+   Y           : aliased Integer_Access  := X;
+   AGC_Dummy_1 : constant AGC.Empty_Type :=
+     AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
+   Z : constant Integer_Access := Y;
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
-   declare
-      Y : aliased Integer_Access := X;
-   begin
-      AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
-      declare
-         Z : constant Integer_Access := Y;
-      begin
-         null;
-      end;
-   end;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

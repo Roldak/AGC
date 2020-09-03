@@ -21,38 +21,34 @@ procedure Test is
    function AGC_Func_0 return Int_Arr is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(21);
+      AGC_Dummy_0         : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_2'Address, Test.AGC_Visit_Integer_Access'Address);
+      AGC_Temp_1  : aliased Test.Integer_Access := new Integer'(12);
+      AGC_Dummy_1 : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
+      AGC_Temp_0  : aliased Test.Integer_Access := new Integer'(42);
+      AGC_Dummy_2 : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root
-        (AGC_Temp_2'Address, Test.AGC_Visit_Integer_Access'Address);
-      declare
-         AGC_Temp_1 : aliased Test.Integer_Access := new Integer'(12);
-      begin
-         AGC.Push_Root
-           (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-         declare
-            AGC_Temp_0 : aliased Test.Integer_Access := new Integer'(42);
-         begin
-            AGC.Push_Root
-              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-            return
-              AGC_Ret : Int_Arr :=
-                (1 => AGC_Temp_0, 2 => AGC_Temp_1, 3 => AGC_Temp_2) do
-               AGC.Pop_Roots (AGC_Base_Root_Count);
-            end return;
-         end;
-      end;
+      return
+        AGC_Ret : Int_Arr :=
+          (1 => AGC_Temp_0, 2 => AGC_Temp_1, 3 => AGC_Temp_2) do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
    end AGC_Func_0;
-   X : aliased Int_Arr := AGC_Func_0;
+   X           : aliased Int_Arr         := AGC_Func_0;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Arr'Address);
+   Y           : aliased Char_Arr;
+   AGC_Dummy_1 : constant AGC.Empty_Type :=
+     AGC.Push_Root (Y'Address, Test.AGC_Visit_Char_Arr'Address);
 begin
-   AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Arr'Address);
-   declare
-      Y : aliased Char_Arr;
-   begin
-      AGC.Push_Root (Y'Address, Test.AGC_Visit_Char_Arr'Address);
-      AGC.Collect;
-      X (2).all := 145;
-      Y ('b')   := X (3);
-      AGC.Collect;
-   end;
+   AGC.Collect;
+   X (2).all := 145;
+   Y ('b')   := X (3);
+   AGC.Collect;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

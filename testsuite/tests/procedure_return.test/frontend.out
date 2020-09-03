@@ -16,17 +16,19 @@ procedure Test is
       return X;
    end Id;
    procedure Foo is
-      AGC_Base_Root_Count : constant Natural       := AGC.Root_Count;
-      X                   : aliased Integer_Access := new Integer'(2);
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      X                   : aliased Integer_Access  := new Integer'(2);
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
       if X.all = 2 then
          declare
             AGC_Root_Count : constant Natural            := AGC.Root_Count;
             AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(42);
+            AGC_Dummy_1    : constant AGC.Empty_Type     :=
+              AGC.Push_Root
+                (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
          begin
-            AGC.Push_Root
-              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
             X := Id (AGC_Temp_0);
             AGC.Pop_Roots (AGC_Root_Count);
          end;

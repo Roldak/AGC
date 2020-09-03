@@ -48,10 +48,11 @@ package body Entities.Wolves is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
-         AGC_Temp_0 : aliased Worlds.Entity_Access := new Wolf;
+         AGC_Temp_0  : aliased Worlds.Entity_Access := new Wolf;
+         AGC_Dummy_0 : constant AGC.Empty_Type      :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
       begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
          return R : Entity_Access := AGC_Temp_0 do
             Positioned_Access (R).Initialize (X, Y);
             AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -76,10 +77,11 @@ package body Entities.Wolves is
          return;
       end if;
       declare
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Create (Self.X, Self.Y);
+         AGC_Temp_0  : aliased Worlds.Entity_Access := Create (Self.X, Self.Y);
+         AGC_Dummy_0 : constant AGC.Empty_Type      :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
       begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
          W.Spawn (AGC_Temp_0);
       end;
       AGC.Pop_Roots (AGC_Base_Root_Count);
@@ -98,34 +100,27 @@ package body Entities.Wolves is
       Rabbit.Delete;
    end Try_Eat;
    overriding procedure Update (R : in out Wolf; W : in out World) is
-      X : Natural := R.X;
+      X                  : Natural := R.X;
+      Y                  : Natural := R.Y;
+      Already_Reproduced : Boolean := False;
    begin
-      declare
-         Y : Natural := R.Y;
-      begin
-         declare
-            Already_Reproduced : Boolean := False;
-         begin
-            if R.Age > 50 or R.Food < 2 then
-               R.Delete;
-               return;
-            end if;
-            R.Age  := R.Age + 1;
-            R.Food := R.Food - 2;
-            while not Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction)
-            loop
-               null;
-            end loop;
-            for E of W.Located (X, Y) loop
-               if E.all in Wolf'Class and not Already_Reproduced then
-                  Try_Reproducing (R, Wolf (E.all), W);
-                  Already_Reproduced := True;
-               elsif E.all in Rabbits.Rabbit'Class then
-                  Try_Eat (R, Rabbits.Rabbit (E.all), W);
-               end if;
-            end loop;
-            R.Relocate (W, X, Y);
-         end;
-      end;
+      if R.Age > 50 or R.Food < 2 then
+         R.Delete;
+         return;
+      end if;
+      R.Age  := R.Age + 1;
+      R.Food := R.Food - 2;
+      while not Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) loop
+         null;
+      end loop;
+      for E of W.Located (X, Y) loop
+         if E.all in Wolf'Class and not Already_Reproduced then
+            Try_Reproducing (R, Wolf (E.all), W);
+            Already_Reproduced := True;
+         elsif E.all in Rabbits.Rabbit'Class then
+            Try_Eat (R, Rabbits.Rabbit (E.all), W);
+         end if;
+      end loop;
+      R.Relocate (W, X, Y);
    end Update;
 end Entities.Wolves;

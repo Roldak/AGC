@@ -8,6 +8,7 @@ generic
    Width : Natural;
    Height : Natural;
    type Item is private;
+   with procedure AGC_Visit_Item_Private (X : System.Address);
 package Grids is
    subtype X_Range is Natural range 0 .. Width - 1;
    subtype Y_Range is Natural range 0 .. Height - 1;
@@ -18,7 +19,7 @@ package Grids is
    package Item_Vectors is new Ada.Containers.Vectors (Positive, Item);
    package AGC_Item_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
-     (Item_Vectors, AGC.No_Op);
+     (Item_Vectors, Grids.AGC_Visit_Item_Private);
    type Grid is tagged private;
    procedure AGC_Visit_Grid_Private (X : System.Address);
    procedure AGC_Visit_Grid_Private_Classwide (X : System.Address);

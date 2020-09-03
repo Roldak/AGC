@@ -49,13 +49,10 @@ package body Entities.Positioned is
      (P : aliased in out Positioned; W : in out World; New_X, New_Y : Natural)
    is
       Old_X : Natural := P.P_X;
+      Old_Y : Natural := P.P_Y;
    begin
-      declare
-         Old_Y : Natural := P.P_Y;
-      begin
-         P.P_X := New_X;
-         P.P_Y := New_Y;
-         W.Move (P'Unchecked_Access, Old_X, Old_Y);
-      end;
+      P.P_X := New_X;
+      P.P_Y := New_Y;
+      W.Move (P'Unchecked_Access, Old_X, Old_Y);
    end Relocate;
 end Entities.Positioned;

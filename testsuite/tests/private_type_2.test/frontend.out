@@ -40,10 +40,11 @@ package body Pkg is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
-         AGC_Temp_0 : aliased Pkg.Integer_Access := new Integer'(X);
+         AGC_Temp_0  : aliased Pkg.Integer_Access := new Integer'(X);
+         AGC_Dummy_0 : constant AGC.Empty_Type    :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Pkg.AGC_Visit_Integer_Access'Address);
       begin
-         AGC.Push_Root
-           (AGC_Temp_0'Address, Pkg.AGC_Visit_Integer_Access'Address);
          return AGC_Ret : T := (X => AGC_Temp_0) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
@@ -85,9 +86,10 @@ with Pkg;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   X : aliased Pkg.T := Pkg.Create (2);
+   X           : aliased Pkg.T           := Pkg.Create (2);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Private'Address);
 begin
-   AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Private'Address);
    AGC.Collect;
    Put_Line (Pkg.Get (X)'Image);
    AGC.Pop_Roots (AGC_Base_Root_Count);
