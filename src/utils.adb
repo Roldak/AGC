@@ -265,22 +265,6 @@ package body Utils is
       return FQN;
    end Fully_Qualified_Decl_Part_Of;
 
-   function Relevant_Qualified_Decl_Part_Of
-     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
-   is
-   begin
-      if Is_Standard_Unit (Decl.P_Enclosing_Compilation_Unit) then
-         declare
-            Parent : LAl.Basic_Decl := Decl.P_Parent_Basic_Decl;
-         begin
-            return Relevant_Qualified_Decl_Part_Of (Parent)
-               & "AGC_" & LAL.Text (Parent.P_Defining_Name) & "_Visitors.";
-         end;
-      else
-         return Fully_Qualified_Decl_Part_Of (Decl);
-      end if;
-   end Relevant_Qualified_Decl_Part_Of;
-
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -292,6 +276,22 @@ package body Utils is
 
       Is_Standard_Type : Boolean :=
          Is_Standard_Unit (Typ.P_Enclosing_Compilation_Unit);
+
+      function Relevant_Qualified_Decl_Part_Of
+        (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
+      is
+      begin
+         if Is_Standard_Unit (Decl.P_Enclosing_Compilation_Unit) then
+            declare
+               Parent : LAL.Basic_Decl := Decl.P_Parent_Basic_Decl;
+            begin
+               return Relevant_Qualified_Decl_Part_Of (Parent)
+                  & "AGC_" & LAL.Text (Parent.P_Defining_Name) & "_Visitors.";
+            end;
+         else
+            return Fully_Qualified_Decl_Part_Of (Decl);
+         end if;
+      end Relevant_Qualified_Decl_Part_Of;
 
       function Normalized_Name
         (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
@@ -306,6 +306,7 @@ package body Utils is
       begin
          if not Session.Is_File_To_Process (LAL.Get_Filename (Typ.Unit))
             and then Referenced_From /= LAL.No_Analysis_Unit
+            and then not Is_Standard_Type
          then
             Session.To_Do.Register
               (Post_Actions.Generate_External_Interface_Action'
