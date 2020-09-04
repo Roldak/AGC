@@ -110,7 +110,7 @@ end Test;
 
 ```
 
-As you can see, roots are explicited to the garbage collector through calls to `AGC.Push_Root`. The example above shows it working for stack-allocated variables, but this must also include global variables (_not yet implemented_). Note that all stack-allocated variables are now marked `aliased`: this is because we are taking their address which in Ada is only necessarily meaningful for aliased objects (see RM 13.3.16).
+As you can see, roots are explicited to the garbage collector through calls to `AGC.Push_Root`. The example above shows it working for stack-allocated variables, but this must also include global variables. Note that all stack-allocated variables are now marked `aliased`: this is because we are taking their address which in Ada is only necessarily meaningful for aliased objects (see RM 13.3.16).
 
 In some cases, AGC must perform heavy manipulations to be able to track all reachable locations. In particular, temporary results such as values returned from function calls must be registered in the garbage collector although they are not reachable by a source code variable. This is done by reshaping the code to store them explicitly in temporary variables. For example:
 
