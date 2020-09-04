@@ -26,6 +26,7 @@ is
      (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
 
    Handled_Parts : Node_Sets.Set;
+   Require_Root_Count : Node_Sets.Set;
    Subp_Roots : Node_Counters.Counter;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
@@ -162,9 +163,18 @@ is
       end if;
    end Handle_Aliased_Annot;
 
-   procedure Handle_Declarative_Part
-     (Decl_Part : LAL.Declarative_Part'Class)
+   function Parent_Block_Already_Pops
+     (Handled_Stmts : LAL.Handled_Stmts) return Boolean
    is
+   begin
+      --  if we are the only stmt of our parent block and our parent
+      --  block is already handled, no need to pop roots.
+      return Handled_Parts.Contains (Handled_Stmts.Parent.Parent)
+             and then (Handled_Stmts.Parent.Child_Index
+                          = Handled_Stmts.Parent.Parent.Children_Count - 1);
+   end Parent_Block_Already_Pops;
+
+   procedure Handle_Declarative_Part (Decl_Part : LAL.Declarative_Part) is
       use type LALCO.Ada_Node_Kind_Type;
 
       Decls      : LAL.Ada_Node_List := Decl_Part.F_Decls;
@@ -175,13 +185,13 @@ is
 
       Has_Any_Root : Boolean := False;
 
+      Next_Sibling  : LAL.Ada_Node := LAL.Next_Sibling (Decl_Part);
       Handled_Stmts : LAL.Handled_Stmts :=
-         LAL.Next_Sibling (Decl_Part).As_Handled_Stmts;
+        (if not Next_Sibling.Is_Null
+            and then Next_Sibling.Kind in LALCO.Ada_Handled_Stmts
+         then Next_Sibling.As_Handled_Stmts
+         else LAL.No_Handled_Stmts);
    begin
-      if not Handled_Stmts.Is_Null then
-         Handled_Parts.Insert (Handled_Stmts.As_Ada_Node);
-      end if;
-
       for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
          declare
             C : LAL.Ada_Node := LAL.Child (Decls, N);
@@ -199,21 +209,16 @@ is
          end;
       end loop;
 
-      if not Subp_Level
-         and then not Handled_Stmts.Is_Null
-         and then Has_Any_Root
-      then
-         if
-            --  if we are the only stmt of our parent block and our parent
-            --  block is already handled, no need to pop roots here.
-            not Handled_Parts.Contains (Handled_Stmts.Parent.Parent.Parent)
-            or else Handled_Stmts.Parent.Child_Index
-                       /= Handled_Stmts.Parent.Parent.Children_Count - 1
+      if not Handled_Stmts.Is_Null then
+         Handled_Parts.Insert (Handled_Stmts.F_Stmts.As_Ada_Node);
+
+         if not Subp_Level
+            and then Has_Any_Root
+            and then not Parent_Block_Already_Pops (Handled_Stmts)
+            and then not Ends_With_Return_Stmt (Handled_Stmts.F_Stmts)
          then
-            if not Ends_With_Return_Stmt (Handled_Stmts.F_Stmts) then
-               Store_Root_Count (DH, False);
-               Pop_Objects (LALRW.Handle (Handled_Stmts.F_Stmts), False);
-            end if;
+            Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+            Pop_Objects (LALRW.Handle (Handled_Stmts.F_Stmts), False);
          end if;
       end if;
    end Handle_Declarative_Part;
@@ -248,6 +253,22 @@ is
          Pop_Objects (SH, True);
       end if;
    end Handle_Extended_Return_Stmt;
+
+   procedure Handle_Exception_Handler (Handler : LAL.Exception_Handler) is
+      Handled_Stmts : LAL.Handled_Stmts :=
+         Handler.Parent.Parent.As_Handled_Stmts;
+      Decl_Part     : LAL.Declarative_Part :=
+         LAL.Previous_Sibling (Handled_Stmts).As_Declarative_Part;
+      Subp_Level    : Boolean :=
+         Handled_Stmts.Parent.Kind in LALCO.Ada_Base_Subp_Body;
+   begin
+      if (Subp_Level or else not Parent_Block_Already_Pops (Handled_Stmts))
+         and then not Ends_With_Return_Stmt (Handler.F_Stmts)
+      then
+         Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+         Pop_Objects (LALRW.Handle (Handler.F_Stmts), Subp_Level);
+      end if;
+   end Handle_Exception_Handler;
 
    procedure Handle_Generic_Instantiation
      (Inst : LAL.Generic_Instantiation'Class)
@@ -300,6 +321,8 @@ is
             Handle_Return_Stmt (Node.As_Return_Stmt);
          when LALCO.Ada_Extended_Return_Stmt =>
             Handle_Extended_Return_Stmt (Node.As_Extended_Return_Stmt);
+         when LALCO.Ada_Exception_Handler =>
+            Handle_Exception_Handler (Node.As_Exception_Handler);
          when LALCO.Ada_Generic_Instantiation =>
             Handle_Generic_Instantiation (Node.As_Generic_Instantiation);
          when others =>
@@ -311,26 +334,28 @@ is
    procedure Process_Subp_Body (Node : LAL.Ada_Node; Roots : Natural) is
    begin
       if not Node.Is_Null and then Roots > 0 then
-         declare
-            Subp : LAL.Subp_Body := Node.As_Subp_Body;
+         Require_Root_Count.Include (Node.As_Subp_Body.F_Decls.As_Ada_Node);
 
-            DH : LALRW.Node_Rewriting_Handle :=
-               LALRW.Handle (Subp.F_Decls.F_Decls);
-
-            SH : LALRW.Node_Rewriting_Handle :=
-               LALRW.Handle (Subp.F_Stmts.F_Stmts);
-         begin
-            Store_Root_Count (DH, True);
-
-            if not Ends_With_Return_Stmt (Subp.F_Stmts.F_Stmts) then
-               Pop_Objects (SH, True);
-            end if;
-         end;
+         if not Ends_With_Return_Stmt (Node.As_Subp_Body.F_Stmts.F_Stmts) then
+            Pop_Objects
+              (LALRW.Handle (Node.As_Subp_Body.F_Stmts.F_Stmts), True);
+         end if;
       end if;
    end Process_Subp_Body;
+
+   procedure Process_Store_Request (Cursor : Node_Sets.Cursor) is
+      Decl_Part : LAL.Declarative_Part :=
+         Node_Sets.Element (Cursor).As_Declarative_Part;
+
+      Subp_Level : Boolean :=
+         Decl_Part.Parent.Kind in LALCO.Ada_Base_Subp_Body;
+   begin
+      Store_Root_Count (LALRW.Handle (Decl_Part.F_Decls), Subp_Level);
+   end Process_Store_Request;
 begin
    Unit.Root.Traverse (Process_Node'Access);
    Node_Counters.Iterate (Subp_Roots, Process_Subp_Body'Access);
+   Node_Sets.Iterate (Require_Root_Count, Process_Store_Request'Access);
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "track_roots: could not apply rewritings";
    end if;
