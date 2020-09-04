@@ -22,7 +22,7 @@ library project AGC_Runtime is
          when "debug" =>
             for Switches ("Ada") use ("-g");
          when "release" =>
-            for Switches ("Ada") use ("-O3", "-flto");
+            for Switches ("Ada") use ("-O3", "-flto", "-gnatp");
          when others =>
             null;
       end case;
