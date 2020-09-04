@@ -186,11 +186,15 @@ is
          declare
             C : LAL.Ada_Node := LAL.Child (Decls, N);
          begin
-            if C.Kind = LALCO.Ada_Object_Decl then
+            if C.Kind in LALCO.Ada_Object_Decl then
                if Utils.Is_Relevant_Root (C.As_Object_Decl) then
                   Push_Object (DH, C.As_Object_Decl);
                   Has_Any_Root := True;
                end if;
+            elsif C.Kind in LALCO.Ada_Base_Package_Decl then
+               --  The package itself cannot pop its roots, so the enclosing
+               --  declare block should pop them in its place.
+               Has_Any_Root := True;
             end if;
          end;
       end loop;
