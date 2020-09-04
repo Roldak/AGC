@@ -25,7 +25,7 @@ is
    package Node_Sets is new Ada.Containers.Hashed_Sets
      (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
 
-   Handled_Stmts : Node_Sets.Set;
+   Handled_Parts : Node_Sets.Set;
    Subp_Roots : Node_Counters.Counter;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
@@ -67,7 +67,7 @@ is
    end Ends_With_Return_Stmt;
 
    procedure Push_Object
-     (Stmts : LALRW.Node_Rewriting_Handle; X : LAL.Object_Decl)
+     (DH : LALRW.Node_Rewriting_Handle; X : LAL.Object_Decl)
    is
       Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (X.P_Defining_Name);
@@ -86,7 +86,7 @@ is
          & Dummy_Index (Dummy_Index'First + 1 .. Dummy_Index'Last);
    begin
       LALRW.Insert_Child
-        (Stmts, Utils.Child_Index (LALRW.Handle (X)) + 1,
+        (DH, Utils.Child_Index (LALRW.Handle (X)) + 1,
          LALRW.Create_From_Template
            (RH,
             Dummy_Name & " : constant AGC.Empty_Type := "
@@ -126,8 +126,7 @@ is
       Index        : Integer := -1)
    is
    begin
-      if
-         LALRW.Children_Count (Stmts) = 1
+      if LALRW.Children_Count (Stmts) = 1
          and then LALRW.Kind (LALRW.Child (Stmts, 1)) in LALCO.Ada_Null_Stmt
       then
          LALRW.Remove_Child (Stmts, 1);
@@ -163,57 +162,57 @@ is
       end if;
    end Handle_Aliased_Annot;
 
-   procedure Handle_Handled_Stmts (Node : LAL.Handled_Stmts'Class)
+   procedure Handle_Declarative_Part
+     (Decl_Part : LAL.Declarative_Part'Class)
    is
       use type LALCO.Ada_Node_Kind_Type;
 
-      Sibling : LAL.Ada_Node := LAL.Previous_Sibling (Node);
+      Decls      : LAL.Ada_Node_List := Decl_Part.F_Decls;
+      Subp_Level : Boolean :=
+         Decl_Part.Parent.Kind in LALCO.Ada_Base_Subp_Body;
 
-      SH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node.F_Stmts);
+      DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
+
+      Has_Any_Root : Boolean := False;
+
+      Handled_Stmts : LAL.Handled_Stmts :=
+         LAL.Next_Sibling (Decl_Part).As_Handled_Stmts;
    begin
-      if Sibling.Kind = LALCO.Ada_Declarative_Part then
+      if not Handled_Stmts.Is_Null then
+         Handled_Parts.Insert (Handled_Stmts.As_Ada_Node);
+      end if;
+
+      for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
          declare
-            Decl_Part  : LAL.Declarative_Part := Sibling.As_Declarative_Part;
-            Decls      : LAL.Ada_Node_List := Decl_Part.F_Decls;
-            Container  : LAL.Ada_Node := Decl_Part.Parent;
-            Subp_Level : Boolean :=
-               Container.Kind in LALCO.Ada_Base_Subp_Body;
-
-            DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
-
-            Should_Pop_Roots : Boolean :=
-               not Handled_Stmts.Contains (Node.Parent.Parent.Parent)
-               or else Node.Parent.Child_Index
-                          /= Node.Parent.Parent.Children_Count - 1;
-
-            Has_Any_Root : Boolean := False;
+            C : LAL.Ada_Node := LAL.Child (Decls, N);
          begin
-            Handled_Stmts.Insert (Node.As_Ada_Node);
-
-            for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
-               declare
-                  C : LAL.Ada_Node := LAL.Child (Decls, N);
-               begin
-                  if C.Kind = LALCO.Ada_Object_Decl then
-                     if Utils.Is_Relevant_Root (C.As_Object_Decl) then
-                        Push_Object (DH, C.As_Object_Decl);
-                        Has_Any_Root := True;
-                     end if;
-                  end if;
-               end;
-            end loop;
-
-            if not Subp_Level then
-               if Should_Pop_Roots and Has_Any_Root then
-                  if not Ends_With_Return_Stmt (Node.F_Stmts) then
-                     Store_Root_Count (DH, False);
-                     Pop_Objects (SH, False);
-                  end if;
+            if C.Kind = LALCO.Ada_Object_Decl then
+               if Utils.Is_Relevant_Root (C.As_Object_Decl) then
+                  Push_Object (DH, C.As_Object_Decl);
+                  Has_Any_Root := True;
                end if;
             end if;
          end;
+      end loop;
+
+      if not Subp_Level
+         and then not Handled_Stmts.Is_Null
+         and then Has_Any_Root
+      then
+         if
+            --  if we are the only stmt of our parent block and our parent
+            --  block is already handled, no need to pop roots here.
+            not Handled_Parts.Contains (Handled_Stmts.Parent.Parent.Parent)
+            or else Handled_Stmts.Parent.Child_Index
+                       /= Handled_Stmts.Parent.Parent.Children_Count - 1
+         then
+            if not Ends_With_Return_Stmt (Handled_Stmts.F_Stmts) then
+               Store_Root_Count (DH, False);
+               Pop_Objects (LALRW.Handle (Handled_Stmts.F_Stmts), False);
+            end if;
+         end if;
       end if;
-   end Handle_Handled_Stmts;
+   end Handle_Declarative_Part;
 
    procedure Handle_Return_Stmt
      (Stmt : LAL.Return_Stmt'Class)
@@ -291,8 +290,8 @@ is
       case Node.Kind is
          when LALCO.Ada_Aliased_Absent =>
             Handle_Aliased_Annot (Node.As_Aliased_Absent);
-         when LALCO.Ada_Handled_Stmts =>
-            Handle_Handled_Stmts (Node.As_Handled_Stmts);
+         when LALCO.Ada_Declarative_Part_Range =>
+            Handle_Declarative_Part (Node.As_Declarative_Part);
          when LALCO.Ada_Return_Stmt =>
             Handle_Return_Stmt (Node.As_Return_Stmt);
          when LALCO.Ada_Extended_Return_Stmt =>
@@ -307,7 +306,7 @@ is
 
    procedure Process_Subp_Body (Node : LAL.Ada_Node; Roots : Natural) is
    begin
-      if Roots > 0 then
+      if not Node.Is_Null and then Roots > 0 then
          declare
             Subp : LAL.Subp_Body := Node.As_Subp_Body;
 

@@ -1,0 +1,19 @@
+package body Pkg is
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+end Pkg;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package Pkg is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   X           : aliased Integer_Access;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Pkg.AGC_Visit_Integer_Access'Address);
+end Pkg;
