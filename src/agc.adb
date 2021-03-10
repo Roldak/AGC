@@ -110,7 +110,7 @@ procedure AGC is
                  (Context  => Dest,
                   Filename => LAL.Get_Filename (Unit),
                   Buffer   => Langkit_Support.Text.Encode
-                    (LAL.Text (Unit).all,
+                    (LAL.Text (Unit),
                      LAL.Get_Charset (Unit)));
             begin
                All_Units.Append (Reparsed);
