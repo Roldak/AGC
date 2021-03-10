@@ -42,7 +42,6 @@ procedure Test is
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.AGC_Visit_Quad_Tree_Access'Address);
 begin
-   declare
    begin
       declare
          AGC_Temp_2 : aliased Test.Quad_Tree_Access_Array :=

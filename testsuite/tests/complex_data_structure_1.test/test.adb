@@ -13,7 +13,6 @@ procedure Test is
 
    X : Quad_Tree_Access;
 begin
-   declare
    begin
       X := new Quad_Tree'
         (Value => 5,

@@ -223,6 +223,11 @@ is
       end if;
    end Handle_Declarative_Part;
 
+   procedure Handle_Begin_Block (Block : LAL.Begin_Block) is
+   begin
+      Handled_Parts.Insert (Block.F_Stmts.F_Stmts.As_Ada_Node);
+   end Handle_Begin_Block;
+
    procedure Handle_Return_Stmt
      (Stmt : LAL.Return_Stmt'Class)
    is
@@ -317,6 +322,8 @@ is
             Handle_Aliased_Annot (Node.As_Aliased_Absent);
          when LALCO.Ada_Declarative_Part_Range =>
             Handle_Declarative_Part (Node.As_Declarative_Part);
+         when LALCO.Ada_Begin_Block =>
+            Handle_Begin_Block (Node.As_Begin_Block);
          when LALCO.Ada_Return_Stmt =>
             Handle_Return_Stmt (Node.As_Return_Stmt);
          when LALCO.Ada_Extended_Return_Stmt =>
