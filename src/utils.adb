@@ -83,7 +83,9 @@ package body Utils is
    function Is_Actual_Expr (Expr : LAL.Expr'Class) return Boolean is
       use LAL;
    begin
-      if Expr.Kind in LALCO.Ada_Name
+      if Expr.Kind in LALCO.Ada_Box_Expr then
+         return False;
+      elsif Expr.Kind in LALCO.Ada_Name
          and then Expr.As_Name.P_Is_Defining
       then
          return False;
