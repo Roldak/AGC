@@ -12,28 +12,24 @@ procedure Test is
      (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
-   function F return Integer_Access is
-   begin
-      return AGC_Ret : Integer_Access := new Integer'(15) do
-         null;
-      end return;
-   end F;
-   X           : aliased Integer_Access  := (new Integer'(3));
-   AGC_Dummy_0 : constant AGC.Empty_Type :=
-     AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
-   function AGC_Func_0 return Integer;
-   function AGC_Func_0 return Integer is
+   type Int_Array is array (Positive range <>) of Integer_Access;
+   procedure AGC_Visit_Int_Array is new AGC.Visit_Unconstrained_Array_1_Type
+     (Integer_Access, Positive, Int_Array, Test.AGC_Visit_Integer_Access);
+   function AGC_Func_0 return Int_Array;
+   function AGC_Func_0 return Int_Array is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_0          : aliased Test.Integer_Access := F;
+      AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(1);
       AGC_Dummy_0         : constant AGC.Empty_Type     :=
         AGC.Push_Root
           (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      return AGC_Ret : Integer := Integer_Access (AGC_Temp_0).all do
+      return AGC_Ret : Int_Array (2 .. 10) := (others => AGC_Temp_0) do
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
-   Y : Integer := AGC_Func_0;
+   X           : aliased Int_Array       := AGC_Func_0;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Array'Address);
 begin
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

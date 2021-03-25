@@ -85,30 +85,50 @@ is
          Scope.Child_Index
          + Node_Counters.Get (Decl_Site, Node.Parent) * 2
          + 1;
+
+      Ret_Type_Expr : LALRW.Node_Rewriting_Handle;
    begin
       if Cursor = Node_Maps.No_Element then
+         Ret_Type_Expr := LALRW.Clone (LALRW.Handle (Scope.F_Type_Expr));
+
+         if Scope.F_Type_Expr.Kind in LALCO.Ada_Subtype_Indication then
+            --  Remove constraint from subtype indication in return type
+            LALRW.Set_Child
+              (Ret_Type_Expr, 3, LALRW.No_Node_Rewriting_Handle);
+         end if;
+
          LALRW.Insert_Child
            (LALRW.Handle (Scope.Parent),
             Child_Index,
             LALRW.Create_From_Template
               (RH,
                "function " & Func_Name & " return {};",
-               (1 => LALRW.Clone (LALRW.Handle (Scope.F_Type_Expr))),
+               (1 => Ret_Type_Expr),
                LALCO.Subp_Decl_Rule));
 
          Func := LALRW.Create_From_Template
            (RH,
             "function " & Func_Name & " return {} "
-            & "is begin return null; end " & Func_Name & ";",
-            (1 => LALRW.Clone (LALRW.Handle (Scope.F_Type_Expr))),
+            & "is begin return AGC_Ret : X := null do "
+            & "null; end return; end " & Func_Name & ";",
+            (1 => Ret_Type_Expr),
             LALCO.Subp_Body_Rule);
 
          LALRW.Replace
-            (DH,
-             LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, Func_Name));
+           (LALRW.Handle (Scope.F_Type_Expr),
+            Ret_Type_Expr);
+         LALRW.Replace
+           (DH,
+            LALRW.Create_Token_Node (RH, LALCO.Ada_Identifier, Func_Name));
          LALRW.Set_Child
-           (LALRW.Child (LALRW.Child (LALRW.Child (Func, 5), 1), 1),
-            1,
+           (LALRW.Child
+              (LALRW.Child (LALRW.Child (LALRW.Child (Func, 5), 1), 1), 1),
+            5,
+            LALRW.Handle (Scope.F_Type_Expr));
+         LALRW.Set_Child
+           (LALRW.Child
+              (LALRW.Child (LALRW.Child (LALRW.Child (Func, 5), 1), 1), 1),
+            6,
             DH);
          LALRW.Insert_Child
            (LALRW.Handle (Scope.Parent), Child_Index + 1, Func);
