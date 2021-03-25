@@ -587,6 +587,8 @@ is
       case Node.Kind is
          when LALCO.Ada_Anonymous_Type =>
             return LALCO.Over;
+         when LALCO.Ada_Generic_Formal_Package =>
+            return LALCO.Over;
          when LALCO.Ada_Base_Type_Decl =>
             Handle_Type_Decl (Node.As_Base_Type_Decl);
          when LALCO.Ada_Generic_Package_Instantiation =>

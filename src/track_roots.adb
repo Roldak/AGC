@@ -315,6 +315,13 @@ is
       end loop;
    end Handle_Generic_Instantiation;
 
+   procedure Handle_Generic_Formal_Package
+     (Node : LAL.Generic_Formal_Package'Class)
+   is
+   begin
+      null;
+   end Handle_Generic_Formal_Package;
+
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
@@ -334,6 +341,9 @@ is
             Handle_Exception_Handler (Node.As_Exception_Handler);
          when LALCO.Ada_Generic_Instantiation =>
             Handle_Generic_Instantiation (Node.As_Generic_Instantiation);
+         when LALCO.Ada_Generic_Formal_Package =>
+            Handle_Generic_Formal_Package (Node.As_Generic_Formal_Package);
+            return LALCO.Over;
          when others =>
             null;
       end case;
