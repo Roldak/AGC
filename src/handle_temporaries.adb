@@ -162,6 +162,10 @@ is
    is
    begin
       case Node.Kind is
+         when LALCO.Ada_Aspect_Spec =>
+            return LALCO.Over;
+         when LALCO.Ada_Pragma_Node =>
+            return LALCO.Over;
          when LALCO.Ada_Expr =>
             declare
                Expr : LAL.Expr := Node.As_Expr;
