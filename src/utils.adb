@@ -11,7 +11,7 @@ with Session;
 
 package body Utils is
    function Is_Relevant_Type
-     (Typ  : LAL.Base_Type_Decl'Class) return Boolean
+     (Typ : LAL.Base_Type_Decl'Class) return Boolean
    is
       Full_Typ : LAL.Base_Type_Decl;
    begin
@@ -19,7 +19,7 @@ package body Utils is
          return False;
       end if;
 
-      Full_Typ := Typ.P_Full_View;
+      Full_Typ := Typ.P_Full_View.P_Base_Subtype;
 
       return
          Full_Typ.P_Is_Access_Type
@@ -340,7 +340,9 @@ package body Utils is
       end Handle_Reference;
    begin
       if Is_Relevant_Type (Typ) then
-         if Is_Ref then
+         if Typ.Kind in LALCO.Ada_Subtype_Decl then
+            return Visitor_Name (Typ.P_Base_Subtype, Is_Ref, Referenced_From);
+         elsif Is_Ref then
             return Result : Langkit_Support.Text.Text_Type :=
                Relevant_Qualified_Decl_Part_Of (Typ)
                & "AGC_Visit_" & Normalized_Name (Typ)

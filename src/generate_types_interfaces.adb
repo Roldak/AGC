@@ -75,10 +75,11 @@ is
 
    function Is_Handled (Decl : LAL.Base_Type_Decl'Class) return Boolean is
       use type LAL.Analysis_Unit;
+      Base : LAL.Base_Type_Decl := Decl.P_Base_Subtype;
    begin
       return
-         Decl.Unit /= Unit
-         or else Handled_Types.Contains (Decl.As_Ada_Node);
+         Base.Unit /= Unit
+         or else Handled_Types.Contains (Base.As_Ada_Node);
    end Is_Handled;
 
    procedure Generate_Visitor_Prototype
@@ -491,13 +492,17 @@ is
          then Append_Visitor'Unrestricted_Access
          else Insert_Visitor'Unrestricted_Access);
    begin
-      if Decl.Kind in LALCO.Ada_Incomplete_Type_Decl then
+      if Decl.Kind
+         in LALCO.Ada_Incomplete_Type_Decl
+          | LALCO.Ada_Subtype_Decl
+      then
          return;
       elsif not Utils.Is_Relevant_Type (Decl) then
          Handled_Types.Insert (Decl.As_Ada_Node);
          return;
       elsif
-         Decl.P_Is_Access_Type and then not Is_Handled (Decl.P_Accessed_Type)
+         Decl.P_Is_Access_Type
+         and then not Is_Handled (Decl.P_Accessed_Type)
       then
          Delay_Handling
            (Decl.P_Accessed_Type.As_Ada_Node,
