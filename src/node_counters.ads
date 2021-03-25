@@ -13,7 +13,8 @@ package Node_Counters is
    subtype Counter is Maps.Map;
 
    procedure Increase
-     (C : in out Counter; Node : Libadalang.Analysis.Ada_Node);
+     (C      : in out Counter;
+      Node   : Libadalang.Analysis.Ada_Node);
 
    function Get
      (C : Counter; Node : Libadalang.Analysis.Ada_Node) return Natural;

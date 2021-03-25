@@ -50,6 +50,7 @@ procedure Test is
      (Test.U, U_Access, False, Test.AGC_Visit_U);
    procedure AGC_Visit_U_Access (X : System.Address) renames
      AGC_Visit_U_Access_Implem;
+   function AGC_Func_0 return U_Access;
    function AGC_Func_0 return U_Access is
       AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.T_Access   := new T'(X => 1);

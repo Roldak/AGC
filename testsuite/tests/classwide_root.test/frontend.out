@@ -98,6 +98,7 @@ procedure Test is
          Put_Line (X.X.all'Image & " " & X.Y.all'Image);
       end Print;
    end Pkg_U;
+   function AGC_Func_0 return Pkg_T.T'Class;
    function AGC_Func_0 return Pkg_T.T'Class is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_1          : aliased Test.Integer_Access := new Integer'(2);

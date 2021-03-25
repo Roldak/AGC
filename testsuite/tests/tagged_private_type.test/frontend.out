@@ -127,6 +127,7 @@ procedure Test is
       end AGC_Visit_T_Classwide;
       function Create (X, Y : Integer) return T'Class is
          AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+         function AGC_Func_0 return T;
          function AGC_Func_0 return T is
             AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
             AGC_Temp_1 : aliased Test.Integer_Access := new Integer'(Y);

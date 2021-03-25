@@ -24,6 +24,7 @@ procedure Test is
          end return;
       end if;
    end Inner;
+   function AGC_Func_0 return Integer;
    function AGC_Func_0 return Integer is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := Inner (True, 42);

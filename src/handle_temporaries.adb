@@ -80,8 +80,22 @@ is
 
       Func_Name : Langkit_Support.Text.Text_Type :=
          "AGC_Func_" & Func_Id (Func_Id'First + 1 .. Func_Id'Last);
+
+      Child_Index : Integer :=
+         Scope.Child_Index
+         + Node_Counters.Get (Decl_Site, Node.Parent) * 2
+         + 1;
    begin
       if Cursor = Node_Maps.No_Element then
+         LALRW.Insert_Child
+           (LALRW.Handle (Scope.Parent),
+            Child_Index,
+            LALRW.Create_From_Template
+              (RH,
+               "function " & Func_Name & " return {};",
+               (1 => LALRW.Clone (LALRW.Handle (Scope.F_Type_Expr))),
+               LALCO.Subp_Decl_Rule));
+
          Func := LALRW.Create_From_Template
            (RH,
             "function " & Func_Name & " return {} "
@@ -97,10 +111,7 @@ is
             1,
             DH);
          LALRW.Insert_Child
-           (LALRW.Handle (Scope.Parent),
-            Scope.Child_Index
-            + Node_Counters.Get (Decl_Site, Node.Parent) + 1,
-            Func);
+           (LALRW.Handle (Scope.Parent), Child_Index + 1, Func);
 
          Node_Maps.Insert (Decl_Blocks, Node, Func);
          Node_Counters.Increase (Decl_Site, Node.Parent);

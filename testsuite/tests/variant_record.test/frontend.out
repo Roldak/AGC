@@ -49,6 +49,7 @@ procedure Test is
    R_1         : aliased Rec             := (A, 1);
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (R_1'Address, Test.AGC_Visit_Rec'Address);
+   function AGC_Func_0 return Rec;
    function AGC_Func_0 return Rec is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(3);

@@ -194,6 +194,7 @@ procedure Test is
    end Substitute;
    function Evaluate (Ex : Expr_Access; Ev : Env) return Integer is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+      function AGC_Func_0 return Expr_Access;
       function AGC_Func_0 return Expr_Access is
          AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
          AGC_Temp_0          : aliased Test.Expr_Access := Substitute (Ex, Ev);
@@ -234,6 +235,7 @@ procedure Test is
    end To_String;
    procedure Main is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+      function AGC_Func_0 return Expr_Access;
       function AGC_Func_0 return Expr_Access is
          AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
          AGC_Temp_3          : aliased Test.Expr_Access := new Expr'(Lit, 1);
@@ -262,6 +264,7 @@ procedure Test is
       X           : aliased Expr_Access     := AGC_Func_0;
       AGC_Dummy_0 : constant AGC.Empty_Type :=
         AGC.Push_Root (X'Address, Test.AGC_Visit_Expr_Access'Address);
+      function AGC_Func_1 return Expr_Access;
       function AGC_Func_1 return Expr_Access is
          AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
          AGC_Temp_1          : aliased Test.Expr_Access := new Expr'(Lit, 4);

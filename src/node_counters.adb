@@ -4,7 +4,8 @@ package body Node_Counters is
    use type Maps.Cursor;
 
    procedure Increase
-     (C : in out Counter; Node : LAL.Ada_Node)
+     (C      : in out Counter;
+      Node   : Libadalang.Analysis.Ada_Node)
    is
       Cursor : Maps.Cursor := Maps.Find (C, Node);
    begin

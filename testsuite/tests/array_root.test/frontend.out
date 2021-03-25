@@ -18,6 +18,7 @@ procedure Test is
    type Char_Arr is array (Character) of Integer_Access;
    procedure AGC_Visit_Char_Arr is new AGC.Visit_Constrained_Array_1_Type
      (Integer_Access, Character, Char_Arr, Test.AGC_Visit_Integer_Access);
+   function AGC_Func_0 return Int_Arr;
    function AGC_Func_0 return Int_Arr is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
       AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(21);
