@@ -270,7 +270,9 @@ is
       if (Subp_Level or else not Parent_Block_Already_Pops (Handled_Stmts))
          and then not Ends_With_Return_Stmt (Handler.F_Stmts)
       then
-         Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+         if not Decl_Part.Is_Null then
+            Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+         end if;
          Pop_Objects (LALRW.Handle (Handler.F_Stmts), Subp_Level);
       end if;
    end Handle_Exception_Handler;
