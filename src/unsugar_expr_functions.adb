@@ -27,7 +27,10 @@ is
    procedure Handle_Expr_Function (Fun : LAL.Expr_Function'Class) is
       Has_Decl : Boolean  := not Fun.P_Previous_Part.Is_Null;
 
-      Actual_Expr : LAL.Expr := Fun.F_Expr.As_Paren_Expr.F_Expr;
+      Actual_Expr : LAL.Expr :=
+        (if Fun.F_Expr.Kind in LALCO.Ada_Paren_Expr
+         then Fun.F_Expr.As_Paren_Expr.F_Expr
+         else Fun.F_Expr);
 
       New_Fun : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
         (RH,
