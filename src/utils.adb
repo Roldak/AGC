@@ -49,7 +49,6 @@ package body Utils is
 
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
    is
-      use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
 
       Parent       : LAL.Ada_Node := N.Parent;
@@ -58,9 +57,9 @@ package body Utils is
    begin
       if Grand_Parent.Is_Null then
          return LAL.No_Ada_Node;
-      elsif Grand_Parent.Kind = LALCO.Ada_Declarative_Part then
+      elsif Grand_Parent.Kind in LALCO.Ada_Declarative_Part_Range then
          return N;
-      elsif Parent.Kind = LALCO.Ada_Stmt_List then
+      elsif Parent.Kind in LALCO.Ada_Stmt_List then
          return N;
       else
          return Find_Scope (Parent);
