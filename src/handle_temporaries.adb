@@ -177,9 +177,11 @@ is
                   and then Expr.Parent.Kind not in
                     LALCO.Ada_Paren_Expr
                     | LALCO.Ada_Object_Decl
+                    | LALCO.Ada_Component_Decl
                     | LALCO.Ada_Assign_Stmt
                     | LALCO.Ada_Return_Stmt
                     | LALCO.Ada_Extended_Return_Stmt
+                    | LALCO.Ada_Renaming_Clause
                then
                   Handle_Expr (Expr);
                end if;
