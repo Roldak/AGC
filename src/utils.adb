@@ -267,6 +267,23 @@ package body Utils is
       return FQN;
    end Fully_Qualified_Decl_Part_Of;
 
+   function Get_Type_Name
+     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+   is
+   begin
+      if Typ.Kind in LALCO.Ada_Anonymous_Type_Decl_Range then
+         if Typ.P_Is_Access_Type then
+            return "AGC_Anon_Access_To_" & Get_Type_Name (Typ.P_Accessed_Type);
+         elsif Typ.P_Is_Array_Type then
+            raise Program_Error with "Anonymous array types not handled.";
+         else
+            raise Program_Error with "Unhandled type.";
+         end if;
+      else
+         return LAL.Text (Typ.P_Defining_Name);
+      end if;
+   end Get_Type_Name;
+
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -274,7 +291,7 @@ package body Utils is
       return Langkit_Support.Text.Text_Type
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Typ.P_Defining_Name);
+         Get_Type_Name (Typ);
 
       Is_Standard_Type : Boolean :=
          Is_Standard_Unit (Typ.P_Enclosing_Compilation_Unit);

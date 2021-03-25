@@ -136,7 +136,7 @@ is
          Utils.Generate_Type_Reference (Element_Type);
 
       Access_Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Decl.F_Name);
+         Utils.Get_Type_Name (Decl);
 
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
@@ -458,7 +458,7 @@ is
      (Decl : LAL.Base_Type_Decl'Class; Base_Index : Integer := -1)
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Decl.F_Name);
+         Utils.Get_Type_Name (Decl);
 
       Is_Generic_Formal : Boolean := Decl.P_Is_Generic_Formal;
 
@@ -580,6 +580,8 @@ is
    is
    begin
       case Node.Kind is
+         when LALCO.Ada_Anonymous_Type =>
+            return LALCO.Over;
          when LALCO.Ada_Base_Type_Decl =>
             Handle_Type_Decl (Node.As_Base_Type_Decl);
          when LALCO.Ada_Generic_Package_Instantiation =>
