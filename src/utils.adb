@@ -142,6 +142,9 @@ package body Utils is
          when LALCO.Ada_Dotted_Name =>
             return Is_Named_Expr (Expr.As_Dotted_Name.F_Suffix);
 
+         when LALCO.Ada_Paren_Expr =>
+            return Is_Named_Expr (Expr.As_Paren_Expr.F_Expr);
+
          when LALCO.Ada_Null_Literal | LALCO.Ada_Num_Literal =>
             return True;
 

@@ -5,7 +5,7 @@ package body Pkg is
      AGC_Visit_Integer_Access_Implem;
    function Foo return Integer_Access is
    begin
-      return null;
+      return (null);
    end Foo;
    function AGC_Func_0 return Integer is
       AGC_Base_Root_Count : constant Natural           := AGC.Root_Count;

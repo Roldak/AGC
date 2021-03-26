@@ -18,7 +18,7 @@ procedure Test is
    package body Pkg is
       function Incr (X : Integer_Access) return Integer_Access is
       begin
-         return AGC_Ret : Integer_Access := new Integer'(X.all + 1) do
+         return AGC_Ret : Integer_Access := (new Integer'(X.all + 1)) do
             null;
          end return;
       end Incr;
