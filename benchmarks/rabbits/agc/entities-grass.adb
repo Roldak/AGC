@@ -18,7 +18,7 @@ package body Entities.Grass is
    begin
       Entities.Positioned.AGC_Visit_Positioned_Private (X);
    end AGC_Visit_Grass;
-   procedure AGC_Visit (X : access Grass) is
+   overriding procedure AGC_Visit (X : access Grass) is
    begin
       AGC_Visit_Grass (X.all'Address);
    end AGC_Visit;
