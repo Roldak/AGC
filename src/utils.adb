@@ -28,6 +28,7 @@ package body Utils is
                   and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
          or else (Full_Typ.P_Is_Classwide
                   and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl))
+         or else Full_Typ.P_Is_Interface_Type
          or else Full_Typ.P_Is_Generic_Formal;
    end Is_Relevant_Type;
 

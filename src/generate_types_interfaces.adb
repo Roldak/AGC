@@ -77,6 +77,9 @@ is
       use type LAL.Analysis_Unit;
       Base : LAL.Base_Type_Decl := Decl.P_Base_Subtype;
    begin
+      if Base.Kind in LALCO.Ada_Classwide_Type_Decl then
+         Base := Base.As_Classwide_Type_Decl.Parent.As_Base_Type_Decl;
+      end if;
       return
          Base.Unit /= Unit
          or else Handled_Types.Contains (Base.As_Ada_Node);
@@ -186,7 +189,10 @@ is
          Base_Type : LAL.Base_Type_Decl'Class :=
             Decl.P_Base_Type;
       begin
-         if not Base_Type.Is_Null then
+         if
+            not Base_Type.Is_Null and then
+            not Base_Type.P_Is_Interface_Type
+         then
             LALRW.Append_Child (Stmts, LALRW.Create_From_Template
               (RH,
                Utils.Visitor_Name (Base_Type) & "(X);",
@@ -420,6 +426,64 @@ is
         LALCO.Basic_Decl_Rule));
    end Generate_Array_Type_Visitor;
 
+   procedure Generate_Interface_Type_Visitor
+     (Visit_Name : Langkit_Support.Text.Text_Type;
+      Decl       : LAL.Base_Type_Decl'Class;
+      Append     : RWNode_Processor)
+   is
+      use type Langkit_Support.Text.Unbounded_Text_Type;
+
+      Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.F_Name);
+
+      CW_Visit_Name : Langkit_Support.Text.Text_Type :=
+         Visit_Name & "_Classwide";
+
+      procedure Generate_Dispatcher is
+         Has_Public_Base : Boolean :=
+           (for some T of Decl.P_Ancestor_Types
+               => not T.P_Is_Private);
+
+         Indicator : Langkit_Support.Text.Text_Type :=
+           (if Has_Public_Base
+            then "overriding "
+            else "");
+      begin
+         Append (LALRW.Create_From_Template
+           (RH,
+            Indicator
+            & "procedure AGC_Visit (X : access "
+            & Type_Name
+            & ") is abstract;",
+            (1 .. 0 => <>), LALCO.Basic_Decl_Rule));
+      end Generate_Dispatcher;
+
+      procedure Generate_Classwide_Visitor_Body is
+         Res : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+           (RH,
+            "procedure " & CW_Visit_Name
+            & "(X : System.Address) is "
+            & "pragma Suppress (Accessibility_Check);"
+            & "type T_Access is access all " & Type_Name & "'Class;"
+            & "for T_Access'Size use Standard'Address_Size;"
+            & "function Conv is new Ada.Unchecked_Conversion"
+            & "  (System.Address, T_Access);"
+            &" begin Conv (X).AGC_Visit; end;",
+            (1 .. 0 => <>),
+            LALCO.Basic_Decl_Rule);
+      begin
+         Append (Res);
+      end Generate_Classwide_Visitor_Body;
+   begin
+      if not Is_Handled (Decl) then
+         Delay_Handling (Decl.As_Ada_Node, Decl.As_Ada_Node);
+         Generate_Dispatcher;
+         Generate_Visitor_Prototype (CW_Visit_Name, Decl, Append);
+      else
+         Generate_Classwide_Visitor_Body;
+      end if;
+   end Generate_Interface_Type_Visitor;
+
    procedure Generate_Formal_Type_Visitor
      (Visit_Name : Langkit_Support.Text.Text_Type;
       Decl       : LAL.Base_Type_Decl'Class;
@@ -450,6 +514,8 @@ is
          Generate_Record_Type_Visitor (Visit_Name, Decl, Append);
       elsif Decl.P_Is_Array_Type then
          Generate_Array_Type_Visitor (Visit_Name, Decl, Append);
+      elsif Decl.P_Is_Interface_Type then
+         Generate_Interface_Type_Visitor (Visit_Name, Decl, Append);
       else
          raise Program_Error with "Unhandled type";
       end if;

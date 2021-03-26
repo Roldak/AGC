@@ -1,0 +1,99 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with AGC;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   package Pkg_Itf is
+      type I is interface;
+      procedure AGC_Visit (X : access I) is abstract;
+      procedure AGC_Visit_I_Classwide (X : System.Address);
+      type I_Access is access I'Class;
+      procedure AGC_Visit_I_Access (X : System.Address);
+   end Pkg_Itf;
+   package body Pkg_Itf is
+      procedure AGC_Visit_I_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all I'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_I_Classwide;
+      procedure AGC_Visit_I_Access_Implem is new AGC.Visit_Access_Type
+        (Test.Pkg_Itf.I'Class, I_Access, False,
+         Test.Pkg_Itf.AGC_Visit_I_Classwide);
+      procedure AGC_Visit_I_Access (X : System.Address) renames
+        AGC_Visit_I_Access_Implem;
+   end Pkg_Itf;
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+   package Pkg_T1 is
+      type T is new Pkg_Itf.I with record
+         X : Integer_Access;
+      end record;
+      procedure AGC_Visit_T (X : System.Address);
+      overriding procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
+   end Pkg_T1;
+   package body Pkg_T1 is
+      procedure AGC_Visit_T (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all T'Class;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : T'Class renames Conv (X).all;
+      begin
+         declare
+            C : aliased Test.Integer_Access := R.X;
+         begin
+            Test.AGC_Visit_Integer_Access (C'Address);
+         end;
+      end AGC_Visit_T;
+      overriding procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+   end Pkg_T1;
+begin
+   declare
+      AGC_Root_Count : constant Natural        := AGC.Root_Count;
+      X              : aliased Pkg_Itf.I_Access;
+      AGC_Dummy_0    : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Test.Pkg_Itf.AGC_Visit_I_Access'Address);
+   begin
+      declare
+         AGC_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(42);
+         AGC_Dummy_1    : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         X := new Pkg_T1.T'(X => AGC_Temp_0);
+         AGC.Pop_Roots (AGC_Root_Count);
+      end;
+      AGC.Collect;
+      Pkg_T1.T (X.all).X.all := 43;
+      AGC.Pop_Roots (AGC_Root_Count);
+   end;
+   AGC.Collect;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
