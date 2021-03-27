@@ -66,11 +66,16 @@ package body Post_Actions is
    is
       Ctx : LAL.Analysis_Context := Pkg.Unit.Context;
 
+      Pkg_Node : LAL.Basic_Decl :=
+        (if Pkg.Kind in LALCO.Ada_Generic_Package_Internal
+         then Pkg.Parent.As_Basic_Decl
+         else Pkg.As_Basic_Decl);
+
       Is_Library_Level : Boolean :=
-         Pkg.Parent.Parent.Kind in LALCO.Ada_Compilation_Unit;
+         Pkg_Node.Parent.Parent.Kind in LALCO.Ada_Compilation_Unit;
 
       Allows_Body : Boolean :=
-         Pkg.P_Semantic_Parent.Kind not in LALCO.Ada_Base_Package_Decl;
+         Pkg_Node.P_Semantic_Parent.Kind not in LALCO.Ada_Base_Package_Decl;
 
       Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Pkg.F_Package_Name);
@@ -92,12 +97,12 @@ package body Post_Actions is
          end;
       elsif Allows_Body then
          LALRW.Insert_Child
-           (LALRW.Handle (Pkg.Parent),
-            Utils.Child_Index (LALRW.Handle (Pkg)) + 1,
+           (LALRW.Handle (Pkg_Node.Parent),
+            Utils.Child_Index (LALRW.Handle (Pkg_Node)) + 1,
             New_Body);
       else
          LALRW.Insert_Child
-           (Find_Or_Create_Destination (Pkg, RH), 1, New_Body);
+           (Find_Or_Create_Destination (Pkg_Node, RH), 1, New_Body);
       end if;
       return New_Body;
    end Create_Body_For;
