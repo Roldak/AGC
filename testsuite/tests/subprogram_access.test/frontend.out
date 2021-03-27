@@ -1,0 +1,12 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type F_Access is access function (X : Integer) return Integer;
+   X : F_Access := null;
+begin
+   null;
+end Test;

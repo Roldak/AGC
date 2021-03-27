@@ -10,6 +10,11 @@ with Post_Actions;
 with Session;
 
 package body Utils is
+   function Is_Access_To_Value_Type
+     (Typ : LAL.Base_Type_Decl'Class) return Boolean
+   is (Typ.P_Is_Access_Type
+       and then Typ.P_Access_Def.Kind not in LALCO.Ada_Access_To_Subp_Def);
+
    function Is_Relevant_Type
      (Typ : LAL.Base_Type_Decl'Class) return Boolean
    is
@@ -22,7 +27,7 @@ package body Utils is
       Full_Typ := Typ.P_Full_View.P_Base_Subtype;
 
       return
-         Full_Typ.P_Is_Access_Type
+         Is_Access_To_Value_Type (Full_Typ)
          or else Full_Typ.P_Is_Record_Type
          or else (Full_Typ.P_Is_Array_Type
                   and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
