@@ -22,6 +22,12 @@ is
 
       GGP : LAL.Ada_Node'Class := Node.Parent.Parent.Parent;
    begin
+      -- do not move null body procedures as they may define an interface
+      -- method.
+      if Node.Kind in LALCO.Ada_Null_Subp_Decl then
+         return;
+      end if;
+
       if not GGP.Is_Null and then GGP.Kind in LALCO.Ada_Base_Package_Decl then
          Session.To_Do.Register (Post_Actions.Move_Action'
            (Unit => Node.Unit,
