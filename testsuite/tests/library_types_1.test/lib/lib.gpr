@@ -1,0 +1,5 @@
+library project Lib is
+   for Library_Name use "lib";
+   for Library_Dir use "bin";
+   for Source_Files use ("lib_types.ads");
+end Lib;
