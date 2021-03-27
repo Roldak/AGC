@@ -168,11 +168,21 @@ is
             else
                Get_Or_Create_Decl_Block (Scope.As_Ada_Node));
 
+         Expr_Type : LAL.Base_Type_Decl := Expr.P_Expression_Type;
+
+         Expr_Type_Name : Langkit_Support.Text.Text_Type :=
+            Utils.Generate_Type_Reference (Expr.P_Expression_Type)
+            & (if not Expr_Type.P_Is_Classwide and then
+                  Expr_Type.P_Is_Tagged_Type and then
+                  Expr.P_Is_Dynamically_Tagged
+               then "'Class"
+               else "");
+
          Obj_Decl : LALRW.Node_Rewriting_Handle :=
             LALRW.Create_From_Template
               (RH,
                Temp_Name & " : "
-               & Utils.Generate_Type_Reference (Expr.P_Expression_Type)
+               & Expr_Type_Name
                & " := null;",
                (1 .. 0 => <>),
                LALCO.Object_Decl_Rule);

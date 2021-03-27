@@ -1,0 +1,45 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   package Pkg is
+      type I is interface;
+      procedure AGC_Visit (X : access I) is abstract;
+      procedure AGC_Visit_I_Classwide (X : System.Address);
+      function Foo (X : I) return I is abstract;
+      function Get (X : I) return Integer is abstract;
+   end Pkg;
+   package body Pkg is
+      procedure AGC_Visit_I_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all I'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_I_Classwide;
+   end Pkg;
+   procedure Bar (X : Pkg.I'Class) is
+      function AGC_Func_0 return Integer;
+      function AGC_Func_0 return Integer is
+         AGC_Base_Root_Count : constant Natural         := AGC.Root_Count;
+         AGC_Temp_0          : aliased Test.Pkg.I'Class := X.Foo;
+         AGC_Dummy_0         : constant AGC.Empty_Type  :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.Pkg.AGC_Visit_I_Classwide'Address);
+      begin
+         return AGC_Ret : Integer := AGC_Temp_0.Get do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_0;
+      Y : Integer := AGC_Func_0;
+   begin
+      null;
+   end Bar;
+begin
+   null;
+end Test;
