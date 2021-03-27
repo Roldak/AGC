@@ -1,0 +1,81 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   package Base is
+      type T is abstract tagged record
+         X : Integer := 2;
+      end record;
+      procedure AGC_Visit_T (X : System.Address);
+      procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
+   end Base;
+   package body Base is
+      procedure AGC_Visit_T (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all T'Class;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : T'Class renames Conv (X).all;
+      begin
+         null;
+      end AGC_Visit_T;
+      procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+   end Base;
+   package Derived is
+      type T is new Base.T with record
+         Y : Boolean;
+      end record;
+      procedure AGC_Visit_T (X : System.Address);
+      overriding procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
+   end Derived;
+   package body Derived is
+      procedure AGC_Visit_T (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all T'Class;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : T'Class renames Conv (X).all;
+      begin
+         Test.Base.AGC_Visit_T (X);
+      end AGC_Visit_T;
+      overriding procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+   end Derived;
+   use Base;
+   X           : aliased Derived.T       := (T with Y => True);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.Derived.AGC_Visit_T'Address);
+begin
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
