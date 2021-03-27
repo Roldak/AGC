@@ -318,8 +318,40 @@ is
    procedure Handle_Generic_Formal_Package
      (Node : LAL.Generic_Formal_Package'Class)
    is
+      Inst : LAL.Generic_Package_Instantiation :=
+         Node.F_Decl.As_Generic_Package_Instantiation;
+
+      P : LAL.Assoc_List := Inst.F_Params;
+
+      Gen_Decl : LAL.Basic_Decl := Inst.P_Designated_Generic_Decl;
+
+      Needs_Box_Expr : Boolean := False;
    begin
-      null;
+      if not Session.Is_File_To_Process (LAL.Get_Filename (Gen_Decl.Unit)) then
+         return;
+      end if;
+
+      for I in 1 .. P.Children_Count loop
+         if P.Child (I).As_Param_Assoc.F_R_Expr.Kind in LALCO.Ada_Box_Expr then
+            return;
+         end if;
+      end loop;
+
+      for PM of P.P_Zip_With_Params loop
+         if LAL.Param (PM).P_Basic_Decl.Kind in LALCO.Ada_Base_Type_Decl then
+            Needs_Box_Expr := True;
+            exit;
+         end if;
+      end loop;
+
+      if not Needs_Box_Expr then
+         return;
+      end if;
+
+      LALRW.Append_Child
+        (LALRW.Handle (P),
+         LALRW.Create_From_Template
+           (RH, "<>", (1 .. 0 => <>), LALCO.Param_Assoc_Rule));
    end Handle_Generic_Formal_Package;
 
    function Process_Node
