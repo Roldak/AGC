@@ -19,7 +19,8 @@ package Grids is
    package Item_Vectors is new Ada.Containers.Vectors (Positive, Item);
    package AGC_Item_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
-     (Item_Vectors, Grids.AGC_Visit_Item_Private);
+     (Item_Vectors, Visit_Index_Type => AGC.No_Op,
+      Visit_Element_Type             => Grids.AGC_Visit_Item_Private);
    type Grid is tagged private;
    procedure AGC_Visit_Grid_Private (X : System.Address);
    procedure AGC_Visit_Grid_Private_Classwide (X : System.Address);

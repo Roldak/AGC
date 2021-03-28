@@ -6,7 +6,8 @@ package AGC.Standard is
    --  Ada.Containers.Vectors
    generic
       with package Vectors is new Ada.Containers.Vectors (<>);
-      with procedure Visit_Element (X : System.Address);
+      with procedure Visit_Index_Type (X : System.Address);
+      with procedure Visit_Element_Type (X : System.Address);
    package Ada_Containers_Vectors_Visitors is
       procedure AGC_Visit_Vector_Private (X : System.Address)
          with Inline;

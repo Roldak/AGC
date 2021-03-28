@@ -17,7 +17,7 @@ package body AGC.Standard is
             declare
                E : aliased Vectors.Element_Type := X;
             begin
-               Visit_Element (E'Address);
+               Visit_Element_Type (E'Address);
             end;
          end loop;
       end AGC_Visit_Vector_Private;

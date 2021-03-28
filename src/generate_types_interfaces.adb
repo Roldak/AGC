@@ -23,6 +23,11 @@ is
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
 
+   function Starts_With
+     (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean
+   is (Str'Length >= Prefix'Length
+       and then Str (Str'First .. Str'First + Prefix'Length - 1) = Prefix);
+
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
    Decl_Part_Count : Node_Counters.Counter;
@@ -596,9 +601,6 @@ is
       end if;
    end Handle_Type_Decl;
 
-   Element_Type_Name : Langkit_Support.Text.Unbounded_Text_Type :=
-      Langkit_Support.Text.To_Unbounded_Text ("Element_Type");
-
    procedure Handle_Package_Instantiation
      (Inst : LAL.Generic_Package_Instantiation'Class)
    is
@@ -608,30 +610,60 @@ is
       G_Pkg : LAL.Generic_Package_Decl'Class :=
          Inst.P_Designated_Generic_Decl.As_Generic_Package_Decl;
 
-      function Gen_Vectors_Visitors return LALRW.Node_Rewriting_Handle is
+      function Replace_Dots
+        (X : Langkit_Support.Text.Text_Type)
+         return Langkit_Support.Text.Text_Type
+      is
+         Ret : Langkit_Support.Text.Text_Type := X;
+      begin
+         for C of Ret loop
+            if C = '.' then
+               C := '_';
+            end if;
+         end loop;
+         return Ret;
+      end Replace_Dots;
+
+      function Gen_Vectors_Visitors
+        (Pkg_Name : Langkit_Support.Text.Text_Type)
+         return LALRW.Node_Rewriting_Handle
+      is
+         use type Langkit_Support.Text.Unbounded_Text_Type;
+
          Zipped : LAL.Param_Actual_Array :=
             Inst.F_Params.P_Zip_With_Params;
 
-         Elem_Type : LAL.Base_Type_Decl := LAL.No_Base_Type_Decl;
+         Params : Langkit_Support.Text.Unbounded_Text_Type;
       begin
          for Param_Actual of Zipped loop
-            if LAL.P_Name_Is (LAL.Param (Param_Actual), Element_Type_Name) then
-               Elem_Type :=
-                  LAL.Actual (Param_Actual).As_Name.P_Name_Designated_Type;
-               exit;
-            end if;
+            declare
+               Param_Name  : LAL.Defining_Name'Class :=
+                  LAL.Param (Param_Actual);
+               Param_Decl  : LAL.Basic_Decl'Class :=
+                  Param_Name.P_Basic_Decl;
+               Actual : LAL.Expr'Class := LAL.Actual (Param_Actual);
+            begin
+               if Param_Decl.Kind in LALCO.Ada_Base_Type_Decl then
+                  Params :=
+                     Params & ", "
+                     & "Visit_" & LAL.Text (Param_Name) & " => "
+                     & Utils.Visitor_Name
+                         (Actual.As_Name.P_Name_Designated_Type);
+               end if;
+            end;
          end loop;
          return LALRW.Create_From_Template
            (RH,
             "package AGC_" & Inst_Name & "_Visitors "
-            & "is new AGC.Standard.Ada_Containers_Vectors_Visitors "
-            & "(" & Inst_Name & ", " & Utils.Visitor_Name (Elem_Type) & ");",
+            & "is new " & Pkg_Name
+            & "(" & Inst_Name
+            & Langkit_Support.Text.To_Text (Params) & ");",
             (1 .. 0 => <>),
             LALCO.Basic_Decl_Rule);
       end Gen_Vectors_Visitors;
 
       FQN : Langkit_Support.Text.Text_Type :=
-         G_Pkg.P_Canonical_Fully_Qualified_Name;
+         G_Pkg.P_Fully_Qualified_Name;
 
       Decl_Part : LAL.Ada_Node := Inst.Parent.As_Ada_Node;
 
@@ -640,8 +672,10 @@ is
       Index : Natural :=
          Inst.Child_Index + Node_Counters.Get (Decl_Part_Count, Decl_Part);
    begin
-      if FQN = "ada.containers.vectors" then
-         LALRW.Insert_Child (DH, Index + 2, Gen_Vectors_Visitors);
+      if Starts_With (FQN, "Ada.Containers") then
+         LALRW.Insert_Child
+           (DH, Index + 2, Gen_Vectors_Visitors
+              ("AGC.Standard." & Replace_Dots (FQN) & "_Visitors"));
          Node_Counters.Increase (Decl_Part_Count, Decl_Part);
       end if;
    end Handle_Package_Instantiation;
