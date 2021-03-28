@@ -250,14 +250,14 @@ package body Utils is
       return Name;
    end Unique_Identifier;
 
-   function Is_Standard_Unit (U : LAL.Compilation_Unit) return Boolean is
+   function Is_Runtime_Unit (U : LAL.Compilation_Unit) return Boolean is
       use type Langkit_Support.Text.Unbounded_Text_Type;
 
       FQN : LAL.Unbounded_Text_Type_Array :=
          U.P_Syntactic_Fully_Qualified_Name;
    begin
       return FQN (FQN'First) = Langkit_Support.Text.To_Unbounded_Text ("ada");
-   end Is_Standard_Unit;
+   end Is_Runtime_Unit;
 
    function Fully_Qualified_Decl_Part_Of
      (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
@@ -302,18 +302,30 @@ package body Utils is
          Get_Type_Name (Typ);
 
       Is_Standard_Type : Boolean :=
-         Is_Standard_Unit (Typ.P_Enclosing_Compilation_Unit);
+         Is_Runtime_Unit (Typ.P_Enclosing_Compilation_Unit);
 
       function Relevant_Qualified_Decl_Part_Of
-        (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
+        (Decl  : LAL.Basic_Decl'Class;
+         First : Boolean := True) return Langkit_Support.Text.Text_Type
       is
+         use type LAL.Analysis_Unit;
       begin
-         if Is_Standard_Unit (Decl.P_Enclosing_Compilation_Unit) then
+         if Is_Runtime_Unit (Decl.P_Enclosing_Compilation_Unit) then
             declare
                Parent : LAL.Basic_Decl := Decl.P_Parent_Basic_Decl;
             begin
-               return Relevant_Qualified_Decl_Part_Of (Parent)
-                  & "AGC_" & LAL.Text (Parent.P_Defining_Name) & "_Visitors.";
+               if Parent.Unit = Decl.P_Standard_Unit then
+                  return "AGC.Standard.";
+               elsif Is_Runtime_Unit (Parent.P_Enclosing_Compilation_Unit) then
+                  return Relevant_Qualified_Decl_Part_Of (Parent, False)
+                     & LAL.Text (Parent.P_Defining_Name.P_Relative_Name)
+                     & (if First then "_Visitors." else "_");
+               else
+                  return Relevant_Qualified_Decl_Part_Of (Parent, False)
+                     & "AGC_"
+                     & LAL.Text (Parent.P_Defining_Name.P_Relative_Name)
+                     & "_Visitors.";
+               end if;
             end;
          else
             return Fully_Qualified_Decl_Part_Of (Decl);
