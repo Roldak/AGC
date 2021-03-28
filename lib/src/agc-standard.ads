@@ -1,3 +1,4 @@
+with Ada.Containers.Indefinite_Vectors;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 
@@ -13,6 +14,16 @@ package AGC.Standard is
       procedure AGC_Visit_Vector_Private (X : System.Address)
          with Inline;
    end Ada_Containers_Vectors_Visitors;
+
+   --  Ada.Containers.Indefinite_Vectors
+   generic
+      with package Vectors is new Ada.Containers.Indefinite_Vectors (<>);
+      with procedure Visit_Index_Type (X : System.Address);
+      with procedure Visit_Element_Type (X : System.Address);
+   package Ada_Containers_Indefinite_Vectors_Visitors is
+      procedure AGC_Visit_Vector_Private (X : System.Address)
+         with Inline;
+   end Ada_Containers_Indefinite_Vectors_Visitors;
 
    -- Ada.Containers.Hashed_Maps
    generic
