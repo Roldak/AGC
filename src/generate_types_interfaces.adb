@@ -28,6 +28,12 @@ is
    is (Str'Length >= Prefix'Length
        and then Str (Str'First .. Str'First + Prefix'Length - 1) = Prefix);
 
+   function Visitor_Name
+     (Typ                 : LAL.Base_Type_Decl'Class;
+      Is_Ref              : Boolean           := True;
+      Referenced_From     : LAL.Analysis_Unit := Unit)
+      return Langkit_Support.Text.Text_Type renames Utils.Visitor_Name;
+
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
    Decl_Part_Count : Node_Counters.Counter;
@@ -116,7 +122,7 @@ is
          Append (LALRW.Create_From_Template
            (RH,
             "procedure " & Visit_Name & Suffix & " (X : System.Address) "
-            & "renames " & Utils.Visitor_Name (Decl.P_Full_View) & Suffix
+            & "renames " & Visitor_Name (Decl.P_Full_View) & Suffix
             & ";",
             (1 .. 0 => <>),
             LALCO.Basic_Decl_Rule));
@@ -158,7 +164,7 @@ is
         & Element_Type_Name & ", "
         & Access_Type_Name & ", "
         & Is_Generalized & ", "
-        & Utils.Visitor_Name (Element_Type) & ");",
+        & Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
 
@@ -200,7 +206,7 @@ is
          then
             LALRW.Append_Child (Stmts, LALRW.Create_From_Template
               (RH,
-               Utils.Visitor_Name (Base_Type) & "(X);",
+               Visitor_Name (Base_Type) & "(X);",
                (1 .. 0 => <>),
                LALCO.Call_Stmt_Rule));
          end if;
@@ -236,7 +242,7 @@ is
                         & "   C : aliased " & Comp_Type_Ref
                         & " := R." & Comp_Text & ";"
                         & "begin "
-                        & Utils.Visitor_Name (Comp_Type) & "(C'Address);"
+                        & Visitor_Name (Comp_Type) & "(C'Address);"
                         & "end;",
                         (1 .. 0 => <>), LALCO.Block_Stmt_Rule));
                   end if;
@@ -426,7 +432,7 @@ is
         & Element_Type_Name & ", "
         & Index_Type_Names & ", "
         & Array_Type_Name & ", "
-        & Utils.Visitor_Name (Element_Type) & ");",
+        & Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
    end Generate_Array_Type_Visitor;
@@ -507,7 +513,7 @@ is
       Append     : RWNode_Processor)
    is
       Visit_Name : Langkit_Support.Text.Text_Type :=
-         Utils.Visitor_Name (Decl, Is_Ref => False);
+         Visitor_Name (Decl, Is_Ref => False);
    begin
       if Decl.P_Is_Generic_Formal then
          Generate_Formal_Type_Visitor (Visit_Name, Decl, Append);
@@ -647,7 +653,7 @@ is
                   Params :=
                      Params & ", "
                      & "Visit_" & LAL.Text (Param_Name) & " => "
-                     & Utils.Visitor_Name
+                     & Visitor_Name
                          (Actual.As_Name.P_Name_Designated_Type);
                end if;
             end;
