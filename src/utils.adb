@@ -292,6 +292,11 @@ package body Utils is
       end if;
    end Get_Type_Name;
 
+   function Is_Subtype_Decl (X : LAL.Base_Type_Decl'Class) return Boolean is
+     (X.Kind in LALCO.Ada_Subtype_Decl or else
+      (X.Kind in LALCO.Ada_Classwide_Type_Decl and then
+       X.As_Classwide_Type_Decl.Parent.Kind in LALCO.Ada_Subtype_Decl));
+
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -361,7 +366,7 @@ package body Utils is
       end Handle_Reference;
    begin
       if Is_Relevant_Type (Typ) then
-         if Typ.Kind in LALCO.Ada_Subtype_Decl then
+         if Is_Subtype_Decl (Typ) then
             return Visitor_Name (Typ.P_Base_Subtype, Is_Ref, Referenced_From);
          elsif Is_Ref then
             return Result : Langkit_Support.Text.Text_Type :=
