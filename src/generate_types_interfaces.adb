@@ -624,7 +624,7 @@ is
          return Ret;
       end Replace_Dots;
 
-      function Gen_Vectors_Visitors
+      function Instantiate_Visitor_Package
         (Pkg_Name : Langkit_Support.Text.Text_Type)
          return LALRW.Node_Rewriting_Handle
       is
@@ -660,7 +660,7 @@ is
             & Langkit_Support.Text.To_Text (Params) & ");",
             (1 .. 0 => <>),
             LALCO.Basic_Decl_Rule);
-      end Gen_Vectors_Visitors;
+      end Instantiate_Visitor_Package;
 
       FQN : Langkit_Support.Text.Text_Type :=
          G_Pkg.P_Fully_Qualified_Name;
@@ -674,7 +674,7 @@ is
    begin
       if Starts_With (FQN, "Ada.Containers") then
          LALRW.Insert_Child
-           (DH, Index + 2, Gen_Vectors_Visitors
+           (DH, Index + 2, Instantiate_Visitor_Package
               ("AGC.Standard." & Replace_Dots (FQN) & "_Visitors"));
          Node_Counters.Increase (Decl_Part_Count, Decl_Part);
       end if;

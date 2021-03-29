@@ -1,27 +1,27 @@
 with Ada.Unchecked_Conversion;
 
 package body AGC.Standard is
-   package body Ada_Containers_Vectors_Visitors is
-      procedure AGC_Visit_Vector_Private (X : System.Address) is
+   package body Ada_Containers_Doubly_Linked_Lists_Visitors is
+      procedure AGC_Visit_List_Private (X : System.Address) is
          pragma Suppress (Accessibility_Check);
 
-         type Vector_Access is access all Vectors.Vector;
-         for Vector_Access'Size use Standard'Address_Size;
+         type List_Access is access all Lists.List;
+         for List_Access'Size use Standard'Address_Size;
 
          function Conv is new Ada.Unchecked_Conversion
-           (System.Address, Vector_Access);
+           (System.Address, List_Access);
 
-         Vec : Vector_Access := Conv (X);
+         List : List_Access := Conv (X);
       begin
-         for X of Vec.all loop
+         for X of List.all loop
             declare
-               E : aliased Vectors.Element_Type := X;
+               E : aliased Lists.Element_Type := X;
             begin
                Visit_Element_Type (E'Address);
             end;
          end loop;
-      end AGC_Visit_Vector_Private;
-   end Ada_Containers_Vectors_Visitors;
+      end AGC_Visit_List_Private;
+   end Ada_Containers_Doubly_Linked_Lists_Visitors;
 
    package body Ada_Containers_Indefinite_Vectors_Visitors is
       procedure AGC_Visit_Vector_Private (X : System.Address) is
@@ -44,6 +44,28 @@ package body AGC.Standard is
          end loop;
       end AGC_Visit_Vector_Private;
    end Ada_Containers_Indefinite_Vectors_Visitors;
+
+   package body Ada_Containers_Hashed_Sets_Visitors is
+      procedure AGC_Visit_Set_Private (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+
+         type Set_Access is access all Sets.Set;
+         for Set_Access'Size use Standard'Address_Size;
+
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Set_Access);
+
+         Set : Set_Access := Conv (X);
+      begin
+         for X of Set.all loop
+            declare
+               E : aliased Sets.Element_Type := X;
+            begin
+               Visit_Element_Type (E'Address);
+            end;
+         end loop;
+      end AGC_Visit_Set_Private;
+   end Ada_Containers_Hashed_Sets_Visitors;
 
    package body Ada_Containers_Hashed_Maps_Visitors is
       procedure Visit_Cursor (C : Maps.Cursor) is
@@ -88,4 +110,26 @@ package body AGC.Standard is
          end if;
       end AGC_Visit_Cursor_Private;
    end Ada_Containers_Hashed_Maps_Visitors;
+
+   package body Ada_Containers_Vectors_Visitors is
+      procedure AGC_Visit_Vector_Private (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+
+         type Vector_Access is access all Vectors.Vector;
+         for Vector_Access'Size use Standard'Address_Size;
+
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Vector_Access);
+
+         Vec : Vector_Access := Conv (X);
+      begin
+         for X of Vec.all loop
+            declare
+               E : aliased Vectors.Element_Type := X;
+            begin
+               Visit_Element_Type (E'Address);
+            end;
+         end loop;
+      end AGC_Visit_Vector_Private;
+   end Ada_Containers_Vectors_Visitors;
 end AGC.Standard;
