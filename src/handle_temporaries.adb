@@ -186,11 +186,18 @@ is
                & " := null;",
                (1 .. 0 => <>),
                LALCO.Object_Decl_Rule);
+
+         Needs_Parentheses : Boolean :=
+            Expr.Kind in LALCO.Ada_Raise_Expr;
       begin
          LALRW.Replace (EH, LALRW.Create_From_Template
            (RH, Temp_Name, (1 .. 0 => <>), LALCO.Identifier_Rule));
 
-         LALRW.Set_Child (Obj_Decl, 6, EH);
+         LALRW.Set_Child
+           (Obj_Decl, 6,
+            (if Needs_Parentheses
+             then LALRW.Create_Paren_Expr (RH, EH)
+             else EH));
 
          LALRW.Insert_Child (Decls, 1, Obj_Decl);
 
