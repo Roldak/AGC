@@ -14,6 +14,7 @@ with Libadalang.Unparsing;
 
 with Node_Counters;
 with Utils;
+with Session;
 
 procedure Generate_Types_Interfaces
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
@@ -33,6 +34,21 @@ is
       Is_Ref              : Boolean           := True;
       Referenced_From     : LAL.Analysis_Unit := Unit)
       return Langkit_Support.Text.Text_Type renames Utils.Visitor_Name;
+
+   function Visitor_Overriding_Qualifier
+     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+   is
+      Has_Public_Base : Boolean :=
+        (for some T of Typ.P_Ancestor_Types
+            => not T.P_Is_Private
+               and then Session.Is_File_To_Process
+                          (LAL.Get_Filename (T.Unit)));
+   begin
+      return
+        (if Has_Public_Base
+         then "overriding "
+         else "");
+   end Visitor_Overriding_Qualifier;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
@@ -328,17 +344,9 @@ is
       end Generate_Visitor_Body;
 
       procedure Generate_Dispatcher (For_Body : Boolean) is
-         Has_Public_Base : Boolean :=
-           (for some T of Decl.P_Ancestor_Types
-               => not T.P_Is_Private);
-
-         Indicator : Langkit_Support.Text.Text_Type :=
-           (if Has_Public_Base
-            then "overriding "
-            else "");
-
          Spec : Langkit_Support.Text.Text_Type :=
-            Indicator & "procedure AGC_Visit (X : access " & Type_Name & ")";
+            Visitor_Overriding_Qualifier (Decl)
+            & "procedure AGC_Visit (X : access " & Type_Name & ")";
       begin
          if For_Body then
             Append (LALRW.Create_From_Template
@@ -451,18 +459,10 @@ is
          Visit_Name & "_Classwide";
 
       procedure Generate_Dispatcher is
-         Has_Public_Base : Boolean :=
-           (for some T of Decl.P_Ancestor_Types
-               => not T.P_Is_Private);
-
-         Indicator : Langkit_Support.Text.Text_Type :=
-           (if Has_Public_Base
-            then "overriding "
-            else "");
       begin
          Append (LALRW.Create_From_Template
            (RH,
-            Indicator
+            Visitor_Overriding_Qualifier (Decl)
             & "procedure AGC_Visit (X : access "
             & Type_Name
             & ") is abstract;",
