@@ -90,6 +90,7 @@ package body AGC is
    procedure Visit_Access_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
 
+      type T_Access is access all T;
       type T_Access_Access is access all T_Access;
       for T_Access_Access'Size use Standard'Address_Size;
 

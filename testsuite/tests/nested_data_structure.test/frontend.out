@@ -23,7 +23,7 @@ procedure Test is
    type T_Access is access T;
    procedure AGC_Visit_T_Access (X : System.Address);
    procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
-     (Test.T, T_Access, False, Test.AGC_Visit_T);
+     (Test.T, False, Test.AGC_Visit_T);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;
    type U is record
@@ -47,7 +47,7 @@ procedure Test is
    type U_Access is access U;
    procedure AGC_Visit_U_Access (X : System.Address);
    procedure AGC_Visit_U_Access_Implem is new AGC.Visit_Access_Type
-     (Test.U, U_Access, False, Test.AGC_Visit_U);
+     (Test.U, False, Test.AGC_Visit_U);
    procedure AGC_Visit_U_Access (X : System.Address) renames
      AGC_Visit_U_Access_Implem;
    function AGC_Func_0 return U_Access;

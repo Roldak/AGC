@@ -11,12 +11,12 @@ with Entities.Grass;
 with Entities.Wolves;
 package body Worlds is
    procedure AGC_Visit_Entity_Access_Implem is new AGC.Visit_Access_Type
-     (Entities.Entity'Class, Entity_Access, False,
+     (Entities.Entity'Class, False,
       Entities.AGC_Visit_Entity_Private_Classwide);
    procedure AGC_Visit_Entity_Access (X : System.Address) renames
      AGC_Visit_Entity_Access_Implem;
    procedure AGC_Visit_Positioned_Access_Implem is new AGC.Visit_Access_Type
-     (Entities.Positioned.Positioned'Class, Positioned_Access, True,
+     (Entities.Positioned.Positioned'Class, True,
       Entities.Positioned.AGC_Visit_Positioned_Private_Classwide);
    procedure AGC_Visit_Positioned_Access (X : System.Address) renames
      AGC_Visit_Positioned_Access_Implem;

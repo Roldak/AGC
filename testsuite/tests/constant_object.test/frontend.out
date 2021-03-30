@@ -9,7 +9,7 @@ procedure Test is
    type Integer_Access is access all Integer;
    procedure AGC_Visit_Integer_Access (X : System.Address);
    procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
-     (Standard.Integer, Integer_Access, True, AGC.No_Op);
+     (Standard.Integer, True, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    X           : aliased Integer_Access  := new Integer'(2);

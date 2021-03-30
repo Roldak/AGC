@@ -32,7 +32,7 @@ package body Pkg is
       null;
    end AGC_Visit_T;
    procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
-     (Pkg.T, T_Access, False, Pkg.AGC_Visit_T);
+     (Pkg.T, False, Pkg.AGC_Visit_T);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);

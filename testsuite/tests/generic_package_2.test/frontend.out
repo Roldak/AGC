@@ -44,7 +44,7 @@ with System;
 with Ada.Unchecked_Conversion;
 package body Pkg is
    procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
-     (Pkg.T, T_Access, True, Pkg.AGC_Visit_T_Private);
+     (Pkg.T, True, Pkg.AGC_Visit_T_Private);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);

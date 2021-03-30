@@ -17,7 +17,7 @@ procedure Test is
    procedure AGC_Visit_Quad_Tree (X : System.Address);
    procedure AGC_Visit_Quad_Tree_Access (X : System.Address);
    procedure AGC_Visit_Quad_Tree_Access_Implem is new AGC.Visit_Access_Type
-     (Test.Quad_Tree, Quad_Tree_Access, False, Test.AGC_Visit_Quad_Tree);
+     (Test.Quad_Tree, False, Test.AGC_Visit_Quad_Tree);
    procedure AGC_Visit_Quad_Tree_Access (X : System.Address) renames
      AGC_Visit_Quad_Tree_Access_Implem;
    procedure AGC_Visit_Quad_Tree_Access_Array is new AGC

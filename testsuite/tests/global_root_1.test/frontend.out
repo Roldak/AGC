@@ -1,6 +1,6 @@
 package body Pkg is
    procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
-     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+     (Standard.Integer, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
 end Pkg;

@@ -25,15 +25,14 @@ procedure Test is
          Conv (X).AGC_Visit;
       end AGC_Visit_I_Classwide;
       procedure AGC_Visit_I_Access_Implem is new AGC.Visit_Access_Type
-        (Test.Pkg_Itf.I'Class, I_Access, False,
-         Test.Pkg_Itf.AGC_Visit_I_Classwide);
+        (Test.Pkg_Itf.I'Class, False, Test.Pkg_Itf.AGC_Visit_I_Classwide);
       procedure AGC_Visit_I_Access (X : System.Address) renames
         AGC_Visit_I_Access_Implem;
    end Pkg_Itf;
    type Integer_Access is access Integer;
    procedure AGC_Visit_Integer_Access (X : System.Address);
    procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
-     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+     (Standard.Integer, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
    package Pkg_T1 is

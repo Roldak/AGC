@@ -166,9 +166,6 @@ is
       Element_Type_Name : Langkit_Support.Text.Text_Type :=
          Utils.Generate_Type_Reference (Element_Type);
 
-      Access_Type_Name : Langkit_Support.Text.Text_Type :=
-         Utils.Get_Type_Name (Decl);
-
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
    begin
@@ -178,7 +175,6 @@ is
         (RH,
         "procedure " & Visit_Name & "_Implem is new AGC.Visit_Access_Type ("
         & Element_Type_Name & ", "
-        & Access_Type_Name & ", "
         & Is_Generalized & ", "
         & Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),

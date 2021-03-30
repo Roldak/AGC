@@ -10,7 +10,7 @@ procedure Test is
    type My_Nat_Access is access My_Natural;
    procedure AGC_Visit_My_Nat_Access (X : System.Address);
    procedure AGC_Visit_My_Nat_Access_Implem is new AGC.Visit_Access_Type
-     (Test.My_Natural, My_Nat_Access, False, AGC.No_Op);
+     (Test.My_Natural, False, AGC.No_Op);
    procedure AGC_Visit_My_Nat_Access (X : System.Address) renames
      AGC_Visit_My_Nat_Access_Implem;
    X           : aliased My_Nat_Access   := new My_Natural'(2);
