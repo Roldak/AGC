@@ -575,8 +575,7 @@ is
       then
          return;
       elsif not Utils.Is_Relevant_Type (Decl) then
-         Handled_Types.Insert (Decl.As_Ada_Node);
-         return;
+         null;
       elsif
          Decl.P_Is_Access_Type
          and then not Is_Handled (Decl.P_Accessed_Type)
@@ -592,9 +591,9 @@ is
            (Decl.P_Comp_Type.As_Ada_Node,
             Decl.As_Ada_Node);
          return;
+      else
+         Generate_Visitors (Decl, Add_Visitor);
       end if;
-
-      Generate_Visitors (Decl, Add_Visitor);
 
       if not Handled_Types.Contains (Decl.As_Ada_Node) then
          Handled_Types.Insert (Decl.As_Ada_Node);

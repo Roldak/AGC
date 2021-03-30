@@ -1,0 +1,22 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Int;
+   type Int_Access is access Int;
+   type Int is range 1 .. 10;
+   procedure AGC_Visit_Int_Access (X : System.Address);
+   procedure AGC_Visit_Int_Access_Implem is new AGC.Visit_Access_Type
+     (Test.Int, Int_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Int_Access (X : System.Address) renames
+     AGC_Visit_Int_Access_Implem;
+   X           : aliased Int_Access      := null;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Access'Address);
+begin
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
