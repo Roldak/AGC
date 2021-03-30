@@ -14,6 +14,8 @@ package AGC.Standard is
    package Ada_Containers_Doubly_Linked_Lists_Visitors is
       procedure AGC_Visit_List_Private (X : System.Address)
          with Inline;
+      procedure AGC_Visit_Cursor_Private
+        (X : System.Address) is null;
    end Ada_Containers_Doubly_Linked_Lists_Visitors;
 
    --  Ada.Containers.Indefinite_Vectors
@@ -84,10 +86,4 @@ package AGC.Standard is
       procedure AGC_Visit_File_Type_Private
         (X : System.Address) is null;
    end Ada_Text_IO_Visitors;
-
-   -- Ada.Exceptions
-   package Ada_Exceptions_Visitors is
-      procedure AGC_Visit_Exception_Occurrence_Private
-        (X : System.Address) is null;
-   end Ada_Exceptions_Visitors;
 end AGC.Standard;

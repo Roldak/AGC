@@ -1,0 +1,20 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Exceptions;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   procedure Foo (E : Ada.Exceptions.Exception_Occurrence) is
+   begin
+      null;
+   end Foo;
+begin
+   raise Program_Error;
+exception
+   when E : Program_Error =>
+      Foo (E);
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

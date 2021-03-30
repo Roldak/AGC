@@ -19,6 +19,21 @@ package body Utils is
      (Typ : LAL.Base_Type_Decl'Class) return Boolean
    is
       Full_Typ : LAL.Base_Type_Decl;
+
+      function Is_Known_Irrelevant return Boolean is
+         use type Langkit_Support.Text.Unbounded_Text_Type;
+
+         Unit : LAL.Compilation_Unit := Full_Typ.P_Enclosing_Compilation_Unit;
+         FQN  : LAL.Unbounded_Text_Type_Array :=
+            Unit.P_Syntactic_Fully_Qualified_Name;
+      begin
+         if FQN'Length >= 2 then
+            if FQN (1) = "ada" and then FQN (2) = "exceptions" then
+               return True;
+            end if;
+         end if;
+         return False;
+      end Is_Known_Irrelevant;
    begin
       if Typ.Is_Null then
          return False;
@@ -27,14 +42,15 @@ package body Utils is
       Full_Typ := Typ.P_Full_View.P_Base_Subtype;
 
       return
-         Is_Access_To_Value_Type (Full_Typ)
-         or else Full_Typ.P_Is_Record_Type
-         or else (Full_Typ.P_Is_Array_Type
-                  and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
-         or else (Full_Typ.P_Is_Classwide
-                  and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl))
-         or else Full_Typ.P_Is_Interface_Type
-         or else Full_Typ.P_Is_Generic_Formal;
+         (Is_Access_To_Value_Type (Full_Typ)
+          or else Full_Typ.P_Is_Record_Type
+          or else (Full_Typ.P_Is_Array_Type
+                   and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
+          or else (Full_Typ.P_Is_Classwide
+                   and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl))
+          or else Full_Typ.P_Is_Interface_Type
+          or else Full_Typ.P_Is_Generic_Formal)
+          and then not Is_Known_Irrelevant;
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Object_Decl'Class) return Boolean is
