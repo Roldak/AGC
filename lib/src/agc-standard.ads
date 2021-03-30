@@ -63,24 +63,6 @@ package AGC.Standard is
          with Inline;
    end Ada_Containers_Vectors_Visitors;
 
-   --  Ada.Strings.Unbounded
-   package Ada_Strings_Unbounded_Visitors is
-      procedure AGC_Visit_Unbounded_String_Private
-        (X : System.Address) is null;
-   end Ada_Strings_Unbounded_Visitors;
-
-   --  Ada.Strings.Wide_Unbounded
-   package Ada_Strings_Wide_Unbounded_Visitors is
-      procedure AGC_Visit_Unbounded_Wide_String_Private
-        (X : System.Address) is null;
-   end Ada_Strings_Wide_Unbounded_Visitors;
-
-   --  Ada.Strings.Wide_Wide_Unbounded
-   package Ada_Strings_Wide_Wide_Unbounded_Visitors is
-      procedure AGC_Visit_Unbounded_Wide_Wide_String_Private
-        (X : System.Address) is null;
-   end Ada_Strings_Wide_Wide_Unbounded_Visitors;
-
    --  Ada.Text_IO
    package Ada_Text_IO_Visitors is
       procedure AGC_Visit_File_Type_Private
