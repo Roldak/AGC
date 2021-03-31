@@ -29,10 +29,6 @@ procedure Test is
    end Eq;
 begin
    declare
-      AGC_Temp_0  : aliased Test.Integer_Access := Foo;
-      AGC_Dummy_0 : constant AGC.Empty_Type     :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       function AGC_Func_0 return Standard.Boolean is
          AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
          AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(3);
@@ -53,6 +49,10 @@ begin
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end AGC_Func_0;
+      AGC_Temp_0  : aliased Test.Integer_Access := Foo;
+      AGC_Dummy_0 : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
       if AGC_Temp_0 /= null and then AGC_Func_0 then
          Put_Line ("hello");

@@ -192,7 +192,7 @@ is
               (LALRW.Child (LALRW.Child (LALRW.Child (Func, 5), 1), 1), 1),
             6,
             LALRW.Handle (Expr));
-         LALRW.Append_Child (Fun_Scope, Func);
+         LALRW.Insert_Child (Fun_Scope, 1, Func);
 
          Node_Maps.Insert (Decl_Blocks, Node, Func);
          Node_Counters.Increase (Decl_Site, LALRW.Node (Fun_Scope));
@@ -256,8 +256,9 @@ is
             (1 .. 0 => <>),
             LALCO.Object_Decl_Rule);
 
-      Needs_Parentheses : Boolean :=
-         Expr.Kind in LALCO.Ada_Raise_Expr;
+      Needs_Parentheses : Boolean := Expr.Kind
+         in LALCO.Ada_Raise_Expr
+          | LALCO.Ada_Cond_Expr;
    begin
       LALRW.Replace (EH, LALRW.Create_From_Template
         (RH, Temp_Name, (1 .. 0 => <>), LALCO.Identifier_Rule));
