@@ -5,7 +5,6 @@ with System;
 with Ada.Unchecked_Conversion;
 with Worlds; use Worlds;
 package Entities is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Entity is abstract tagged private;
    procedure AGC_Visit_Entity_Private (X : System.Address);
    procedure AGC_Visit_Entity_Private_Classwide (X : System.Address);

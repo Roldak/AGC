@@ -5,9 +5,9 @@ with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    subtype My_Natural is Integer range 0 .. Integer'Last;
-   type My_Nat_Access is access My_Natural;
+   type My_Nat_Access is access My_Natural with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_My_Nat_Access (X : System.Address);
    procedure AGC_Visit_My_Nat_Access_Implem is new AGC.Visit_Access_Type
      (Test.My_Natural, False, AGC.No_Op);

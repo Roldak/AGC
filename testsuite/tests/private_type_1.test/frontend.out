@@ -6,14 +6,14 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package P is
       type T is private;
       procedure AGC_Visit_T_Private (X : System.Address);
       function Create (X : Integer) return T;
       function Get (X : T) return Integer;
    private
-      type T is access all Integer;
+      type T is access all Integer with
+         Storage_Pool => AGC.Storage.Get.Pool;
       procedure AGC_Visit_T (X : System.Address);
    end P;
    package body P is

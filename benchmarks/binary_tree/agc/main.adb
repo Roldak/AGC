@@ -7,10 +7,10 @@ with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Main is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Tree;
    type Tree_Kind is (Node, Leaf);
-   type Tree_Access is access Tree;
+   type Tree_Access is access Tree with
+      Storage_Pool => AGC.Storage.Get.Pool;
    type Tree (K : Tree_Kind) is record
       case K is
          when Node =>

@@ -6,12 +6,12 @@ with Ada.Unchecked_Conversion;
 with AGC;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Pkg_Itf is
       type I is interface;
       procedure AGC_Visit (X : access I) is abstract;
       procedure AGC_Visit_I_Classwide (X : System.Address);
-      type I_Access is access I'Class;
+      type I_Access is access I'Class with
+         Storage_Pool => AGC.Storage.Get.Pool;
       procedure AGC_Visit_I_Access (X : System.Address);
    end Pkg_Itf;
    package body Pkg_Itf is
@@ -29,7 +29,8 @@ procedure Test is
       procedure AGC_Visit_I_Access (X : System.Address) renames
         AGC_Visit_I_Access_Implem;
    end Pkg_Itf;
-   type Integer_Access is access Integer;
+   type Integer_Access is access Integer with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
    procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
      (Standard.Integer, False, AGC.No_Op);

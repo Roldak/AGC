@@ -6,7 +6,6 @@ with Ada.Unchecked_Conversion;
 with Ada.Exceptions;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Foo (E : Ada.Exceptions.Exception_Occurrence) is
    begin
       null;

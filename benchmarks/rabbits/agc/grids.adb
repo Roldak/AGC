@@ -49,7 +49,6 @@ package body Grids is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_Grid_Classwide;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Random_X_Positions is new Ada.Numerics.Discrete_Random (X_Range);
    package Random_Y_Positions is new Ada.Numerics.Discrete_Random (Y_Range);
    package Random_Directions is new Ada.Numerics.Discrete_Random (Direction);

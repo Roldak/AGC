@@ -4,7 +4,6 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package Entities.Positioned is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Positioned is abstract new Entity with private;
    procedure AGC_Visit_Positioned_Private (X : System.Address);
    procedure AGC_Visit_Positioned_Private_Classwide (X : System.Address);

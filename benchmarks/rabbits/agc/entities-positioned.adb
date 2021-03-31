@@ -31,7 +31,6 @@ package body Entities.Positioned is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_Positioned_Classwide;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Initialize (E : in out Positioned; X, Y : Natural) is
    begin
       E.P_X := X;

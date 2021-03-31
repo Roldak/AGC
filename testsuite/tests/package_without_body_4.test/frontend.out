@@ -4,7 +4,6 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Pkg is
       type Rec is record
          X : Integer;

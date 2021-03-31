@@ -5,7 +5,6 @@ with System;
 with Ada.Unchecked_Conversion;
 with Entities.Positioned;
 package Entities.Rabbits is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Rabbit is new Positioned.Positioned with private;
    procedure AGC_Visit_Rabbit_Private (X : System.Address);
    procedure AGC_Visit_Rabbit_Private_Classwide (X : System.Address);

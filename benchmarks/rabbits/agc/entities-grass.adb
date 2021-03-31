@@ -30,7 +30,6 @@ package body Entities.Grass is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_Grass_Classwide;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create return Entity_Access is
       X, Y : Natural;
    begin

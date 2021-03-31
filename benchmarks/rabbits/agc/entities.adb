@@ -34,7 +34,6 @@ package body Entities is
    begin
       return (E.Alive);
    end Is_Alive;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Delete (E : in out Entity) is
    begin
       E.Alive := False;

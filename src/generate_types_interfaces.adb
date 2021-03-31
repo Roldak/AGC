@@ -186,6 +186,15 @@ is
         & "renames " & Visit_Name & "_Implem;",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
+
+      if Decl.Child (4).Is_Null then
+         LALRW.Set_Child
+           (LALRW.Handle (Decl),
+            4,
+            LALRW.Create_From_Template
+              (RH, "with Storage_Pool => AGC.Storage.Get.Pool",
+               (1 .. 0 => <>), LALCO.Aspect_Spec_Rule));
+      end if;
    end Generate_Access_Type_Visitor;
 
    procedure Generate_Record_Type_Visitor

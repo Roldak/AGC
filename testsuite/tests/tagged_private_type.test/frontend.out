@@ -6,8 +6,8 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   type Integer_Access is access Integer;
+   type Integer_Access is access Integer with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
    procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
      (Standard.Integer, False, AGC.No_Op);

@@ -5,10 +5,10 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Expr_Kind is (Add, Mul, Lit, Var);
    type Expr;
-   type Expr_Access is access Expr;
+   type Expr_Access is access Expr with
+      Storage_Pool => AGC.Storage.Get.Pool;
    type Expr (K : Expr_Kind) is record
       case K is
          when Add | Mul =>

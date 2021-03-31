@@ -23,7 +23,6 @@ package body P is
          P.AGC_Visit_U_Access (C'Address);
       end;
    end AGC_Visit_Rec;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Bar (X : Rec) is
    begin
       null;
@@ -36,8 +35,8 @@ with System;
 with Ada.Unchecked_Conversion;
 limited with Q;
 package P is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   type U_Access is access Q.U;
+   type U_Access is access Q.U with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_U_Access (X : System.Address);
    type Rec is record
       X : U_Access;
@@ -65,7 +64,6 @@ package body Q is
          P.AGC_Visit_Rec (C'Address);
       end;
    end AGC_Visit_U;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Foo (X : U) is
    begin
       null;
@@ -78,7 +76,6 @@ with System;
 with Ada.Unchecked_Conversion;
 with P;
 package Q is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type U is record
       Y : P.Rec;
    end record;

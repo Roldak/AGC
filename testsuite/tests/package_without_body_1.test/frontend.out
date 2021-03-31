@@ -16,7 +16,6 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Rec is record
       X : Integer;
    end record;

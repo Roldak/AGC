@@ -5,7 +5,6 @@ with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type T is record
       X : Integer;
    end record;
@@ -20,7 +19,8 @@ procedure Test is
    begin
       null;
    end AGC_Visit_T;
-   type T_Access is access T;
+   type T_Access is access T with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address);
    procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
      (Test.T, False, Test.AGC_Visit_T);
@@ -44,7 +44,8 @@ procedure Test is
          Test.AGC_Visit_T_Access (C'Address);
       end;
    end AGC_Visit_U;
-   type U_Access is access U;
+   type U_Access is access U with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_U_Access (X : System.Address);
    procedure AGC_Visit_U_Access_Implem is new AGC.Visit_Access_Type
      (Test.U, False, Test.AGC_Visit_U);

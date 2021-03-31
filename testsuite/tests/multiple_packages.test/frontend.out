@@ -6,10 +6,10 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Pkg is
       type T is new Integer;
-      type T_Access is access T;
+      type T_Access is access T with
+         Storage_Pool => AGC.Storage.Get.Pool;
       procedure AGC_Visit_T_Access (X : System.Address);
       function Create (X : Integer) return T_Access;
    end Pkg;

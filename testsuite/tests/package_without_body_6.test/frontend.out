@@ -35,7 +35,6 @@ with System;
 with Ada.Unchecked_Conversion;
 with Pkg;
 procedure Test is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package I is new Pkg (Integer, AGC_Visit_T_Private => AGC.No_Op);
 begin
    null;

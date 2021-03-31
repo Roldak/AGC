@@ -5,7 +5,6 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Strings.Unbounded;
 procedure Test is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    use Ada.Strings.Unbounded;
    X : Unbounded_String;
 begin

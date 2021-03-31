@@ -8,13 +8,15 @@ with Grids;
 limited with Entities;
 limited with Entities.Positioned;
 package Worlds is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   type Entity_Access is access Entities.Entity'Class;
+   type Entity_Access is access Entities.Entity'Class with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Entity_Access (X : System.Address);
    type Entity_Array is array (Positive range <>) of Entity_Access;
    procedure AGC_Visit_Entity_Array is new AGC.Visit_Unconstrained_Array_1_Type
      (Entity_Access, Positive, Entity_Array, Worlds.AGC_Visit_Entity_Access);
-   type Positioned_Access is access all Entities.Positioned.Positioned'Class;
+   type Positioned_Access is
+     access all Entities.Positioned.Positioned'Class with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Positioned_Access (X : System.Address);
    type Positioned_Array is array (Positive range <>) of Positioned_Access;
    procedure AGC_Visit_Positioned_Array is new AGC

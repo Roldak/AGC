@@ -33,7 +33,6 @@ package body Entities.Wolves is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_Wolf_Classwide;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Bool_Generators is new Ada.Numerics.Discrete_Random (Boolean);
    Bool_Generator : Bool_Generators.Generator;
    function Create return Entity_Access is

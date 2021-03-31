@@ -7,7 +7,6 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
 procedure Main is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type Rec is record
       X : Integer := 2;
    end record;
@@ -47,7 +46,6 @@ package body Pkg is
      (Pkg.T, True, Pkg.AGC_Visit_T_Private);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create return T_Access is
    begin
       return AGC_Ret : T_Access := new T do
@@ -64,7 +62,8 @@ generic
    type T is private;
    with procedure AGC_Visit_T_Private (X : System.Address);
 package Pkg is
-   type T_Access is access all T;
+   type T_Access is access all T with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address);
    function Create return T_Access;
 end Pkg;

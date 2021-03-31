@@ -25,8 +25,8 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   type Integer_Access is access Integer;
+   type Integer_Access is access Integer with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
    function Foo return Integer_Access;
    function AGC_Func_0 return Integer;

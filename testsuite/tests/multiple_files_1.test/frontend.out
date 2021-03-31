@@ -6,10 +6,9 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
 procedure Main is
-   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   X           : aliased Pkg.T_Access    := Pkg.Create (3);
-   AGC_Dummy_0 : constant AGC.Empty_Type :=
+   AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+   X                   : aliased Pkg.T_Access    := Pkg.Create (3);
+   AGC_Dummy_0         : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Access'Address);
 begin
    Put_Line (X.all'Image);
@@ -25,7 +24,6 @@ package body Pkg is
      (Pkg.T, False, AGC.No_Op);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create (X : Integer) return T_Access is
    begin
       return AGC_Ret : T_Access := new T'(T (X)) do
@@ -39,9 +37,9 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type T is new Integer;
-   type T_Access is access T;
+   type T_Access is access T with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address);
    function Create (X : Integer) return T_Access;
 end Pkg;

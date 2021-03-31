@@ -62,7 +62,6 @@ package body Worlds is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_World_Classwide;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    use type Ada.Containers.Count_Type;
    procedure Spawn (W : in out World; E : Entity_Access) is
    begin

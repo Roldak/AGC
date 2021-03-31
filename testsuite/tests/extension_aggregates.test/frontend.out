@@ -5,7 +5,6 @@ with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    package Base is
       type T is abstract tagged record
          X : Integer := 2;

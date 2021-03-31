@@ -16,7 +16,6 @@ package body Pkg is
          null;
       end AGC_Visit_Rec;
    end Inner;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Foo is null;
 end Pkg;
 with AGC;
@@ -25,7 +24,6 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    procedure Foo;
    package Inner is
       type Rec is record

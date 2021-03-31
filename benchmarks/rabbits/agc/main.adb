@@ -9,10 +9,9 @@ with Entities.Rabbits;
 with Entities.Grass;
 with Entities.Wolves;
 procedure Main is
-   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   W           : aliased Worlds.World;
-   AGC_Dummy_0 : constant AGC.Empty_Type :=
+   AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+   W                   : aliased Worlds.World;
+   AGC_Dummy_0         : constant AGC.Empty_Type :=
      AGC.Push_Root (W'Address, Worlds.AGC_Visit_World_Private'Address);
    Stage : Natural := 0;
    procedure Print_Stats is

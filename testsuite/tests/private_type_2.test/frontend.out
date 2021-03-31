@@ -35,7 +35,6 @@ package body Pkg is
    begin
       Conv (X).AGC_Visit;
    end AGC_Visit_T_Classwide;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    function Create (X : Integer) return T is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -61,13 +60,13 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
    type T is private;
    procedure AGC_Visit_T_Private (X : System.Address);
    function Create (X : Integer) return T;
    function Get (X : T) return Integer;
 private
-   type Integer_Access is access Integer;
+   type Integer_Access is access Integer with
+      Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
    type T is tagged record
       X : Integer_Access;
@@ -84,10 +83,9 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
 procedure Test is
-   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
-   X           : aliased Pkg.T           := Pkg.Create (2);
-   AGC_Dummy_0 : constant AGC.Empty_Type :=
+   AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+   X                   : aliased Pkg.T           := Pkg.Create (2);
+   AGC_Dummy_0         : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Pkg.AGC_Visit_T_Private'Address);
 begin
    AGC.Collect;
