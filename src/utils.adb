@@ -90,6 +90,8 @@ package body Utils is
          return N;
       elsif Parent.Kind in LALCO.Ada_Stmt_List then
          return N;
+      elsif Parent.Kind in LALCO.Ada_Case_Expr_Alternative then
+         return N;
       else
          return Find_Scope (Parent);
       end if;

@@ -3,6 +3,7 @@ with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
@@ -17,16 +18,31 @@ procedure Test is
      AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
 begin
    declare
-      AGC_Temp_1  : aliased Test.Integer_Access := new Integer'(42);
-      AGC_Dummy_1 : constant AGC.Empty_Type     :=
-        AGC.Push_Root
-          (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-      AGC_Temp_0  : aliased Test.Integer_Access := (raise Program_Error);
-      AGC_Dummy_2 : constant AGC.Empty_Type     :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      function AGC_Func_0 return Test.Integer_Access is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0 : aliased Test.Integer_Access := (raise Program_Error);
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Test.Integer_Access := AGC_Temp_0 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_0;
+      function AGC_Func_1 return Test.Integer_Access is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(42);
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Test.Integer_Access := AGC_Temp_0 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_1;
    begin
-      X := (case True is when False => AGC_Temp_0, when True => AGC_Temp_1);
+      X := (case True is when False => AGC_Func_0, when True => AGC_Func_1);
    end;
+   Put_Line (X.all'Image);
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;
