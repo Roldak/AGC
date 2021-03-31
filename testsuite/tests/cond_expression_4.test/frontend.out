@@ -1,0 +1,64 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+   function Foo return Integer_Access;
+   function Foo return Integer_Access is
+   begin
+      return (null);
+   end Foo;
+   function Eq (X, Y : Integer_Access) return Integer_Access;
+   function Eq (X, Y : Integer_Access) return Integer_Access is
+   begin
+      return
+        AGC_Ret : Integer_Access :=
+          (new Integer'(if X.all = Y.all then 1 else 0)) do
+         null;
+      end return;
+   end Eq;
+begin
+   declare
+      AGC_Temp_0  : aliased Test.Integer_Access := Foo;
+      AGC_Dummy_0 : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      function AGC_Func_0 return Standard.Boolean is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_2          : aliased Test.Integer_Access := new Integer'(3);
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_2'Address, Test.AGC_Visit_Integer_Access'Address);
+         AGC_Temp_1  : aliased Test.Integer_Access := Foo;
+         AGC_Dummy_1 : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
+         AGC_Temp_0 : aliased Test.Integer_Access :=
+           Eq (AGC_Temp_1, AGC_Temp_2);
+         AGC_Dummy_2 : constant AGC.Empty_Type :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Standard.Boolean := AGC_Temp_0.all = 1 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_0;
+   begin
+      if AGC_Temp_0 /= null and then AGC_Func_0 then
+         Put_Line ("hello");
+      else
+         Put_Line ("hi");
+      end if;
+   end;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

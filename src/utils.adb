@@ -100,6 +100,12 @@ package body Utils is
             and then N /= Parent.As_If_Expr.F_Cond_Expr
       then
          return N;
+      elsif Parent.Kind in LALCO.Ada_Bin_Op
+            and then Parent.As_Bin_Op.F_Op.Kind
+               in LALCO.Ada_Op_And_Then | LALCO.Ada_Op_Or_Else
+            and then N = Parent.As_Bin_Op.F_Right
+      then
+         return N;
       else
          return Find_Scope (Parent);
       end if;
