@@ -1,0 +1,77 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   pragma Default_Storage_Pool (AGC.Storage.Get.Pool);
+   type Integer_Access is access Integer;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+   function Foo return Integer_Access;
+   function Foo return Integer_Access is
+   begin
+      return (null);
+   end Foo;
+   X           : aliased Integer_Access;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
+begin
+   declare
+      function AGC_Func_0 return Test.Integer_Access is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0 : aliased Test.Integer_Access := (raise Program_Error);
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Test.Integer_Access := AGC_Temp_0 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_0;
+      function AGC_Func_1 return Standard.Boolean is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0          : aliased Test.Integer_Access := Foo;
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Standard.Boolean := AGC_Temp_0 /= null do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_1;
+      function AGC_Func_2 return Test.Integer_Access is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0 : aliased Test.Integer_Access := (raise Program_Error);
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Test.Integer_Access := AGC_Temp_0 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_2;
+      function AGC_Func_3 return Test.Integer_Access is
+         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(42);
+         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return AGC_Ret : Test.Integer_Access := AGC_Temp_0 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end AGC_Func_3;
+   begin
+      X :=
+        (if False then AGC_Func_0 elsif AGC_Func_1 then AGC_Func_2
+         else AGC_Func_3);
+   end;
+   Put_Line (X.all'Image);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

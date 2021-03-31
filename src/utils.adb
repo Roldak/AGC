@@ -79,6 +79,7 @@ package body Utils is
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
    is
       use type LAL.Ada_Node;
+      use all type LAL.Expr;
 
       Parent       : LAL.Ada_Node := N.Parent;
       Grand_Parent : LAL.Ada_Node :=
@@ -91,6 +92,13 @@ package body Utils is
       elsif Parent.Kind in LALCO.Ada_Stmt_List then
          return N;
       elsif Parent.Kind in LALCO.Ada_Case_Expr_Alternative then
+         return N;
+      elsif Parent.Kind in LALCO.Ada_Elsif_Expr_Part then
+         return N;
+      elsif Parent.Kind in LALCO.Ada_If_Expr
+            and then N.Kind not in LALCO.Ada_Elsif_Expr_Part_List
+            and then N /= Parent.As_If_Expr.F_Cond_Expr
+      then
          return N;
       else
          return Find_Scope (Parent);
