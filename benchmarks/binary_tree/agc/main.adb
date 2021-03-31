@@ -24,7 +24,7 @@ procedure Main is
    procedure AGC_Visit_Tree (X : System.Address);
    procedure AGC_Visit_Tree_Access (X : System.Address);
    procedure AGC_Visit_Tree_Access_Implem is new AGC.Visit_Access_Type
-     (Main.Tree, Tree_Access, False, Main.AGC_Visit_Tree);
+     (Main.Tree, False, Main.AGC_Visit_Tree);
    procedure AGC_Visit_Tree_Access (X : System.Address) renames
      AGC_Visit_Tree_Access_Implem;
    procedure AGC_Visit_Tree (X : System.Address) is
