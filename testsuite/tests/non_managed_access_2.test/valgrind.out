@@ -1,0 +1,34 @@
+    at 0x403AF6: test__deref.7 (in /tmp/tmpbtiy6whn/test)
+    by 0x4037EA: _ada_test (in /tmp/tmpbtiy6whn/test)
+    by 0x404094: main (in /tmp/tmpbtiy6whn/test)
+  Address 0x4a64050 is 16 bytes inside a block of size 20 free'd
+    at 0x483CA3F: free (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x43F1E8: __gnat_free (in /tmp/tmpbtiy6whn/test)
+    by 0x411E0B: agc__storage__malloc_free__collect (agc-storage-malloc_free.adb:23)
+    by 0x42A93C: agc__collect (agc.adb:265)
+    by 0x4037C7: _ada_test (in /tmp/tmpbtiy6whn/test)
+    by 0x404094: main (in /tmp/tmpbtiy6whn/test)
+  Block was alloc'd at
+    at 0x483B7F3: malloc (in /usr/lib/x86_64-linux-gnu/valgrind/vgpreload_memcheck-amd64-linux.so)
+    by 0x43F18E: __gnat_malloc (in /tmp/tmpbtiy6whn/test)
+    by 0x411E82: agc__storage__malloc_free__allocate__2 (agc-storage-malloc_free.adb:44)
+    by 0x403993: test__alloc__agc_func_0.6 (in /tmp/tmpbtiy6whn/test)
+    by 0x403A28: test__alloc.5 (in /tmp/tmpbtiy6whn/test)
+    by 0x4037BE: _ada_test (in /tmp/tmpbtiy6whn/test)
+    by 0x404094: main (in /tmp/tmpbtiy6whn/test)
+ 
+ 
+ HEAP SUMMARY:
+     in use at exit: 8 bytes in 1 blocks
+   total heap usage: 4 allocs, 3 frees, 68 bytes allocated
+ 
+ LEAK SUMMARY:
+    definitely lost: 8 bytes in 1 blocks
+    indirectly lost: 0 bytes in 0 blocks
+      possibly lost: 0 bytes in 0 blocks
+    still reachable: 0 bytes in 0 blocks
+         suppressed: 0 bytes in 0 blocks
+full to see details of leaked memory
+ 
+ For lists of detected and suppressed errors, rerun with: -s
+ ERROR SUMMARY: 1 errors from 1 contexts (suppressed: 0 from 0)

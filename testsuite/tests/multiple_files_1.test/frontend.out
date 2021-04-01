@@ -20,7 +20,7 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 package body Pkg is
-   procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_T_Access_Implem is new AGC.Mark_And_Visit_Access_Type
      (Pkg.T, False, AGC.No_Op);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;

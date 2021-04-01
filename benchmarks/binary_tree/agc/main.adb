@@ -23,7 +23,7 @@ procedure Main is
    end record;
    procedure AGC_Visit_Tree (X : System.Address);
    procedure AGC_Visit_Tree_Access (X : System.Address);
-   procedure AGC_Visit_Tree_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Tree_Access_Implem is new AGC.Mark_And_Visit_Access_Type
      (Main.Tree, False, Main.AGC_Visit_Tree);
    procedure AGC_Visit_Tree_Access (X : System.Address) renames
      AGC_Visit_Tree_Access_Implem;

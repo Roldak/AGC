@@ -3,13 +3,15 @@ with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
+with AGC;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    Error : exception;
    type Integer_Access is access Integer with
       Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access_Implem is new AGC
+     .Mark_And_Visit_Access_Type
      (Standard.Integer, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;

@@ -24,7 +24,7 @@ procedure Test is
       begin
          Conv (X).AGC_Visit;
       end AGC_Visit_I_Classwide;
-      procedure AGC_Visit_I_Access_Implem is new AGC.Visit_Access_Type
+      procedure AGC_Visit_I_Access_Implem is new AGC.Mark_And_Visit_Access_Type
         (Test.Pkg_Itf.I'Class, False, Test.Pkg_Itf.AGC_Visit_I_Classwide);
       procedure AGC_Visit_I_Access (X : System.Address) renames
         AGC_Visit_I_Access_Implem;
@@ -32,7 +32,8 @@ procedure Test is
    type Integer_Access is access Integer with
       Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access_Implem is new AGC
+     .Mark_And_Visit_Access_Type
      (Standard.Integer, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;

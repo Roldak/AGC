@@ -6,6 +6,8 @@ with System.Storage_Elements;
 package AGC is
    type Empty_Type is null record;
 
+   type Non_Managed is access all Empty_Type;
+
    function Root_Count return Natural
       with Inline;
 
@@ -29,6 +31,13 @@ package AGC is
       Is_Generalized_Access : Boolean;
       with procedure Visit_Element (X : System.Address);
    procedure Visit_Access_Type (X : System.Address)
+      with Inline;
+
+   generic
+      type T (<>) is private;
+      Is_Generalized_Access : Boolean;
+      with procedure Visit_Element (X : System.Address);
+   procedure Mark_And_Visit_Access_Type (X : System.Address)
       with Inline;
 
    generic

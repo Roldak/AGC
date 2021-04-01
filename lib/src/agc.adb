@@ -100,6 +100,23 @@ package body AGC is
       Acc         : aliased constant T_Access := Conv (X).all;
    begin
       if Acc /= null then
+         Visit_Element (Acc.all'Address);
+      end if;
+   end Visit_Access_Type;
+
+   procedure Mark_And_Visit_Access_Type (X : Address) is
+      pragma Suppress (Accessibility_Check);
+
+      type T_Access is access all T;
+      type T_Access_Access is access all T_Access;
+      for T_Access_Access'Size use Standard'Address_Size;
+
+      function Conv is new Ada.Unchecked_Conversion
+        (Address, T_Access_Access);
+
+      Acc         : aliased constant T_Access := Conv (X).all;
+   begin
+      if Acc /= null then
          declare
             Finalization_Size : constant Storage_Offset :=
                Storage_Offset (Integer'(Acc.all'Finalization_Size));
@@ -134,7 +151,7 @@ package body AGC is
             end if;
          end;
       end if;
-   end Visit_Access_Type;
+   end Mark_And_Visit_Access_Type;
 
    procedure Visit_Constrained_Array_1_Type (X : Address) is
       pragma Suppress (Accessibility_Check);

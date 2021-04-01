@@ -14,7 +14,7 @@ procedure Test is
       function Create (X : Integer) return T_Access;
    end Pkg;
    package body Pkg is
-      procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
+      procedure AGC_Visit_T_Access_Implem is new AGC.Mark_And_Visit_Access_Type
         (Test.Pkg.T, False, AGC.No_Op);
       procedure AGC_Visit_T_Access (X : System.Address) renames
         AGC_Visit_T_Access_Implem;

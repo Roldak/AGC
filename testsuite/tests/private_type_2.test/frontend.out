@@ -5,7 +5,8 @@ with System;
 with Ada.Unchecked_Conversion;
 package body Pkg is
    procedure AGC_Visit_T_Private (X : System.Address) renames Pkg.AGC_Visit_T;
-   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access_Implem is new AGC
+     .Mark_And_Visit_Access_Type
      (Standard.Integer, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;

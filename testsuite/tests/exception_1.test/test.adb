@@ -1,3 +1,5 @@
+with AGC;
+
 procedure Test is
    Error : exception;
    type Integer_Access is access Integer;

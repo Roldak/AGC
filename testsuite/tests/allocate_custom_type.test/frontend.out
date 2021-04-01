@@ -8,7 +8,8 @@ procedure Test is
    type Integer_Access is access Integer with
       Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Integer_Access_Implem is new AGC
+     .Mark_And_Visit_Access_Type
      (Standard.Integer, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Visit_Integer_Access_Implem;
@@ -33,7 +34,7 @@ procedure Test is
    type T_Access is access T with
       Storage_Pool => AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address);
-   procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_T_Access_Implem is new AGC.Mark_And_Visit_Access_Type
      (Test.T, False, Test.AGC_Visit_T);
    procedure AGC_Visit_T_Access (X : System.Address) renames
      AGC_Visit_T_Access_Implem;

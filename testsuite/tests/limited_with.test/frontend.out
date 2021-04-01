@@ -5,7 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Q;
 package body P is
-   procedure AGC_Visit_U_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_U_Access_Implem is new AGC.Mark_And_Visit_Access_Type
      (Q.U, False, Q.AGC_Visit_U);
    procedure AGC_Visit_U_Access (X : System.Address) renames
      AGC_Visit_U_Access_Implem;

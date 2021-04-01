@@ -10,7 +10,7 @@ procedure Test is
       Storage_Pool => AGC.Storage.Get.Pool;
    type Int is range 1 .. 10;
    procedure AGC_Visit_Int_Access (X : System.Address);
-   procedure AGC_Visit_Int_Access_Implem is new AGC.Visit_Access_Type
+   procedure AGC_Visit_Int_Access_Implem is new AGC.Mark_And_Visit_Access_Type
      (Test.Int, False, AGC.No_Op);
    procedure AGC_Visit_Int_Access (X : System.Address) renames
      AGC_Visit_Int_Access_Implem;

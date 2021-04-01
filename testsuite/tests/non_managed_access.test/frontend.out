@@ -1,0 +1,47 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Unchecked_Conversion;
+with System;      use System;
+with AGC;
+procedure Test is
+   type My_Integer_Access is access Integer with
+      Storage_Pool => AGC.Non_Managed'Storage_Pool;
+   procedure AGC_Visit_My_Integer_Access (X : System.Address);
+   procedure AGC_Visit_My_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, False, AGC.No_Op);
+   procedure AGC_Visit_My_Integer_Access (X : System.Address) renames
+     AGC_Visit_My_Integer_Access_Implem;
+   function Alloc (X : Integer) return Address is
+      AGC_Base_Root_Count : constant Natural          := AGC.Root_Count;
+      R                   : aliased My_Integer_Access := new Integer'(X);
+      AGC_Dummy_0         : constant AGC.Empty_Type   :=
+        AGC.Push_Root (R'Address, Test.AGC_Visit_My_Integer_Access'Address);
+   begin
+      return AGC_Ret : Address := R.all'Address do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end Alloc;
+   function Deref (X : Address) return Integer is
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+      function Convert is new Ada.Unchecked_Conversion
+        (Address, My_Integer_Access);
+   begin
+      declare
+         AGC_Temp_0  : aliased Test.My_Integer_Access := Convert (X);
+         AGC_Dummy_0 : constant AGC.Empty_Type        :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_My_Integer_Access'Address);
+      begin
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return AGC_Temp_0.all;
+      end;
+   end Deref;
+   X : System.Address := Alloc (3);
+begin
+   AGC.Collect;
+   Put_Line (Deref (X)'Image);
+end Test;
