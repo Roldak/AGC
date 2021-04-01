@@ -49,5 +49,10 @@ package Utils is
    function Child_Index
      (Node : LALRW.Node_Rewriting_Handle) return Natural;
 
+   procedure Force_Set_Child
+     (Parent : LALRW.Node_Rewriting_Handle;
+      Child  : Positive;
+      Node   : LALRW.Node_Rewriting_Handle);
+
    function To_String (X : Integer) return Langkit_Support.Text.Text_Type;
 end Utils;

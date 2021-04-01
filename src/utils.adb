@@ -495,6 +495,20 @@ package body Utils is
 		return 0;
    end Child_Index;
 
+   procedure Force_Set_Child
+     (Parent : LALRW.Node_Rewriting_Handle;
+      Child  : Positive;
+      Node   : LALRW.Node_Rewriting_Handle)
+   is
+      use type LALRW.Node_Rewriting_Handle;
+   begin
+      if Node /= LALRW.No_Node_Rewriting_Handle and then LALRW.Tied (Node) then
+         LALRW.Replace (Node, LALRW.No_Node_Rewriting_Handle);
+      end if;
+
+      LALRW.Set_Child (Parent, Child, Node);
+   end Force_Set_Child;
+
    function To_String (X : Integer) return Langkit_Support.Text.Text_Type is
       Img : Langkit_Support.Text.Text_Type := X'Wide_Wide_Image;
    begin

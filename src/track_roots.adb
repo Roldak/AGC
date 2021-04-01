@@ -272,6 +272,8 @@ is
       then
          if not Decl_Part.Is_Null then
             Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+         elsif Handled_Stmts.Parent.Kind in LALCO.Ada_Begin_Block then
+            Require_Root_Count.Include (Handled_Stmts.Parent);
          end if;
          Pop_Objects (LALRW.Handle (Handler.F_Stmts), Subp_Level);
       end if;
@@ -395,13 +397,34 @@ is
    end Process_Subp_Body;
 
    procedure Process_Store_Request (Cursor : Node_Sets.Cursor) is
-      Decl_Part : LAL.Declarative_Part :=
-         Node_Sets.Element (Cursor).As_Declarative_Part;
+      Node       : LAL.Ada_Node := Node_Sets.Element (Cursor);
+      Subp_Level : Boolean := Node.Parent.Kind in LALCO.Ada_Base_Subp_Body;
 
-      Subp_Level : Boolean :=
-         Decl_Part.Parent.Kind in LALCO.Ada_Base_Subp_Body;
+      NNRH : LALRW.Node_Rewriting_Handle
+         renames LALRW.No_Node_Rewriting_Handle;
    begin
-      Store_Root_Count (LALRW.Handle (Decl_Part.F_Decls), Subp_Level);
+      if Node.Kind in LALCO.Ada_Declarative_Part_Range then
+         Store_Root_Count
+           (LALRW.Handle (Node.As_Declarative_Part.F_Decls),
+            Subp_Level);
+      elsif Node.Kind in LALCO.Ada_Begin_Block then
+         declare
+            Block : LAL.Begin_Block := Node.As_Begin_Block;
+
+            BH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Block);
+            DH : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+              (RH,
+               "declare begin null; end;",
+               (1 .. 0 => <>),
+               LALCO.IBlock_Stmt_Rule);
+         begin
+            LALRW.Replace (BH, DH);
+            Utils.Force_Set_Child (DH, 2, LALRW.Child (BH, 1));
+            Utils.Force_Set_Child (DH, 3, LALRW.Child (BH, 2));
+            Store_Root_Count
+              (LALRW.Child (LALRW.Child (DH, 1), 1), Subp_Level);
+         end;
+      end if;
    end Process_Store_Request;
 begin
    Unit.Root.Traverse (Process_Node'Access);
