@@ -43,7 +43,7 @@ package body Utils is
          return False;
       end if;
 
-      Full_Typ := Typ.P_Full_View.P_Base_Subtype;
+      Full_Typ := Typ.P_Base_Subtype.P_Full_View;
 
       if Is_Access_To_Value_Type (Full_Typ) then
          return True;
