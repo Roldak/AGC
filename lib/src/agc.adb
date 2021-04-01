@@ -110,7 +110,8 @@ package body AGC is
                T'Descriptor_Size / Storage_Unit + Finalization_Size;
 
             Elem_Addr   : constant Address := Acc.all'Address;
-            Header_Addr : constant Address := Elem_Addr - Type_Offset - 4;
+            Header_Addr : constant Address :=
+               Elem_Addr - Type_Offset - AGC.Storage.Extra_Bytes;
 
             State : Alloc_State_Access := As_Alloc_State_Access (Header_Addr);
          begin

@@ -1,6 +1,6 @@
  HEAP SUMMARY:
      in use at exit: 0 bytes in 0 blocks
-   total heap usage: 25 allocs, 25 frees, 1,408 bytes allocated
+   total heap usage: 25 allocs, 25 frees, 1,504 bytes allocated
  
  All heap blocks were freed -- no leaks are possible
  

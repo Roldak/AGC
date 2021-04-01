@@ -1,6 +1,5 @@
 with System;
 with System.Storage_Pools; use System.Storage_Pools;
-with System.Storage_Elements; use System.Storage_Elements;
 
 with Ada.Containers.Hashed_Sets;
 

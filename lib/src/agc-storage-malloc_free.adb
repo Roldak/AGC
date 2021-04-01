@@ -40,11 +40,11 @@ package body AGC.Storage.Malloc_Free is
       Size : Storage_Count;
       Alignment : Storage_Count)
    is
-      Actual_Size : constant Storage_Count := Size + 4;
+      Actual_Size : constant Storage_Count := Size + Extra_Bytes;
       Allocated   : constant System.Address := Alloc (size_t (Actual_Size));
 	begin
       AGC.Register (Allocated, Size);
-      Addr := Allocated + 4;
+      Addr := Allocated + Extra_Bytes;
 
       if Validate_Addresses.Value then
          Self.Allocated.Insert (Allocated);

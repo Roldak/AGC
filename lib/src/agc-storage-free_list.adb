@@ -212,7 +212,7 @@ package body AGC.Storage.Free_List is
          Self.Init;
       end if;
       declare
-         Actual_Size : constant Storage_Count := Size + 4;
+         Actual_Size : constant Storage_Count := Size + Extra_Bytes;
          Allocated   : System.Address := Find (Self, Actual_Size);
       begin
          if Allocated = System.Null_Address then
@@ -223,7 +223,7 @@ package body AGC.Storage.Free_List is
             end if;
          end if;
          AGC.Register (Allocated, Size);
-         Addr := Allocated + 4;
+         Addr := Allocated + Extra_Bytes;
       end;
    end Allocate;
 
