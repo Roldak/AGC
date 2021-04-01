@@ -1,9 +1,12 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Containers.Hashed_Maps;
+with Ada.Task_Attributes;
 
 with Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
+with Libadalang.Iterators;
 
 with Analysis;
 with Post_Actions;
@@ -15,9 +18,22 @@ package body Utils is
    is (Typ.P_Is_Access_Type
        and then Typ.P_Access_Def.Kind not in LALCO.Ada_Access_To_Subp_Def);
 
+   function Defined_In_Session (BD : LAL.Basic_Decl'Class) return Boolean is
+   begin
+      return Session.Is_File_To_Process (LAL.Get_Filename (BD.Unit));
+   end Defined_In_Session;
+
+   package Node_Bool_Maps is new Ada.Containers.Hashed_Maps
+     (LAL.Ada_Node, Boolean, LAL.Hash, LAL."=", "=");
+
+   package RT_Cache is new Ada.Task_Attributes
+     (Node_Bool_Maps.Map, Node_Bool_Maps.Empty_Map);
+
    function Is_Relevant_Type
      (Typ : LAL.Base_Type_Decl'Class) return Boolean
    is
+      use Libadalang.Iterators;
+
       Full_Typ : LAL.Base_Type_Decl;
 
       function Is_Known_Irrelevant return Boolean is
@@ -38,6 +54,56 @@ package body Utils is
          end if;
          return False;
       end Is_Known_Irrelevant;
+
+      function Is_Relevant_Component
+        (N : LAL.Ada_Node) return Boolean
+      is
+      begin
+         if N.Kind in LALCO.Ada_Base_Formal_Param_Decl then
+            return Is_Relevant_Type
+              (N.As_Base_Formal_Param_Decl.P_Formal_Type);
+         end if;
+         return False;
+      end Is_Relevant_Component;
+
+      function Compute return Boolean is
+      begin
+         if Is_Access_To_Value_Type (Full_Typ) then
+            return Defined_In_Session (Full_Typ) or else
+                   Is_Relevant_Type (Full_Typ.P_Accessed_Type);
+         elsif Is_Known_Irrelevant then
+            return False;
+         elsif Full_Typ.P_Is_Record_Type then
+            if Full_Typ.P_Is_Tagged_Type and then
+               Defined_In_Session (Full_Typ)
+            then
+               return True;
+            else
+               if not Find_First
+                 (Full_Typ.P_Record_Def.F_Components,
+                  Is_Relevant_Component'Access).Is_Null
+               then
+                  return True;
+               else
+                  return Is_Relevant_Type (Full_Typ.P_Base_Type);
+               end if;
+            end if;
+         else
+            return (Full_Typ.P_Is_Array_Type
+                    and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
+                or else (Full_Typ.P_Is_Classwide
+                         and then Is_Relevant_Type
+                           (Full_Typ.Parent.As_Base_Type_Decl))
+                or else (Full_Typ.P_Is_Interface_Type
+                         and then Defined_In_Session (Full_Typ))
+                or else Full_Typ.P_Is_Generic_Formal;
+         end if;
+      end Compute;
+
+      use type Node_Bool_Maps.Cursor;
+
+      Cursor : Node_Bool_Maps.Cursor;
+      Inserted : Boolean;
    begin
       if Typ.Is_Null then
          return False;
@@ -45,19 +111,26 @@ package body Utils is
 
       Full_Typ := Typ.P_Base_Subtype.P_Full_View;
 
-      if Is_Access_To_Value_Type (Full_Typ) then
-         return True;
-      elsif Is_Known_Irrelevant then
-         return False;
-      else
-         return Full_Typ.P_Is_Record_Type
-             or else (Full_Typ.P_Is_Array_Type
-                      and then Is_Relevant_Type (Full_Typ.P_Comp_Type))
-             or else (Full_Typ.P_Is_Classwide
-                      and then Is_Relevant_Type (Full_Typ.Parent.As_Base_Type_Decl))
-             or else Full_Typ.P_Is_Interface_Type
-             or else Full_Typ.P_Is_Generic_Formal;
-      end if;
+      begin
+         Cursor := RT_Cache.Reference.Find (Full_Typ.As_Ada_Node);
+         if Cursor /= Node_Bool_Maps.No_Element then
+            return Node_Bool_Maps.Element (Cursor);
+         end if;
+         RT_Cache.Reference.Insert
+           (Full_Typ.As_Ada_Node, False, Cursor, Inserted);
+      exception
+         when Program_Error =>
+            RT_Cache.Reference.Clear;
+            RT_Cache.Reference.Insert
+              (Full_Typ.As_Ada_Node, False, Cursor, Inserted);
+      end;
+
+      declare
+         Res : Boolean := Compute;
+      begin
+         RT_Cache.Reference.Replace_Element (Cursor, Res);
+         return Res;
+      end;
    end Is_Relevant_Type;
 
    function Is_Relevant_Root (Decl : LAL.Object_Decl'Class) return Boolean is

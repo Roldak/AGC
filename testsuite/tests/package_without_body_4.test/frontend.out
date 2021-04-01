@@ -5,12 +5,19 @@ with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    package Pkg is
+      type Integer_Access is access Integer with
+         Storage_Pool => AGC.Storage.Get.Pool;
+      procedure AGC_Visit_Integer_Access (X : System.Address);
       type Rec is record
-         X : Integer;
+         X : Integer_Access;
       end record;
       procedure AGC_Visit_Rec (X : System.Address);
    end Pkg;
    package body Pkg is
+      procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+        (Standard.Integer, False, AGC.No_Op);
+      procedure AGC_Visit_Integer_Access (X : System.Address) renames
+        AGC_Visit_Integer_Access_Implem;
       procedure AGC_Visit_Rec (X : System.Address) is
          pragma Suppress (Accessibility_Check);
          type Rec_Access is access all Rec;
@@ -19,7 +26,11 @@ procedure Test is
            (System.Address, Rec_Access);
          R : Rec renames Conv (X).all;
       begin
-         null;
+         declare
+            C : aliased Test.Pkg.Integer_Access := R.X;
+         begin
+            Test.Pkg.AGC_Visit_Integer_Access (C'Address);
+         end;
       end AGC_Visit_Rec;
    end Pkg;
 begin

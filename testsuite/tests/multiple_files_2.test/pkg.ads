@@ -1,6 +1,9 @@
 package Pkg is
+   type Integer_Access is access Integer;
+
    type T is record
-      X : Integer;
+      X     : Integer;
+      Dummy : Integer_Access := null;
    end record;
    type T_Access is access T;
 

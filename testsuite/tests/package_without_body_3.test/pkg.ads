@@ -1,6 +1,8 @@
 package Pkg is
+   type Integer_Access is access Integer;
+
    type Rec1 is record
-      X : Integer;
+      X : Integer_Access;
    end record;
 
    package Inner is

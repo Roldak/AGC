@@ -7,7 +7,9 @@ procedure Test is
    type T;
    type T_Access is access T with
       Storage_Pool => AGC.Storage.Get.Pool;
-   type T is null record;
+   type T is record
+      X : T_Access;
+   end record;
    procedure AGC_Visit_T (X : System.Address);
    procedure AGC_Visit_T_Access (X : System.Address);
    procedure AGC_Visit_T_Access_Implem is new AGC.Visit_Access_Type
@@ -22,7 +24,11 @@ procedure Test is
         (System.Address, Rec_Access);
       R : T renames Conv (X).all;
    begin
-      null;
+      declare
+         C : aliased Test.T_Access := R.X;
+      begin
+         Test.AGC_Visit_T_Access (C'Address);
+      end;
    end AGC_Visit_T;
 begin
    null;

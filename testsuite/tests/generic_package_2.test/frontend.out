@@ -4,11 +4,20 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
+with AGC;
 with Pkg;
 procedure Main is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   type Integer_Access is access all Integer with
+      Storage_Pool => AGC.Storage.Get.Pool;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC.Visit_Access_Type
+     (Standard.Integer, True, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+   V : aliased Integer := 2;
    type Rec is record
-      X : Integer := 2;
+      X : Integer_Access := V'Access;
    end record;
    procedure AGC_Visit_Rec (X : System.Address);
    procedure AGC_Visit_Rec (X : System.Address) is
@@ -19,7 +28,11 @@ procedure Main is
         (System.Address, Rec_Access);
       R : Rec renames Conv (X).all;
    begin
-      null;
+      declare
+         C : aliased Main.Integer_Access := R.X;
+      begin
+         Main.AGC_Visit_Integer_Access (C'Address);
+      end;
    end AGC_Visit_Rec;
    package Recs is new Pkg (Rec, AGC_Visit_T_Private => Main.AGC_Visit_Rec);
 begin
@@ -30,7 +43,7 @@ begin
         AGC.Push_Root (X'Address, Main.Recs.AGC_Visit_T_Access'Address);
    begin
       AGC.Collect;
-      Put_Line (X.all.X'Image);
+      Put_Line (X.all.X.all'Image);
       AGC.Pop_Roots (AGC_Root_Count);
    end;
    AGC.Collect;

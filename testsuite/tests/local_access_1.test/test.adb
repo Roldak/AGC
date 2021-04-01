@@ -7,9 +7,10 @@ procedure Test is
    type Rec is record
       X : aliased Integer;
       Y : aliased Integer;
+      Z : Integer_Access;
    end record;
 
-   R : aliased Rec := (others => 0);
+   R : aliased Rec := (Z => null, others => 0);
    A : aliased Integer_Access  := R.Y'Unchecked_Access;
 begin
    AGC.Collect;

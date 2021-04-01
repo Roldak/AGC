@@ -2,8 +2,9 @@ procedure Test is
    package Pkg is
       type T is private;
    private
+      type Integer_Access is access Integer;
       type T is record
-         X : Integer;
+         X : Integer_Access;
       end record;
    end Pkg;
 
