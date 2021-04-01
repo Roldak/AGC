@@ -243,21 +243,6 @@ package body Utils is
       return False;
    end Is_Generalized_Access_Type;
 
-   function Get_Record_Def
-     (Decl : LAL.Type_Decl'Class) return LAL.Base_Record_Def'Class
-   is
-      Type_Def : LAL.Type_Def'Class := Decl.F_Type_Def;
-   begin
-      if Type_Def.Kind in LALCO.Ada_Record_Type_Def then
-         return Type_Def.As_Record_Type_Def.F_Record_Def;
-      elsif Type_Def.Kind in LALCO.Ada_Derived_Type_Def then
-         if not Type_Def.As_Derived_Type_Def.F_Record_Extension.Is_Null then
-            return Type_Def.As_Derived_Type_Def.F_Record_Extension;
-         end if;
-      end if;
-      return LAL.No_Base_Record_Def;
-   end Get_Record_Def;
-
    function Generate_Type_Reference
      (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
    is

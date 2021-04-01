@@ -207,8 +207,7 @@ is
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
 
-      Rec_Def : LAL.Base_Record_Def'Class :=
-         Utils.Get_Record_Def (Decl.As_Type_Decl);
+      Rec_Def : LAL.Base_Record_Def'Class := Decl.P_Record_Def;
 
       Is_Tagged : Boolean := Decl.P_Is_Tagged_Type;
 
