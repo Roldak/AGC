@@ -17,7 +17,7 @@ package body AGC.Standard is
             declare
                E : aliased Lists.Element_Type := X;
             begin
-               Visit_Element_Type (E'Address);
+               AGC_Visit_Element_Type (E'Address);
             end;
          end loop;
       end AGC_Visit_List_Private;
@@ -39,7 +39,7 @@ package body AGC.Standard is
             declare
                E : aliased Vectors.Element_Type := X;
             begin
-               Visit_Element_Type (E'Address);
+               AGC_Visit_Element_Type (E'Address);
             end;
          end loop;
       end AGC_Visit_Vector_Private;
@@ -61,7 +61,7 @@ package body AGC.Standard is
             declare
                E : aliased Sets.Element_Type := X;
             begin
-               Visit_Element_Type (E'Address);
+               AGC_Visit_Element_Type (E'Address);
             end;
          end loop;
       end AGC_Visit_Set_Private;
@@ -72,8 +72,8 @@ package body AGC.Standard is
          K : aliased Maps.Key_Type := Maps.Key (C);
          V : aliased Maps.Element_Type := Maps.Element (C);
       begin
-         Visit_Key_Type (K'Address);
-         Visit_Element_Type (V'Address);
+         AGC_Visit_Key_Type (K'Address);
+         AGC_Visit_Element_Type (V'Address);
       end Visit_Cursor;
 
       procedure AGC_Visit_Map_Private (X : System.Address) is
@@ -127,7 +127,7 @@ package body AGC.Standard is
             declare
                E : aliased Vectors.Element_Type := X;
             begin
-               Visit_Element_Type (E'Address);
+               AGC_Visit_Element_Type (E'Address);
             end;
          end loop;
       end AGC_Visit_Vector_Private;

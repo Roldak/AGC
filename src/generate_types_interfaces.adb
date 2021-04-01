@@ -656,7 +656,7 @@ is
                if Param_Decl.Kind in LALCO.Ada_Base_Type_Decl then
                   Params :=
                      Params & ", "
-                     & "Visit_" & LAL.Text (Param_Name) & " => "
+                     & "AGC_Visit_" & LAL.Text (Param_Name) & " => "
                      & Visitor_Name
                          (Actual.As_Name.P_Name_Designated_Type);
                end if;

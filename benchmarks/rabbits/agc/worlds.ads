@@ -42,8 +42,8 @@ private
      (Positive, Entity_Access);
    package AGC_Entity_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
-     (Entity_Vectors, Visit_Index_Type => AGC.No_Op,
-      Visit_Element_Type               => Worlds.AGC_Visit_Entity_Access);
+     (Entity_Vectors, AGC_Visit_Index_Type => AGC.No_Op,
+      AGC_Visit_Element_Type               => Worlds.AGC_Visit_Entity_Access);
    type World is tagged record
       Entities     : Entity_Vectors.Vector;
       New_Entities : Entity_Vectors.Vector;

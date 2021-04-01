@@ -18,8 +18,8 @@ procedure Test is
      (Positive, Integer_Access);
    package AGC_Int_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
-     (Int_Vectors, Visit_Index_Type => AGC.No_Op,
-      Visit_Element_Type            => Test.AGC_Visit_Integer_Access);
+     (Int_Vectors, AGC_Visit_Index_Type => AGC.No_Op,
+      AGC_Visit_Element_Type            => Test.AGC_Visit_Integer_Access);
    V           : aliased Int_Vectors.Vector;
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root

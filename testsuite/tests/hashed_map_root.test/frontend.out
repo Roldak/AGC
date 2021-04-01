@@ -25,8 +25,8 @@ procedure Test is
          Equivalent_Keys => "=", "=" => "=");
       package AGC_Int_Maps_Visitors is new AGC.Standard
         .Ada_Containers_Hashed_Maps_Visitors
-        (Int_Maps, Visit_Key_Type => Test.Pkg.AGC_Visit_Rec,
-         Visit_Element_Type       => Test.Pkg.AGC_Visit_Rec);
+        (Int_Maps, AGC_Visit_Key_Type => Test.Pkg.AGC_Visit_Rec,
+         AGC_Visit_Element_Type       => Test.Pkg.AGC_Visit_Rec);
    end Pkg;
    package body Pkg is
       procedure AGC_Visit_Rec (X : System.Address) is
