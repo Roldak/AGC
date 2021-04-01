@@ -261,5 +261,6 @@ package body AGC is
    begin
       Put_Line ("Still alive : " & Alloc_Set.Length'Image);
       Put_Line ("Total registered : " & Total_Registered'Image);
+      Put_Line ("Root count : " & Reach_Set.Length'Image);
    end Print_Stats;
 end AGC;
