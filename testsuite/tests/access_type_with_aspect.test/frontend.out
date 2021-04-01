@@ -1,0 +1,18 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   type Integer_Access is access all Integer with
+      Size         => Standard'Address_Size,
+      Storage_Pool => AGC.Storage.Get.Pool;
+   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access_Implem is new AGC
+     .Mark_And_Visit_Access_Type
+     (Standard.Integer, True, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Visit_Integer_Access_Implem;
+begin
+   null;
+end Test;
