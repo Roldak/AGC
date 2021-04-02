@@ -1,0 +1,2 @@
+with "agc_runtime";
+project Prj is end Prj;
