@@ -1,20 +1,25 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with System.Address_Image;
 with Ada.Text_IO; use Ada.Text_IO;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   type Integer_Access is access all Integer with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type Integer_Access is access all Integer;
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Standard.Integer, True, AGC.No_Op);
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, True, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
-     AGC_Visit_Integer_Access_Implem;
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
    type Arr is array (1 .. 2) of aliased Integer;
    R           : aliased Arr             := (others => 0);
    A           : aliased Integer_Access  := R (2)'Unchecked_Access;

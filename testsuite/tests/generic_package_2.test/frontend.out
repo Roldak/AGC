@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -8,14 +9,18 @@ with AGC;
 with Pkg;
 procedure Main is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   type Integer_Access is access all Integer with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type Integer_Access is access all Integer;
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Standard.Integer, True, AGC.No_Op);
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, True, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
-     AGC_Visit_Integer_Access_Implem;
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
    V : aliased Integer := 2;
    type Rec is record
       X : Integer_Access := V'Access;
@@ -53,16 +58,21 @@ end Main;
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 package body Pkg is
-   procedure AGC_Visit_T_Access_Implem is new AGC.Mark_And_Visit_Access_Type
-     (Pkg.T, True, Pkg.AGC_Visit_T_Private);
+   package AGC_T_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Pkg.T, T_Access, True, Pkg.AGC_Visit_T_Private);
    procedure AGC_Visit_T_Access (X : System.Address) renames
-     AGC_Visit_T_Access_Implem;
+     AGC_T_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_T_Access (X : T_Access) return T_Access renames
+     AGC_T_Access_Ops_Implem.Register;
    function Create return T_Access is
    begin
-      return AGC_Ret : T_Access := new T do
+      return
+        AGC_Ret : T_Access := Pkg.AGC_Register_T_Access (Pkg.T_Access'(new T))
+      do
          null;
       end return;
    end Create;
@@ -70,14 +80,16 @@ end Pkg;
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 generic
    type T is private;
    with procedure AGC_Visit_T_Private (X : System.Address);
 package Pkg is
-   type T_Access is access all T with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type T_Access is access all T;
+   for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address);
+   function AGC_Register_T_Access (X : T_Access) return T_Access;
    function Create return T_Access;
 end Pkg;

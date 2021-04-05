@@ -17,6 +17,8 @@ package body AGC is
    type Address_Access is access all Address;
    type Address_Visitor is access procedure (X : Address);
 
+   type Finalizer is access procedure (X : System.Address);
+
    function As_Address_Access is new Ada.Unchecked_Conversion
      (Address, Address_Access)
          with Inline;
@@ -37,15 +39,22 @@ package body AGC is
       Ada.Unchecked_Conversion (Address, Alloc_State_Access)
          with Inline;
 
+   type Alloc is record
+      Header : Address;
+      Object : Address;
+      Final  : Finalizer;
+   end record;
+
    type Root is record
       Addr    : Address;
       Visitor : Address;
    end record;
 
+   package Alloc_Vectors is new Ada.Containers.Vectors (Positive, Alloc);
    package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
    package Root_Vectors is new Ada.Containers.Vectors (Positive, Root);
 
-   Alloc_Set : Address_Vectors.Vector;
+   Alloc_Set : Alloc_Vectors.Vector;
    Modif_Set : Address_Vectors.Vector;
    Reach_Set : Root_Vectors.Vector;
 
@@ -69,89 +78,122 @@ package body AGC is
 
    Total_Registered : Natural := 0;
 
-   procedure Register
-     (Addr : Address;
-      Size : Storage_Count)
-   is
-   begin
-      if Current_Size > Max_Size then
-         Collect;
-         Current_Size := 0;
-      end if;
-      Current_Size := Current_Size + Size;
-      Total_Registered := Total_Registered + 1;
+   Any_Modified     : Boolean := False;
 
-      Alloc_Set.Append (Addr);
-      As_Alloc_State_Access (Addr).all := Unknown;
-   end Register;
-
-   Any_Modified : Boolean := False;
-
-   procedure Visit_Access_Type (X : Address) is
+   package body Access_Type_Operations is
       pragma Suppress (Accessibility_Check);
 
-      type T_Access is access all T;
+      function Register
+        (Acc : Named_Access) return Named_Access
+      is
+         Finalization_Size : constant Storage_Count :=
+            Storage_Count (Integer'(Acc.all'Finalization_Size));
+         --  Workaround of a weird GNAT bug where 'Finalization_Size
+         --  doesn't seem to take the right type when used inline.
+
+         Type_Offset : constant Storage_Offset :=
+            T'Descriptor_Size / Storage_Unit + Finalization_Size;
+
+         Object_Address : constant Address := Acc.all'Address;
+
+         Header_Address : constant Address :=
+            Object_Address - Type_Offset - Storage.Extra_Bytes;
+
+         Final : Finalizer :=
+           (if Finalization_Size > 0
+            then Finalize'Unrestricted_Access
+            else null);
+
+         Size : constant Storage_Count :=
+            T'Object_Size / Storage_Unit + Storage.Extra_Bytes;
+      begin
+         if Current_Size > Max_Size then
+            Collect;
+            Current_Size := 0;
+         end if;
+
+         Current_Size := Current_Size + Size;
+         Total_Registered := Total_Registered + 1;
+
+         Alloc_Set.Append (Alloc'(Header_Address, Object_Address, Final));
+
+         As_Alloc_State_Access (Header_Address).all := Unknown;
+
+         return Acc;
+      end Register;
+
+      type T_Access is access all T
+         with Storage_Pool => Storage.Get.AGC_Pool;
+
       type T_Access_Access is access all T_Access;
+
       for T_Access_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
         (Address, T_Access_Access);
 
-      Acc         : aliased constant T_Access := Conv (X).all;
-   begin
-      if Acc /= null then
-         Visit_Element (Acc.all'Address);
-      end if;
-   end Visit_Access_Type;
+      procedure Visit_Access_Type (X : Address) is
+         Acc : aliased constant T_Access := Conv (X).all;
+      begin
+         if Acc /= null then
+            Visit_Element (Acc.all'Address);
+         end if;
+      end Visit_Access_Type;
 
-   procedure Mark_And_Visit_Access_Type (X : Address) is
-      pragma Suppress (Accessibility_Check);
+      procedure Mark_And_Visit_Access_Type (X : Address) is
+         Acc : aliased constant T_Access := Conv (X).all;
+      begin
+         if Acc /= null then
+            declare
+               Finalization_Size : constant Storage_Count :=
+                  Storage_Count (Integer'(Acc.all'Finalization_Size));
+               --  Workaround of a weird GNAT bug where 'Finalization_Size
+               --  doesn't seem to take the right type when used inline.
 
-      type T_Access is access all T;
-      type T_Access_Access is access all T_Access;
-      for T_Access_Access'Size use Standard'Address_Size;
+               Type_Offset : constant Storage_Offset :=
+                  T'Descriptor_Size / Storage_Unit + Finalization_Size;
 
-      function Conv is new Ada.Unchecked_Conversion
-        (Address, T_Access_Access);
+               Object_Address : constant Address := Acc.all'Address;
 
-      Acc         : aliased constant T_Access := Conv (X).all;
-   begin
-      if Acc /= null then
-         declare
-            Finalization_Size : constant Storage_Offset :=
-               Storage_Offset (Integer'(Acc.all'Finalization_Size));
-            --  Workaround of a weird GNAT bug where 'Finalization_Size
-            --  doesn't seem to take the right type when used inline.
+               Header_Address : constant Address :=
+                  Object_Address - Type_Offset - Storage.Extra_Bytes;
 
-            Type_Offset : constant Storage_Offset :=
-               T'Descriptor_Size / Storage_Unit + Finalization_Size;
-
-            Elem_Addr   : constant Address := Acc.all'Address;
-            Header_Addr : constant Address :=
-               Elem_Addr - Type_Offset - AGC.Storage.Extra_Bytes;
-
-            State : Alloc_State_Access := As_Alloc_State_Access (Header_Addr);
-         begin
-            if Validate_Addresses.Value
-               and then not Storage.Get.AGC_Pool.Is_Valid_Address (Header_Addr)
-            then
-               return;
-            end if;
-
-            if State.all = Unknown then
-               State.all := Reachable;
-               Visit_Element (Elem_Addr);
-
-               if not Validate_Addresses.Value
-                  and then Is_Generalized_Access
+               State : Alloc_State_Access :=
+                  As_Alloc_State_Access (Header_Address);
+            begin
+               if Validate_Addresses.Value and then
+                  not Storage.Get.AGC_Pool.Is_Valid_Address (Header_Address)
                then
-                  Any_Modified := True;
-                  Modif_Set.Append (Header_Addr);
+                  return;
                end if;
-            end if;
-         end;
-      end if;
-   end Mark_And_Visit_Access_Type;
+
+               if State.all = Unknown then
+                  State.all := Reachable;
+                  Visit_Element (Object_Address);
+
+                  if not Validate_Addresses.Value
+                     and then Is_Generalized_Access
+                  then
+                     Any_Modified := True;
+                     Modif_Set.Append (Header_Address);
+                  end if;
+               end if;
+            end;
+         end if;
+      end Mark_And_Visit_Access_Type;
+
+      function Conv is new Ada.Unchecked_Conversion
+        (Address, T_Access);
+
+      procedure Free is new Ada.Unchecked_Deallocation
+        (T, T_Access);
+
+      procedure Finalize (Object_Address : Address) is
+         Acc : T_Access := Conv (Object_Address);
+      begin
+         Free (Acc);
+      end Finalize;
+   end Access_Type_Operations;
 
    procedure Visit_Constrained_Array_1_Type (X : Address) is
       pragma Suppress (Accessibility_Check);
@@ -246,7 +288,7 @@ package body AGC is
       Any_Modified := False;
    end Reset_Modified;
 
-   New_Set : Address_Vectors.Vector;
+   New_Set : Alloc_Vectors.Vector;
 
    procedure Collect is
    begin
@@ -256,13 +298,16 @@ package body AGC is
 
       for Alloc of Alloc_Set loop
          declare
-            State : Alloc_State_Access := As_Alloc_State_Access (Alloc);
+            State : Alloc_State_Access := As_Alloc_State_Access (Alloc.Header);
          begin
             if State.all = Reachable then
                State.all := Unknown;
                New_Set.Append (Alloc);
             else
-               AGC.Storage.Get.AGC_Pool.Collect (Alloc);
+               if Alloc.Final /= null then
+                  Alloc.Final (Alloc.Object);
+               end if;
+               AGC.Storage.Get.AGC_Pool.Collect (Alloc.Header);
             end if;
          end;
       end loop;
@@ -271,7 +316,7 @@ package body AGC is
          Reset_Modified;
       end if;
 
-      Address_Vectors.Move (Alloc_Set, New_Set);
+      Alloc_Vectors.Move (Alloc_Set, New_Set);
    end Collect;
 
    procedure Print_Stats is

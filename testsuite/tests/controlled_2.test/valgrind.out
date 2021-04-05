@@ -1,0 +1,8 @@
+ HEAP SUMMARY:
+     in use at exit: 0 bytes in 0 blocks
+   total heap usage: 3 allocs, 3 frees, 144 bytes allocated
+ 
+ All heap blocks were freed -- no leaks are possible
+ 
+ For lists of detected and suppressed errors, rerun with: -s
+ ERROR SUMMARY: 0 errors from 0 contexts (suppressed: 0 from 0)

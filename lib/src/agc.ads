@@ -18,26 +18,30 @@ package AGC is
    procedure Pop_Roots (X : Natural)
       with Inline;
 
-   procedure Register
-     (Addr : System.Address;
-      Size : System.Storage_Elements.Storage_Count)
-      with Inline;
+   generic
+      type T (<>) is limited private;
+      type Named_Access is access T;
+      Is_Generalized_Access : Boolean;
+      with procedure Visit_Element (X : System.Address);
+   package Access_Type_Operations is
+
+      function Register
+        (Acc : Named_Access) return Named_Access
+         with Inline;
+
+      procedure Visit_Access_Type (X : System.Address)
+         with Inline;
+
+      procedure Mark_And_Visit_Access_Type (X : System.Address)
+         with Inline;
+
+   private
+
+      procedure Finalize (Object_Address : System.Address);
+
+   end Access_Type_Operations;
 
    procedure No_Op (X : System.Address) is null
-      with Inline;
-
-   generic
-      type T (<>) is private;
-      Is_Generalized_Access : Boolean;
-      with procedure Visit_Element (X : System.Address);
-   procedure Visit_Access_Type (X : System.Address)
-      with Inline;
-
-   generic
-      type T (<>) is private;
-      Is_Generalized_Access : Boolean;
-      with procedure Visit_Element (X : System.Address);
-   procedure Mark_And_Visit_Access_Type (X : System.Address)
       with Inline;
 
    generic

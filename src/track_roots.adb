@@ -149,6 +149,32 @@ is
       end;
    end Pop_Objects;
 
+   procedure Handle_Allocator (Alloc : LAL.Allocator'Class)
+   is
+      Typ : LAL.Base_Type_Decl'Class := Alloc.P_Expression_Type;
+   begin
+      if not Utils.Is_Managed (Typ) then
+         return;
+      end if;
+
+      declare
+         Type_Name     : Langkit_Support.Text.Text_Type :=
+            Utils.Generate_Type_Reference (Typ);
+         Register_Name : Langkit_Support.Text.Text_Type :=
+            Utils.Register_Name (Typ);
+
+         AH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Alloc);
+         QH : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+           (RH, Type_Name & "'(null)", (1 .. 0 => <>), LALCO.Expr_Rule);
+         CH : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
+           (RH, Register_Name & "(null)", (1 .. 0 => <>), LALCO.Name_Rule);
+      begin
+         LALRW.Replace (AH, CH);
+         LALRW.Set_Child (LALRW.Child (QH, 2), 1, AH);
+         LALRW.Set_Child (LALRW.Child (LALRW.Child (CH, 2), 1), 2, QH);
+      end;
+   end Handle_Allocator;
+
    procedure Handle_Aliased_Annot (Node : LAL.Aliased_Absent'Class)
    is
       SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
@@ -361,6 +387,8 @@ is
    is
    begin
       case Node.Kind is
+         when LALCO.Ada_Allocator =>
+            Handle_Allocator (Node.As_Allocator);
          when LALCO.Ada_Aliased_Absent =>
             Handle_Aliased_Annot (Node.As_Aliased_Absent);
          when LALCO.Ada_Declarative_Part_Range =>

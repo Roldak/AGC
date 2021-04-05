@@ -140,6 +140,21 @@ package body Utils is
       return Is_Relevant_Type (Type_Decl) and then not Is_Alias (Decl);
    end Is_Relevant_Root;
 
+   function Is_Managed (Typ : LAL.Base_Type_Decl'Class) return Boolean is
+      SP : LAL.Aspect := Typ.P_Get_Aspect (Storage_Pool_Symbol);
+   begin
+      if not Session.Is_File_To_Process (LAL.Get_Filename (Typ.Unit)) then
+         return False;
+      end if;
+      if not LAL.Exists (Sp) then
+         return True;
+      end if;
+      if LAL.Text (LAL.Value (Sp)) = "AGC.Storage.Get.Pool" then
+         return True;
+      end if;
+      return False;
+   end Is_Managed;
+
    function Is_Alias (Decl : LAL.Object_Decl'Class) return Boolean is
       Is_Constant : Boolean :=
          Decl.F_Has_Constant.Kind in LALCO.Ada_Constant_Present;
@@ -479,6 +494,24 @@ package body Utils is
          return "AGC.No_Op";
       end if;
    end Visitor_Name;
+
+   function Register_Name
+     (Typ                 : LAL.Base_Type_Decl'Class;
+      Is_Ref              : Boolean           := True)
+      return Langkit_Support.Text.Text_Type
+   is
+      Type_Name : Langkit_Support.Text.Text_Type :=
+         Get_Type_Name (Typ);
+   begin
+      if Is_Subtype_Decl (Typ) then
+         return Register_Name (Typ.P_Base_Subtype, Is_Ref);
+      elsif Is_Ref then
+         return Fully_Qualified_Decl_Part_Of (Typ)
+                  & "AGC_Register_" & Type_Name;
+      else
+         return "AGC_Register_" & Type_Name;
+      end if;
+   end Register_Name;
 
    function Child_Index
      (Node : LALRW.Node_Rewriting_Handle) return Natural

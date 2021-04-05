@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -8,19 +9,25 @@ procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    package Pkg is
       type T is new Integer;
-      type T_Access is access T with
-         Storage_Pool => AGC.Storage.Get.Pool;
+      type T_Access is access T;
+      for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
       procedure AGC_Visit_T_Access (X : System.Address);
+      function AGC_Register_T_Access (X : T_Access) return T_Access;
       function Create (X : Integer) return T_Access;
    end Pkg;
    package body Pkg is
-      procedure AGC_Visit_T_Access_Implem is new AGC.Mark_And_Visit_Access_Type
-        (Test.Pkg.T, False, AGC.No_Op);
+      package AGC_T_Access_Ops_Implem is new AGC.Access_Type_Operations
+        (Test.Pkg.T, T_Access, False, AGC.No_Op);
       procedure AGC_Visit_T_Access (X : System.Address) renames
-        AGC_Visit_T_Access_Implem;
+        AGC_T_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+      function AGC_Register_T_Access (X : T_Access) return T_Access renames
+        AGC_T_Access_Ops_Implem.Register;
       function Create (X : Integer) return T_Access is
       begin
-         return AGC_Ret : T_Access := new T'(T (X)) do
+         return
+           AGC_Ret : T_Access :=
+             Test.Pkg.AGC_Register_T_Access (Test.Pkg.T_Access'(new T'(T (X))))
+         do
             null;
          end return;
       end Create;

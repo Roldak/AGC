@@ -222,7 +222,6 @@ package body AGC.Storage.Free_List is
                raise Program_Error with "Out of memory";
             end if;
          end if;
-         AGC.Register (Allocated, Size);
          Addr := Allocated + Extra_Bytes;
       end;
    end Allocate;

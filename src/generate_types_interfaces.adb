@@ -24,9 +24,6 @@ is
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
 
-   Storage_Pool_Symbol : Langkit_Support.Text.Unbounded_Text_Type :=
-      Langkit_Support.Text.To_Unbounded_Text ("Storage_Pool");
-
    function Starts_With
      (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean
    is (Str'Length >= Prefix'Length
@@ -163,6 +160,9 @@ is
       Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
    is
+      Access_Type_Name : Langkit_Support.Text.Text_Type :=
+         LAL.Text (Decl.P_Defining_Name);
+
       Element_Type : LAL.Base_Type_Decl'Class :=
          Decl.P_Accessed_Type;
 
@@ -172,20 +172,36 @@ is
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
 
+      Ops_Pkg_Name  : Langkit_Support.Text.Text_Type :=
+         "AGC_" & Access_Type_Name & "_Ops_Implem";
+
       Has_Storage_Pool_Aspect : Boolean :=
-         Decl.P_Has_Aspect (Storage_Pool_Symbol);
+         Decl.P_Has_Aspect (Utils.Storage_Pool_Symbol);
 
       Impl_Name : Langkit_Support.Text.Text_Type :=
         (if Has_Storage_Pool_Aspect
-         then "AGC.Visit_Access_Type"
-         else "AGC.Mark_And_Visit_Access_Type");
+         then "Visit_Access_Type"
+         else "Mark_And_Visit_Access_Type");
+
+      Register_Name : Langkit_Support.Text.Text_Type :=
+         Utils.Register_Name (Decl, Is_Ref => False);
    begin
+      if not Has_Storage_Pool_Aspect then
+         Append (LALRW.Create_From_Template
+           (RH,
+            "for " & Access_Type_Name
+            & "'Storage_Pool use AGC.Storage.Get.Pool;",
+            (1 .. 0 => <>), LALCO.Aspect_Clause_Rule));
+      end if;
+
       Generate_Visitor_Prototype (Visit_Name, Decl, Append);
 
       Append (LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & "_Implem is new " & Impl_Name & " ("
+        "package " & Ops_Pkg_Name
+        & " is new AGC.Access_Type_Operations ("
         & Element_Type_Name & ", "
+        & Access_Type_Name & ", "
         & Is_Generalized & ", "
         & Visitor_Name (Element_Type) & ");",
         (1 .. 0 => <>),
@@ -194,25 +210,26 @@ is
       Append (LALRW.Create_From_Template
         (RH,
         "procedure " & Visit_Name & " (X : System.Address) "
-        & "renames " & Visit_Name & "_Implem;",
+        & "renames " & Ops_Pkg_Name & "." & Impl_Name & ";",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
 
       if not Has_Storage_Pool_Aspect then
-         if Decl.F_Aspects.Is_Null then
-            LALRW.Set_Child
-              (LALRW.Handle (Decl),
-               4,
-               LALRW.Create_From_Template
-                 (RH, "with Storage_Pool => AGC.Storage.Get.Pool",
-                  (1 .. 0 => <>), LALCO.Aspect_Spec_Rule));
-         else
-            LALRW.Append_Child
-              (LALRW.Handle (Decl.F_Aspects.F_Aspect_Assocs),
-               LALRW.Create_From_Template
-                 (RH, "Storage_Pool => AGC.Storage.Get.Pool",
-                  (1 .. 0 => <>), LALCO.Aspect_Assoc_Rule));
-         end if;
+         Append (LALRW.Create_From_Template
+           (RH,
+           "function " & Register_Name
+           & " (X : " & Access_Type_Name & ") return "
+           & Access_Type_Name & ";",
+           (1 .. 0 => <>),
+           LALCO.Basic_Decl_Rule));
+
+         Append (LALRW.Create_From_Template
+           (RH,
+           "function " & Register_Name
+           & " (X : " & Access_Type_Name & ") return "
+           & Access_Type_Name & " renames " & Ops_Pkg_Name & ".Register;",
+           (1 .. 0 => <>),
+           LALCO.Basic_Decl_Rule));
       end if;
    end Generate_Access_Type_Visitor;
 

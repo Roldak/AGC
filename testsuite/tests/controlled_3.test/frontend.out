@@ -1,0 +1,95 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with AGC.Storage.Controlled;
+with System;
+with Ada.Unchecked_Conversion;
+with AGC;
+with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Containers.Vectors;
+with Ada.Finalization;
+procedure Test is
+   package Int_Vectors is new Ada.Containers.Vectors (Positive, Integer);
+   package AGC_Int_Vectors_Visitors is new AGC.Standard
+     .Ada_Containers_Vectors_Visitors
+     (Int_Vectors, AGC_Visit_Index_Type => AGC.No_Op,
+      AGC_Visit_Element_Type            => AGC.No_Op);
+   package Pkg is
+      type My_Rec is new Ada.Finalization.Controlled with record
+         V : Int_Vectors.Vector;
+         L : Integer;
+      end record;
+      procedure AGC_Visit_My_Rec (X : System.Address);
+      procedure AGC_Visit (X : access My_Rec);
+      procedure AGC_Visit_My_Rec_Classwide (X : System.Address);
+      overriding procedure Finalize (X : in out My_Rec);
+   end Pkg;
+   package body Pkg is
+      procedure AGC_Visit_My_Rec (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all My_Rec'Class;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : My_Rec'Class renames Conv (X).all;
+      begin
+         AGC.No_Op (X);
+      end AGC_Visit_My_Rec;
+      procedure AGC_Visit (X : access My_Rec) is
+      begin
+         AGC_Visit_My_Rec (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_My_Rec_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all My_Rec'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_My_Rec_Classwide;
+      overriding procedure Finalize (X : in out My_Rec) is
+      begin
+         Put_Line ("My_Rec being finalized");
+      end Finalize;
+   end Pkg;
+   use Pkg;
+   procedure Main is
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+      type My_Rec_Access is access My_Rec;
+      for My_Rec_Access'Storage_Pool use AGC.Storage.Get.Pool;
+      procedure AGC_Visit_My_Rec_Access (X : System.Address);
+      package AGC_My_Rec_Access_Ops_Implem is new AGC.Access_Type_Operations
+        (Test.Pkg.My_Rec, My_Rec_Access, False, Test.Pkg.AGC_Visit_My_Rec);
+      procedure AGC_Visit_My_Rec_Access (X : System.Address) renames
+        AGC_My_Rec_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+      function AGC_Register_My_Rec_Access
+        (X : My_Rec_Access) return My_Rec_Access;
+      function AGC_Register_My_Rec_Access
+        (X : My_Rec_Access) return My_Rec_Access renames
+        AGC_My_Rec_Access_Ops_Implem.Register;
+      X : aliased My_Rec_Access :=
+        Test.Main.AGC_Register_My_Rec_Access
+          (Test.Main.My_Rec_Access'
+             (new My_Rec'
+                (Ada.Finalization.Controlled with L => 42, others => <>)));
+      AGC_Dummy_0 : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Test.Main.AGC_Visit_My_Rec_Access'Address);
+   begin
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+   end Main;
+   procedure Fill_Stack is
+      A : Integer := 42;
+      B : Integer := 42;
+      C : Integer := 42;
+      D : Integer := 42;
+      E : Integer := 42;
+   begin
+      null;
+   end Fill_Stack;
+begin
+   Main;
+   Fill_Stack;
+   Put_Line ("Before collection");
+   AGC.Collect;
+end Test;

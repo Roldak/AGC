@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with AGC;
@@ -10,9 +11,10 @@ procedure Test is
       type I is interface;
       procedure AGC_Visit (X : access I) is abstract;
       procedure AGC_Visit_I_Classwide (X : System.Address);
-      type I_Access is access I'Class with
-         Storage_Pool => AGC.Storage.Get.Pool;
+      type I_Access is access I'Class;
+      for I_Access'Storage_Pool use AGC.Storage.Get.Pool;
       procedure AGC_Visit_I_Access (X : System.Address);
+      function AGC_Register_I_Access (X : I_Access) return I_Access;
    end Pkg_Itf;
    package body Pkg_Itf is
       procedure AGC_Visit_I_Classwide (X : System.Address) is
@@ -24,19 +26,26 @@ procedure Test is
       begin
          Conv (X).AGC_Visit;
       end AGC_Visit_I_Classwide;
-      procedure AGC_Visit_I_Access_Implem is new AGC.Mark_And_Visit_Access_Type
-        (Test.Pkg_Itf.I'Class, False, Test.Pkg_Itf.AGC_Visit_I_Classwide);
+      package AGC_I_Access_Ops_Implem is new AGC.Access_Type_Operations
+        (Test.Pkg_Itf.I'Class, I_Access, False,
+         Test.Pkg_Itf.AGC_Visit_I_Classwide);
       procedure AGC_Visit_I_Access (X : System.Address) renames
-        AGC_Visit_I_Access_Implem;
+        AGC_I_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+      function AGC_Register_I_Access (X : I_Access) return I_Access renames
+        AGC_I_Access_Ops_Implem.Register;
    end Pkg_Itf;
-   type Integer_Access is access Integer with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type Integer_Access is access Integer;
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Standard.Integer, False, AGC.No_Op);
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
-     AGC_Visit_Integer_Access_Implem;
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
    package Pkg_T1 is
       type T is new Pkg_Itf.I with record
          X : Integer_Access;
@@ -83,12 +92,16 @@ begin
    begin
       declare
          AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_0     : aliased Test.Integer_Access := new Integer'(42);
-         AGC_Dummy_1    : constant AGC.Empty_Type     :=
+         AGC_Temp_0     : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(42)));
+         AGC_Dummy_1 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       begin
-         X := new Pkg_T1.T'(X => AGC_Temp_0);
+         X :=
+           Test.Pkg_Itf.AGC_Register_I_Access
+             (Test.Pkg_Itf.I_Access'(new Pkg_T1.T'(X => AGC_Temp_0)));
          AGC.Pop_Roots (AGC_Root_Count);
       end;
       AGC.Collect;

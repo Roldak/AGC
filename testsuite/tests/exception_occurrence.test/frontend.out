@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Exceptions;

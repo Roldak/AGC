@@ -37,8 +37,11 @@ begin
         (RH, "with AGC.Storage.Get;", (1 .. 0 => <>),
          LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 4, LALRW.Create_From_Template
-        (RH, "with System;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
+        (RH, "with AGC.Storage.Controlled;", (1 .. 0 => <>),
+         LALCO.With_Clause_Rule));
       LALRW.Insert_Child (WH, 5, LALRW.Create_From_Template
+        (RH, "with System;", (1 .. 0 => <>), LALCO.With_Clause_Rule));
+      LALRW.Insert_Child (WH, 6, LALRW.Create_From_Template
         (RH, "with Ada.Unchecked_Conversion;",
          (1 .. 0 => <>), LALCO.With_Clause_Rule));
    end;

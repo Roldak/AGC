@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -8,14 +9,19 @@ with Ada.Unchecked_Conversion;
 with System;      use System;
 with AGC;
 procedure Test is
-   type Integer_Access is access Integer with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   type Integer_Access is access Integer;
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Standard.Integer, False, AGC.No_Op);
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
-     AGC_Visit_Integer_Access_Implem;
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
    type Rec is record
       X : Integer_Access;
    end record;
@@ -37,49 +43,32 @@ procedure Test is
    type My_Rec_Access is access Rec with
       Storage_Pool => AGC.Non_Managed'Storage_Pool;
    procedure AGC_Visit_My_Rec_Access (X : System.Address);
-   procedure AGC_Visit_My_Rec_Access_Implem is new AGC.Visit_Access_Type
-     (Test.Rec, False, Test.AGC_Visit_Rec);
+   package AGC_My_Rec_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Test.Rec, My_Rec_Access, False, Test.AGC_Visit_Rec);
    procedure AGC_Visit_My_Rec_Access (X : System.Address) renames
-     AGC_Visit_My_Rec_Access_Implem;
-   function Alloc (X : Integer) return Address is
+     AGC_My_Rec_Access_Ops_Implem.Visit_Access_Type;
+   function Alloc (X : Integer) return My_Rec_Access;
+   function Alloc (X : Integer) return My_Rec_Access is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-      function AGC_Func_0 return My_Rec_Access;
-      function AGC_Func_0 return My_Rec_Access is
-         AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_0          : aliased Test.Integer_Access := new Integer'(X);
-         AGC_Dummy_0         : constant AGC.Empty_Type     :=
+   begin
+      declare
+         AGC_Temp_0 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(X)));
+         AGC_Dummy_0 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       begin
-         return AGC_Ret : My_Rec_Access := new Rec'(X => AGC_Temp_0) do
+         return AGC_Ret : My_Rec_Access := (new Rec'(X => AGC_Temp_0)) do
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
-      end AGC_Func_0;
-      R           : aliased My_Rec_Access   := AGC_Func_0;
-      AGC_Dummy_0 : constant AGC.Empty_Type :=
-        AGC.Push_Root (R'Address, Test.AGC_Visit_My_Rec_Access'Address);
-   begin
-      return AGC_Ret : Address := R.all'Address do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
-   end Alloc;
-   function Deref (X : Address) return Integer is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-      function Convert is new Ada.Unchecked_Conversion
-        (Address, My_Rec_Access);
-   begin
-      declare
-         AGC_Temp_0  : aliased Test.My_Rec_Access := Convert (X);
-         AGC_Dummy_0 : constant AGC.Empty_Type    :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Test.AGC_Visit_My_Rec_Access'Address);
-      begin
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-         return AGC_Temp_0.all.X.all;
       end;
-   end Deref;
-   X : System.Address := Alloc (3);
+   end Alloc;
+   X           : aliased My_Rec_Access   := Alloc (3);
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_My_Rec_Access'Address);
 begin
    AGC.Collect;
-   Put_Line (Deref (X)'Image);
+   Put_Line (X.X.all'Image);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

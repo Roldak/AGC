@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -11,10 +12,10 @@ procedure Test is
    type My_Integer_Access is access Integer with
       Storage_Pool => AGC.Non_Managed'Storage_Pool;
    procedure AGC_Visit_My_Integer_Access (X : System.Address);
-   procedure AGC_Visit_My_Integer_Access_Implem is new AGC.Visit_Access_Type
-     (Standard.Integer, False, AGC.No_Op);
+   package AGC_My_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, My_Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_My_Integer_Access (X : System.Address) renames
-     AGC_Visit_My_Integer_Access_Implem;
+     AGC_My_Integer_Access_Ops_Implem.Visit_Access_Type;
    function Alloc (X : Integer) return Address is
       AGC_Base_Root_Count : constant Natural          := AGC.Root_Count;
       R                   : aliased My_Integer_Access := new Integer'(X);

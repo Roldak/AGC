@@ -43,7 +43,6 @@ package body AGC.Storage.Malloc_Free is
       Actual_Size : constant Storage_Count := Size + Extra_Bytes;
       Allocated   : constant System.Address := Alloc (size_t (Actual_Size));
 	begin
-      AGC.Register (Allocated, Size);
       Addr := Allocated + Extra_Bytes;
 
       if Validate_Addresses.Value then

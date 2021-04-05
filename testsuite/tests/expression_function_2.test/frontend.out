@@ -1,25 +1,34 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-   type Integer_Access is access Integer with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type Integer_Access is access Integer;
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Standard.Integer, False, AGC.No_Op);
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
-     AGC_Visit_Integer_Access_Implem;
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
    package Pkg is
       function Incr (X : Integer_Access) return Integer_Access;
    end Pkg;
    package body Pkg is
       function Incr (X : Integer_Access) return Integer_Access is
       begin
-         return AGC_Ret : Integer_Access := (new Integer'(X.all + 1)) do
+         return
+           AGC_Ret : Integer_Access :=
+             (Test.AGC_Register_Integer_Access
+                (Test.Integer_Access'(new Integer'(X.all + 1))))
+         do
             null;
          end return;
       end Incr;
@@ -29,8 +38,10 @@ procedure Test is
      AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
 begin
    declare
-      AGC_Temp_0  : aliased Test.Integer_Access := new Integer'(2);
-      AGC_Dummy_1 : constant AGC.Empty_Type     :=
+      AGC_Temp_0 : aliased Test.Integer_Access :=
+        Test.AGC_Register_Integer_Access
+          (Test.Integer_Access'(new Integer'(2)));
+      AGC_Dummy_1 : constant AGC.Empty_Type :=
         AGC.Push_Root
           (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin

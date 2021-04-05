@@ -1,20 +1,26 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    subtype My_Natural is Integer range 0 .. Integer'Last;
-   type My_Nat_Access is access My_Natural with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type My_Nat_Access is access My_Natural;
+   for My_Nat_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_My_Nat_Access (X : System.Address);
-   procedure AGC_Visit_My_Nat_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Test.My_Natural, False, AGC.No_Op);
+   package AGC_My_Nat_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Test.My_Natural, My_Nat_Access, False, AGC.No_Op);
    procedure AGC_Visit_My_Nat_Access (X : System.Address) renames
-     AGC_Visit_My_Nat_Access_Implem;
-   X           : aliased My_Nat_Access   := new My_Natural'(2);
+     AGC_My_Nat_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_My_Nat_Access
+     (X : My_Nat_Access) return My_Nat_Access;
+   function AGC_Register_My_Nat_Access
+     (X : My_Nat_Access) return My_Nat_Access renames
+     AGC_My_Nat_Access_Ops_Implem.Register;
+   X : aliased My_Nat_Access :=
+     Test.AGC_Register_My_Nat_Access (Test.My_Nat_Access'(new My_Natural'(2)));
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.AGC_Visit_My_Nat_Access'Address);
 begin

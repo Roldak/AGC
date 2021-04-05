@@ -1,0 +1,68 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with AGC.Storage.Controlled;
+with System;
+with Ada.Unchecked_Conversion;
+with AGC;
+with Ada.Finalization;
+procedure Test is
+   package Pkg is
+      type T is new Ada.Finalization.Controlled with record
+         X : Integer;
+      end record;
+      procedure AGC_Visit_T (X : System.Address);
+      procedure AGC_Visit (X : access T);
+      procedure AGC_Visit_T_Classwide (X : System.Address);
+      type T_Access is access all T;
+      for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
+      procedure AGC_Visit_T_Access (X : System.Address);
+      function AGC_Register_T_Access (X : T_Access) return T_Access;
+   end Pkg;
+   package body Pkg is
+      procedure AGC_Visit_T (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type Rec_Access is access all T'Class;
+         for Rec_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, Rec_Access);
+         R : T'Class renames Conv (X).all;
+      begin
+         AGC.No_Op (X);
+      end AGC_Visit_T;
+      procedure AGC_Visit (X : access T) is
+      begin
+         AGC_Visit_T (X.all'Address);
+      end AGC_Visit;
+      procedure AGC_Visit_T_Classwide (X : System.Address) is
+         pragma Suppress (Accessibility_Check);
+         type T_Access is access all T'Class;
+         for T_Access'Size use Standard'Address_Size;
+         function Conv is new Ada.Unchecked_Conversion
+           (System.Address, T_Access);
+      begin
+         Conv (X).AGC_Visit;
+      end AGC_Visit_T_Classwide;
+      package AGC_T_Access_Ops_Implem is new AGC.Access_Type_Operations
+        (Test.Pkg.T, T_Access, True, Test.Pkg.AGC_Visit_T);
+      procedure AGC_Visit_T_Access (X : System.Address) renames
+        AGC_T_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+      function AGC_Register_T_Access (X : T_Access) return T_Access renames
+        AGC_T_Access_Ops_Implem.Register;
+   end Pkg;
+   use Pkg;
+   procedure Main is
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+      X                   : aliased T_Access :=
+        Test.Pkg.AGC_Register_T_Access
+          (Test.Pkg.T_Access'
+             (new T'(Ada.Finalization.Controlled with X => 3)));
+      AGC_Dummy_0 : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Test.Pkg.AGC_Visit_T_Access'Address);
+   begin
+      AGC.Pop_Roots (AGC_Base_Root_Count);
+   end Main;
+begin
+   Main;
+   AGC.Collect;
+end Test;

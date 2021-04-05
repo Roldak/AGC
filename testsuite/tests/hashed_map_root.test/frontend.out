@@ -1,19 +1,24 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with AGC;
 with Ada.Containers.Hashed_Maps;
 procedure Test is
-   type Integer_Access is access Integer with
-      Storage_Pool => AGC.Storage.Get.Pool;
+   type Integer_Access is access Integer;
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address);
-   procedure AGC_Visit_Integer_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Standard.Integer, False, AGC.No_Op);
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
-     AGC_Visit_Integer_Access_Implem;
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
    package Pkg is
       type Rec is record
          Value : Integer_Access;
@@ -66,15 +71,19 @@ procedure Test is
    begin
       declare
          AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_3     : aliased Test.Integer_Access := new Integer'(2);
-         AGC_Dummy_1    : constant AGC.Empty_Type     :=
+         AGC_Temp_3     : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(2)));
+         AGC_Dummy_1 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_3'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_2  : aliased Test.Pkg.Rec    := (Value => AGC_Temp_3);
          AGC_Dummy_2 : constant AGC.Empty_Type :=
            AGC.Push_Root (AGC_Temp_2'Address, Test.Pkg.AGC_Visit_Rec'Address);
-         AGC_Temp_1  : aliased Test.Integer_Access := new Integer'(1);
-         AGC_Dummy_3 : constant AGC.Empty_Type     :=
+         AGC_Temp_1 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(1)));
+         AGC_Dummy_3 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_0  : aliased Test.Pkg.Rec    := (Value => AGC_Temp_1);
@@ -86,15 +95,19 @@ procedure Test is
       end;
       declare
          AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_3     : aliased Test.Integer_Access := new Integer'(4);
-         AGC_Dummy_5    : constant AGC.Empty_Type     :=
+         AGC_Temp_3     : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(4)));
+         AGC_Dummy_5 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_3'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_2  : aliased Test.Pkg.Rec    := (Value => AGC_Temp_3);
          AGC_Dummy_6 : constant AGC.Empty_Type :=
            AGC.Push_Root (AGC_Temp_2'Address, Test.Pkg.AGC_Visit_Rec'Address);
-         AGC_Temp_1  : aliased Test.Integer_Access := new Integer'(3);
-         AGC_Dummy_7 : constant AGC.Empty_Type     :=
+         AGC_Temp_1 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(3)));
+         AGC_Dummy_7 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_0  : aliased Test.Pkg.Rec    := (Value => AGC_Temp_1);
@@ -106,15 +119,19 @@ procedure Test is
       end;
       declare
          AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_3     : aliased Test.Integer_Access := new Integer'(6);
-         AGC_Dummy_9    : constant AGC.Empty_Type     :=
+         AGC_Temp_3     : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(6)));
+         AGC_Dummy_9 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_3'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_2   : aliased Test.Pkg.Rec    := (Value => AGC_Temp_3);
          AGC_Dummy_10 : constant AGC.Empty_Type :=
            AGC.Push_Root (AGC_Temp_2'Address, Test.Pkg.AGC_Visit_Rec'Address);
-         AGC_Temp_1   : aliased Test.Integer_Access := new Integer'(5);
-         AGC_Dummy_11 : constant AGC.Empty_Type     :=
+         AGC_Temp_1 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(5)));
+         AGC_Dummy_11 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_0   : aliased Test.Pkg.Rec    := (Value => AGC_Temp_1);
@@ -126,8 +143,10 @@ procedure Test is
       end;
       AGC.Collect;
       declare
-         AGC_Temp_7   : aliased Test.Integer_Access := new Integer'(5);
-         AGC_Dummy_13 : constant AGC.Empty_Type     :=
+         AGC_Temp_7 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(5)));
+         AGC_Dummy_13 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_7'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_6   : aliased Test.Pkg.Rec    := (Value => AGC_Temp_7);
@@ -141,8 +160,10 @@ procedure Test is
          AGC_Temp_4   : aliased Test.Pkg.Rec := Int_Maps.Element (AGC_Temp_5);
          AGC_Dummy_16 : constant AGC.Empty_Type :=
            AGC.Push_Root (AGC_Temp_4'Address, Test.Pkg.AGC_Visit_Rec'Address);
-         AGC_Temp_3   : aliased Test.Integer_Access := new Integer'(3);
-         AGC_Dummy_17 : constant AGC.Empty_Type     :=
+         AGC_Temp_3 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(3)));
+         AGC_Dummy_17 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_3'Address, Test.AGC_Visit_Integer_Access'Address);
          AGC_Temp_2   : aliased Test.Pkg.Rec    := (Value => AGC_Temp_3);

@@ -1,6 +1,7 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
+with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -12,19 +13,24 @@ procedure Test is
       function Create (X : Integer) return T;
       function Get (X : T) return Integer;
    private
-      type T is access all Integer with
-         Storage_Pool => AGC.Storage.Get.Pool;
+      type T is access all Integer;
+      for T'Storage_Pool use AGC.Storage.Get.Pool;
       procedure AGC_Visit_T (X : System.Address);
+      function AGC_Register_T (X : T) return T;
    end P;
    package body P is
       procedure AGC_Visit_T_Private (X : System.Address) renames
         Test.P.AGC_Visit_T;
-      procedure AGC_Visit_T_Implem is new AGC.Mark_And_Visit_Access_Type
-        (Standard.Integer, True, AGC.No_Op);
-      procedure AGC_Visit_T (X : System.Address) renames AGC_Visit_T_Implem;
+      package AGC_T_Ops_Implem is new AGC.Access_Type_Operations
+        (Standard.Integer, T, True, AGC.No_Op);
+      procedure AGC_Visit_T (X : System.Address) renames
+        AGC_T_Ops_Implem.Mark_And_Visit_Access_Type;
+      function AGC_Register_T (X : T) return T renames
+        AGC_T_Ops_Implem.Register;
       function Create (X : Integer) return T is
       begin
-         return AGC_Ret : T := new Integer'(X) do
+         return
+           AGC_Ret : T := Test.P.AGC_Register_T (Test.P.T'(new Integer'(X))) do
             null;
          end return;
       end Create;
