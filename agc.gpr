@@ -7,7 +7,14 @@ project AGC is
 
    for Main use ("agc.adb");
 
+   Mode := External ("BUILD_MODE", "debug");
+
    package Compiler is
-      for Default_Switches ("Ada") use ("-g");
+      case Mode is
+         when "prod" =>
+            for Default_Switches ("Ada") use ("-g", "-Ofast");
+         when others =>
+            for Default_Switches ("Ada") use ("-g");
+      end case;
    end Compiler;
 end AGC;
