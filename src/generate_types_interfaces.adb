@@ -120,7 +120,7 @@ is
    begin
       Append (LALRW.Create_From_Template
         (RH,
-        "procedure " & Visit_Name & " (X : System.Address);",
+        "procedure " & Visit_Name & " (X : System.Address) with Inline;",
         (1 .. 0 => <>),
         LALCO.Basic_Decl_Rule));
    end Generate_Visitor_Prototype;
@@ -138,8 +138,7 @@ is
          Append (LALRW.Create_From_Template
            (RH,
             "procedure " & Visit_Name & Suffix & " (X : System.Address) "
-            & "renames " & Visitor_Name (Decl.P_Full_View) & Suffix
-            & ";",
+            & "renames " & Visitor_Name (Decl.P_Full_View) & Suffix & ";",
             (1 .. 0 => <>),
             LALCO.Basic_Decl_Rule));
       end Generate_Renaming;
@@ -219,7 +218,7 @@ is
            (RH,
            "function " & Register_Name
            & " (X : " & Access_Type_Name & ") return "
-           & Access_Type_Name & ";",
+           & Access_Type_Name & " with Inline;",
            (1 .. 0 => <>),
            LALCO.Basic_Decl_Rule));
 
@@ -363,7 +362,7 @@ is
            (RH,
             "procedure " & Visit_Name
             & "(X : System.Address) is "
-            & "pragma Suppress (Accessibility_Check);"
+            & "pragma Suppress (All_Checks);"
             & "type Rec_Access is access all " & Full_Type & ";"
             & "for Rec_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
@@ -396,7 +395,8 @@ is
                LALCO.Basic_Decl_Rule));
          else
             Append (LALRW.Create_From_Template
-              (RH, Spec & ";", (1 .. 0 => <>), LALCO.Basic_Decl_Rule));
+              (RH, Spec & " with Inline;", (1 .. 0 => <>),
+               LALCO.Basic_Decl_Rule));
          end if;
       end Generate_Dispatcher;
 
@@ -405,7 +405,7 @@ is
            (RH,
             "procedure " & CW_Visit_Name
             & "(X : System.Address) is "
-            & "pragma Suppress (Accessibility_Check);"
+            & "pragma Suppress (All_Checks);"
             & "type T_Access is access all " & Type_Name & "'Class;"
             & "for T_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
@@ -514,7 +514,7 @@ is
            (RH,
             "procedure " & CW_Visit_Name
             & "(X : System.Address) is "
-            & "pragma Suppress (Accessibility_Check);"
+            & "pragma Suppress (All_Checks);"
             & "type T_Access is access all " & Type_Name & "'Class;"
             & "for T_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"

@@ -17,8 +17,6 @@ package body AGC is
    type Address_Access is access all Address;
    type Address_Visitor is access procedure (X : Address);
 
-   type Finalizer is access procedure (X : System.Address);
-
    function As_Address_Access is new Ada.Unchecked_Conversion
      (Address, Address_Access)
          with Inline;
@@ -77,11 +75,29 @@ package body AGC is
    end Pop_Roots;
 
    Total_Registered : Natural := 0;
-
    Any_Modified     : Boolean := False;
 
+   procedure Register
+     (Header_Address : System.Address;
+      Object_Address : System.Address;
+      Size           : System.Storage_Elements.Storage_Count;
+      Final          : Finalizer)
+   is
+   begin
+      if Current_Size > Max_Size then
+         Collect;
+         Current_Size := 0;
+      end if;
+
+      Current_Size := Current_Size + Size;
+      Total_Registered := Total_Registered + 1;
+
+      Alloc_Set.Append (Alloc'(Header_Address, Object_Address, Final));
+      As_Alloc_State_Access (Header_Address).all := Unknown;
+   end Register;
+
    package body Access_Type_Operations is
-      pragma Suppress (Accessibility_Check);
+      pragma Suppress (All_Checks);
 
       function Register
         (Acc : Named_Access) return Named_Access
@@ -101,24 +117,13 @@ package body AGC is
 
          Final : Finalizer :=
            (if Finalization_Size > 0
-            then Finalize'Unrestricted_Access
+            then Finalize_From_Object_Address'Unrestricted_Access
             else null);
 
          Size : constant Storage_Count :=
             T'Object_Size / Storage_Unit + Storage.Extra_Bytes;
       begin
-         if Current_Size > Max_Size then
-            Collect;
-            Current_Size := 0;
-         end if;
-
-         Current_Size := Current_Size + Size;
-         Total_Registered := Total_Registered + 1;
-
-         Alloc_Set.Append (Alloc'(Header_Address, Object_Address, Final));
-
-         As_Alloc_State_Access (Header_Address).all := Unknown;
-
+         Register (Header_Address, Object_Address, Size, Final);
          return Acc;
       end Register;
 
@@ -126,7 +131,6 @@ package body AGC is
          with Storage_Pool => Storage.Get.AGC_Pool;
 
       type T_Access_Access is access all T_Access;
-
       for T_Access_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
@@ -188,15 +192,17 @@ package body AGC is
       procedure Free is new Ada.Unchecked_Deallocation
         (T, T_Access);
 
-      procedure Finalize (Object_Address : Address) is
+      procedure Finalize_From_Object_Address
+        (Object_Address : System.Address)
+      is
          Acc : T_Access := Conv (Object_Address);
       begin
          Free (Acc);
-      end Finalize;
+      end Finalize_From_Object_Address;
    end Access_Type_Operations;
 
    procedure Visit_Constrained_Array_1_Type (X : Address) is
-      pragma Suppress (Accessibility_Check);
+      pragma Suppress (All_Checks);
 
       type T_Array_Access is access all T_Array;
       for T_Array_Access'Size use Standard'Address_Size;
@@ -216,7 +222,7 @@ package body AGC is
    end Visit_Constrained_Array_1_Type;
 
    procedure Visit_Unconstrained_Array_1_Type (X : Address) is
-      pragma Suppress (Accessibility_Check);
+      pragma Suppress (All_Checks);
 
       type T_Array_Access is access all T_Array;
       for T_Array_Access'Size use Standard'Address_Size;
@@ -236,7 +242,7 @@ package body AGC is
    end Visit_Unconstrained_Array_1_Type;
 
    procedure Visit_Constrained_Array_2_Type (X : Address) is
-      pragma Suppress (Accessibility_Check);
+      pragma Suppress (All_Checks);
 
       type T_Array_Access is access all T_Array;
       for T_Array_Access'Size use Standard'Address_Size;
@@ -258,7 +264,7 @@ package body AGC is
    end Visit_Constrained_Array_2_Type;
 
    procedure Visit_Unconstrained_Array_2_Type (X : Address) is
-      pragma Suppress (Accessibility_Check);
+      pragma Suppress (All_Checks);
 
       type T_Array_Access is access all T_Array;
       for T_Array_Access'Size use Standard'Address_Size;

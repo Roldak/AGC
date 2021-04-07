@@ -8,6 +8,8 @@ package AGC is
 
    type Non_Managed is access all Empty_Type;
 
+   type Finalizer is access procedure (X : System.Address);
+
    function Root_Count return Natural
       with Inline;
 
@@ -37,7 +39,9 @@ package AGC is
 
    private
 
-      procedure Finalize (Object_Address : System.Address);
+      procedure Finalize_From_Object_Address
+        (Object_Address : System.Address)
+         with Inline;
 
    end Access_Type_Operations;
 
@@ -81,4 +85,14 @@ package AGC is
    procedure Collect;
 
    procedure Print_Stats;
+
+private
+
+   procedure Register
+     (Header_Address : System.Address;
+      Object_Address : System.Address;
+      Size           : System.Storage_Elements.Storage_Count;
+      Final          : Finalizer)
+      with Inline;
+
 end AGC;

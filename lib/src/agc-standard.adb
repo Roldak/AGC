@@ -3,7 +3,7 @@ with Ada.Unchecked_Conversion;
 package body AGC.Standard is
    package body Ada_Containers_Doubly_Linked_Lists_Visitors is
       procedure AGC_Visit_List_Private (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
+         pragma Suppress (All_Checks);
 
          type List_Access is access all Lists.List;
          for List_Access'Size use Standard'Address_Size;
@@ -25,7 +25,7 @@ package body AGC.Standard is
 
    package body Ada_Containers_Indefinite_Vectors_Visitors is
       procedure AGC_Visit_Vector_Private (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
+         pragma Suppress (All_Checks);
 
          type Vector_Access is access all Vectors.Vector;
          for Vector_Access'Size use Standard'Address_Size;
@@ -47,7 +47,7 @@ package body AGC.Standard is
 
    package body Ada_Containers_Hashed_Sets_Visitors is
       procedure AGC_Visit_Set_Private (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
+         pragma Suppress (All_Checks);
 
          type Set_Access is access all Sets.Set;
          for Set_Access'Size use Standard'Address_Size;
@@ -77,7 +77,7 @@ package body AGC.Standard is
       end Visit_Cursor;
 
       procedure AGC_Visit_Map_Private (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
+         pragma Suppress (All_Checks);
 
          type Map_Access is access all Maps.Map;
          for Map_Access'Size use Standard'Address_Size;
@@ -95,7 +95,7 @@ package body AGC.Standard is
       end AGC_Visit_Map_Private;
 
       procedure AGC_Visit_Cursor_Private (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
+         pragma Suppress (All_Checks);
 
          type Cursor_Access is access all Maps.Cursor;
          for Cursor_Access'Size use Standard'Address_Size;
@@ -113,7 +113,7 @@ package body AGC.Standard is
 
    package body Ada_Containers_Vectors_Visitors is
       procedure AGC_Visit_Vector_Private (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
+         pragma Suppress (All_Checks);
 
          type Vector_Access is access all Vectors.Vector;
          for Vector_Access'Size use Standard'Address_Size;

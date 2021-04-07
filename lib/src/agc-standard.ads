@@ -49,7 +49,8 @@ package AGC.Standard is
 
       package Map_Iterator_Interfaces_Forward_Iterator_Visitors is
          procedure AGC_Visit_Forward_Iterator_Classwide
-           (X : System.Address) is null with Inline;
+           (X : System.Address) is null
+            with Inline;
       end Map_Iterator_Interfaces_Forward_Iterator_Visitors;
    end Ada_Containers_Hashed_Maps_Visitors;
 
