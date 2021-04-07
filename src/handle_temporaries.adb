@@ -277,6 +277,7 @@ is
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
+      use type LAL.Expr;
    begin
       case Node.Kind is
          when LALCO.Ada_Aspect_Spec =>
@@ -299,6 +300,10 @@ is
                     | LALCO.Ada_Return_Stmt
                     | LALCO.Ada_Extended_Return_Stmt
                     | LALCO.Ada_Renaming_Clause
+                    | LALCO.Ada_Case_Expr_Alternative
+                    | LALCO.Ada_Elsif_Expr_Part
+                  and then (Expr.Parent.Kind not in LALCO.Ada_If_Expr
+                            or else Expr.Parent.As_If_Expr.F_Cond_Expr = Expr)
                then
                   Handle_Expr (Expr);
                end if;
