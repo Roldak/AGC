@@ -40,7 +40,7 @@ To have an idea of the performance, single-run results for the `binary_tree` ben
 * **Manual** (user-managed):                           `0,22s user 0,00s system 99% cpu 0,227 total`
 * **Controlled** (ref-counted using controlled types): `1,04s user 0,00s system 99% cpu 1,044 total`
 * **AGC** with `AGC_POOL=MALLOC_FREE`:                 `0,21s user 0,01s system 94% cpu 0,235 total`
-* **AGC** with `AGC_POOL=FREE_LIST`:                   `0,15s user 0,01s system 93% cpu 0,174 total`
+* **AGC** with `AGC_POOL=FREE_LIST`:                   `0,15s user 0,00s system 99% cpu 0,158 total`
 
 As you can see the AGC version that uses its own free-list based storage pool performs approximately 30% better than the version with manually managed memory, while the malloc/free-based storage pool yields roughly equivalent results. In both cases, performance is much better (more than 4x faster) than a controlled-types based implementation, without having to write any memory-management code.
 

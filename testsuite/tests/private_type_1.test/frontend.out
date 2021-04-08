@@ -1,7 +1,6 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -9,14 +8,17 @@ procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    package P is
       type T is private;
-      procedure AGC_Visit_T_Private (X : System.Address);
+      procedure AGC_Visit_T_Private (X : System.Address) with
+         Inline;
       function Create (X : Integer) return T;
       function Get (X : T) return Integer;
    private
       type T is access all Integer;
       for T'Storage_Pool use AGC.Storage.Get.Pool;
-      procedure AGC_Visit_T (X : System.Address);
-      function AGC_Register_T (X : T) return T;
+      procedure AGC_Visit_T (X : System.Address) with
+         Inline;
+      function AGC_Register_T (X : T) return T with
+         Inline;
    end P;
    package body P is
       procedure AGC_Visit_T_Private (X : System.Address) renames

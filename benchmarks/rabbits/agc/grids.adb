@@ -10,40 +10,36 @@ package body Grids is
    procedure AGC_Visit_Grid_Private_Classwide (X : System.Address) renames
      Grids.AGC_Visit_Grid_Classwide;
    procedure AGC_Visit_Cell (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all Cell;
+      pragma Suppress (All_Checks);
+      type Rec_Access is access Cell with
+         Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
       R : Cell renames Conv (X).all;
    begin
-      declare
-         C : aliased Grids.Item_Vectors.Vector := R.Items;
-      begin
-         Grids.AGC_Item_Vectors_Visitors.AGC_Visit_Vector_Private (C'Address);
-      end;
+      Grids.AGC_Item_Vectors_Visitors.AGC_Visit_Vector_Private
+        (R.Items'Address);
    end AGC_Visit_Cell;
    procedure AGC_Visit_Grid (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all Grid'Class;
+      pragma Suppress (All_Checks);
+      type Rec_Access is access Grid'Class with
+         Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
       R : Grid'Class renames Conv (X).all;
    begin
-      declare
-         C : aliased Grids.Matrix := R.Cells;
-      begin
-         Grids.AGC_Visit_Matrix (C'Address);
-      end;
+      Grids.AGC_Visit_Matrix (R.Cells'Address);
    end AGC_Visit_Grid;
    procedure AGC_Visit (X : access Grid) is
    begin
       AGC_Visit_Grid (X.all'Address);
    end AGC_Visit;
    procedure AGC_Visit_Grid_Classwide (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type T_Access is access all Grid'Class;
+      pragma Suppress (All_Checks);
+      type T_Access is access Grid'Class with
+         Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin

@@ -1,7 +1,6 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -18,7 +17,6 @@ end Main;
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 package body Pkg is
@@ -40,14 +38,15 @@ end Pkg;
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
    type T is new Integer;
    type T_Access is access T;
    for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
-   procedure AGC_Visit_T_Access (X : System.Address);
-   function AGC_Register_T_Access (X : T_Access) return T_Access;
+   procedure AGC_Visit_T_Access (X : System.Address) with
+      Inline;
+   function AGC_Register_T_Access (X : T_Access) return T_Access with
+      Inline;
    function Create (X : Integer) return T_Access;
 end Pkg;

@@ -10,8 +10,9 @@ package body Entities.Positioned is
      (X : System.Address) renames
      Entities.Positioned.AGC_Visit_Positioned_Classwide;
    procedure AGC_Visit_Positioned (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all Positioned'Class;
+      pragma Suppress (All_Checks);
+      type Rec_Access is access Positioned'Class with
+         Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -24,8 +25,9 @@ package body Entities.Positioned is
       AGC_Visit_Positioned (X.all'Address);
    end AGC_Visit;
    procedure AGC_Visit_Positioned_Classwide (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type T_Access is access all Positioned'Class;
+      pragma Suppress (All_Checks);
+      type T_Access is access Positioned'Class with
+         Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin

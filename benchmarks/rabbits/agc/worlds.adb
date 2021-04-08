@@ -10,55 +10,49 @@ with Entities.Rabbits;
 with Entities.Grass;
 with Entities.Wolves;
 package body Worlds is
-   procedure AGC_Visit_Entity_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Entities.Entity'Class, False,
+   package AGC_Entity_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Entities.Entity'Class, Entity_Access, False,
       Entities.AGC_Visit_Entity_Private_Classwide);
    procedure AGC_Visit_Entity_Access (X : System.Address) renames
-     AGC_Visit_Entity_Access_Implem;
-   procedure AGC_Visit_Positioned_Access_Implem is new AGC
-     .Mark_And_Visit_Access_Type
-     (Entities.Positioned.Positioned'Class, True,
+     AGC_Entity_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Entity_Access
+     (X : Entity_Access) return Entity_Access renames
+     AGC_Entity_Access_Ops_Implem.Register;
+   package AGC_Positioned_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Entities.Positioned.Positioned'Class, Positioned_Access, True,
       Entities.Positioned.AGC_Visit_Positioned_Private_Classwide);
    procedure AGC_Visit_Positioned_Access (X : System.Address) renames
-     AGC_Visit_Positioned_Access_Implem;
+     AGC_Positioned_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Positioned_Access
+     (X : Positioned_Access) return Positioned_Access renames
+     AGC_Positioned_Access_Ops_Implem.Register;
    procedure AGC_Visit_World_Private (X : System.Address) renames
      Worlds.AGC_Visit_World;
    procedure AGC_Visit_World_Private_Classwide (X : System.Address) renames
      Worlds.AGC_Visit_World_Classwide;
    procedure AGC_Visit_World (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all World'Class;
+      pragma Suppress (All_Checks);
+      type Rec_Access is access World'Class with
+         Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
       R : World'Class renames Conv (X).all;
    begin
-      declare
-         C : aliased Worlds.Entity_Vectors.Vector := R.Entities;
-      begin
-         Worlds.AGC_Entity_Vectors_Visitors.AGC_Visit_Vector_Private
-           (C'Address);
-      end;
-      declare
-         C : aliased Worlds.Entity_Vectors.Vector := R.New_Entities;
-      begin
-         Worlds.AGC_Entity_Vectors_Visitors.AGC_Visit_Vector_Private
-           (C'Address);
-      end;
-      declare
-         C : aliased Worlds.Grid.Grid := R.Cells;
-      begin
-         Worlds.Grid.AGC_Visit_Grid_Private (C'Address);
-      end;
+      Worlds.AGC_Entity_Vectors_Visitors.AGC_Visit_Vector_Private
+        (R.Entities'Address);
+      Worlds.AGC_Entity_Vectors_Visitors.AGC_Visit_Vector_Private
+        (R.New_Entities'Address);
+      Worlds.Grid.AGC_Visit_Grid_Private (R.Cells'Address);
    end AGC_Visit_World;
    procedure AGC_Visit (X : access World) is
    begin
       AGC_Visit_World (X.all'Address);
    end AGC_Visit;
    procedure AGC_Visit_World_Classwide (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type T_Access is access all World'Class;
+      pragma Suppress (All_Checks);
+      type T_Access is access World'Class with
+         Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin

@@ -9,8 +9,9 @@ package body Entities is
    procedure AGC_Visit_Entity_Private_Classwide (X : System.Address) renames
      Entities.AGC_Visit_Entity_Classwide;
    procedure AGC_Visit_Entity (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all Entity'Class;
+      pragma Suppress (All_Checks);
+      type Rec_Access is access Entity'Class with
+         Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -23,8 +24,9 @@ package body Entities is
       AGC_Visit_Entity (X.all'Address);
    end AGC_Visit;
    procedure AGC_Visit_Entity_Classwide (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type T_Access is access all Entity'Class;
+      pragma Suppress (All_Checks);
+      type T_Access is access Entity'Class with
+         Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin

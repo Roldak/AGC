@@ -1,21 +1,22 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    package Pkg is
       type I is interface;
       procedure AGC_Visit (X : access I) is abstract;
-      procedure AGC_Visit_I_Classwide (X : System.Address);
+      procedure AGC_Visit_I_Classwide (X : System.Address) with
+         Inline;
       function Foo (X : I) return I is abstract;
       function Get (X : I) return Integer is abstract;
    end Pkg;
    package body Pkg is
       procedure AGC_Visit_I_Classwide (X : System.Address) is
-         pragma Suppress (Accessibility_Check);
-         type T_Access is access all I'Class;
+         pragma Suppress (All_Checks);
+         type T_Access is access I'Class with
+            Storage_Size => 0;
          for T_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, T_Access);

@@ -10,15 +10,16 @@ end Pkg;
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
    type Integer_Access is access Integer;
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
-   procedure AGC_Visit_Integer_Access (X : System.Address);
+   procedure AGC_Visit_Integer_Access (X : System.Address) with
+      Inline;
    function AGC_Register_Integer_Access
-     (X : Integer_Access) return Integer_Access;
+     (X : Integer_Access) return Integer_Access with
+      Inline;
    X           : aliased Integer_Access;
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Pkg.AGC_Visit_Integer_Access'Address);

@@ -1,7 +1,6 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with AGC.Storage.Controlled;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
@@ -20,20 +19,24 @@ procedure Test is
             Name : Character;
       end case;
    end record;
-   procedure AGC_Visit_Expr (X : System.Address);
+   procedure AGC_Visit_Expr (X : System.Address) with
+      Inline;
    for Expr_Access'Storage_Pool use AGC.Storage.Get.Pool;
-   procedure AGC_Visit_Expr_Access (X : System.Address);
+   procedure AGC_Visit_Expr_Access (X : System.Address) with
+      Inline;
    package AGC_Expr_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Test.Expr, Expr_Access, False, Test.AGC_Visit_Expr);
    procedure AGC_Visit_Expr_Access (X : System.Address) renames
      AGC_Expr_Access_Ops_Implem.Mark_And_Visit_Access_Type;
-   function AGC_Register_Expr_Access (X : Expr_Access) return Expr_Access;
+   function AGC_Register_Expr_Access (X : Expr_Access) return Expr_Access with
+      Inline;
    function AGC_Register_Expr_Access
      (X : Expr_Access) return Expr_Access renames
      AGC_Expr_Access_Ops_Implem.Register;
    procedure AGC_Visit_Expr (X : System.Address) is
-      pragma Suppress (Accessibility_Check);
-      type Rec_Access is access all Expr;
+      pragma Suppress (All_Checks);
+      type Rec_Access is access Expr with
+         Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -41,16 +44,8 @@ procedure Test is
    begin
       case R.K is
          when Add | Mul =>
-            declare
-               C : aliased Test.Expr_Access := R.Lhs;
-            begin
-               Test.AGC_Visit_Expr_Access (C'Address);
-            end;
-            declare
-               C : aliased Test.Expr_Access := R.Rhs;
-            begin
-               Test.AGC_Visit_Expr_Access (C'Address);
-            end;
+            Test.AGC_Visit_Expr_Access (R.Lhs'Address);
+            Test.AGC_Visit_Expr_Access (R.Rhs'Address);
          when Lit =>
             null;
          when Var =>
