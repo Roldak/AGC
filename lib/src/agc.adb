@@ -128,10 +128,11 @@ package body AGC is
          return Acc;
       end Register;
 
-      type T_Access is access all T
+      type T_Access is access T
          with Storage_Pool => Storage.Get.AGC_Pool;
 
-      type T_Access_Access is access all T_Access;
+      type T_Access_Access is access T_Access
+         with Storage_Size => 0;
       for T_Access_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
@@ -205,7 +206,8 @@ package body AGC is
    procedure Visit_Constrained_Array_1_Type (X : Address) is
       pragma Suppress (All_Checks);
 
-      type T_Array_Access is access all T_Array;
+      type T_Array_Access is access T_Array
+         with Storage_Size => 0;
       for T_Array_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
@@ -214,18 +216,15 @@ package body AGC is
       Arr : T_Array_Access := Conv (X);
    begin
       for I in Arr.all'Range loop
-         declare
-            C : aliased T := Arr.all (I);
-         begin
-            Visit_Element (C'Address);
-         end;
+         Visit_Element (Arr.all (I)'Address);
       end loop;
    end Visit_Constrained_Array_1_Type;
 
    procedure Visit_Unconstrained_Array_1_Type (X : Address) is
       pragma Suppress (All_Checks);
 
-      type T_Array_Access is access all T_Array;
+      type T_Array_Access is access T_Array
+         with Storage_Size => 0;
       for T_Array_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
@@ -234,18 +233,15 @@ package body AGC is
       Arr : T_Array_Access := Conv (X);
    begin
       for I in Arr.all'Range loop
-         declare
-            C : aliased T := Arr.all (I);
-         begin
-            Visit_Element (C'Address);
-         end;
+         Visit_Element (Arr.all (I)'Address);
       end loop;
    end Visit_Unconstrained_Array_1_Type;
 
    procedure Visit_Constrained_Array_2_Type (X : Address) is
       pragma Suppress (All_Checks);
 
-      type T_Array_Access is access all T_Array;
+      type T_Array_Access is access T_Array
+         with Storage_Size => 0;
       for T_Array_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
@@ -255,11 +251,7 @@ package body AGC is
    begin
       for I in Arr.all'Range (1) loop
          for J in Arr.all'Range (2) loop
-            declare
-               C : aliased T := Arr.all (I, J);
-            begin
-               Visit_Element (C'Address);
-            end;
+            Visit_Element (Arr.all (I, J)'Address);
          end loop;
       end loop;
    end Visit_Constrained_Array_2_Type;
@@ -267,7 +259,8 @@ package body AGC is
    procedure Visit_Unconstrained_Array_2_Type (X : Address) is
       pragma Suppress (All_Checks);
 
-      type T_Array_Access is access all T_Array;
+      type T_Array_Access is access T_Array
+         with Storage_Size => 0;
       for T_Array_Access'Size use Standard'Address_Size;
 
       function Conv is new Ada.Unchecked_Conversion
@@ -277,11 +270,7 @@ package body AGC is
    begin
       for I in Arr.all'Range (1) loop
          for J in Arr.all'Range (2) loop
-            declare
-               C : aliased T := Arr.all (I, J);
-            begin
-               Visit_Element (C'Address);
-            end;
+            Visit_Element (Arr.all (I, J)'Address);
          end loop;
       end loop;
    end Visit_Unconstrained_Array_2_Type;

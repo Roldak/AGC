@@ -281,9 +281,6 @@ is
                   Comp_Type : LAL.Base_Type_Decl'Class :=
                      Comp.P_Formal_Type;
 
-                  Comp_Type_Ref : Langkit_Support.Text.Text_Type :=
-                     Utils.Generate_Type_Reference (Comp_Type);
-
                   Comp_Name : LAL.Defining_Name :=
                      Comp.P_Defining_Name;
 
@@ -293,13 +290,9 @@ is
                   if Utils.Is_Relevant_Type (Comp_Type) then
                      LALRW.Append_Child (Stmts, LALRW.Create_From_Template
                        (RH,
-                        "declare"
-                        & "   C : aliased " & Comp_Type_Ref
-                        & " := R." & Comp_Text & ";"
-                        & "begin "
-                        & Visitor_Name (Comp_Type) & "(C'Address);"
-                        & "end;",
-                        (1 .. 0 => <>), LALCO.Block_Stmt_Rule));
+                        Visitor_Name (Comp_Type)
+                        & "(R." & Comp_Text & "'Address);",
+                        (1 .. 0 => <>), LALCO.Stmt_Rule));
                   end if;
                end;
             end if;
@@ -363,7 +356,8 @@ is
             "procedure " & Visit_Name
             & "(X : System.Address) is "
             & "pragma Suppress (All_Checks);"
-            & "type Rec_Access is access all " & Full_Type & ";"
+            & "type Rec_Access is access " & Full_Type
+            & "   with Storage_Size => 0;"
             & "for Rec_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
             & "  (System.Address, Rec_Access);"
@@ -406,7 +400,8 @@ is
             "procedure " & CW_Visit_Name
             & "(X : System.Address) is "
             & "pragma Suppress (All_Checks);"
-            & "type T_Access is access all " & Type_Name & "'Class;"
+            & "type T_Access is access " & Type_Name & "'Class"
+            & "   with Storage_Size => 0;"
             & "for T_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
             & "  (System.Address, T_Access);"
@@ -515,7 +510,8 @@ is
             "procedure " & CW_Visit_Name
             & "(X : System.Address) is "
             & "pragma Suppress (All_Checks);"
-            & "type T_Access is access all " & Type_Name & "'Class;"
+            & "type T_Access is access " & Type_Name & "'Class"
+            & "   with Storage_Size => 0;"
             & "for T_Access'Size use Standard'Address_Size;"
             & "function Conv is new Ada.Unchecked_Conversion"
             & "  (System.Address, T_Access);"
