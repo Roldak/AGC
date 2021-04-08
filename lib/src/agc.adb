@@ -1,5 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
+with Ada.Finalization;
+
 with Ada.Unchecked_Conversion;
 with Ada.Unchecked_Deallocation;
 
@@ -322,6 +324,23 @@ package body AGC is
       Put_Line ("Root count : " & Reach_Set.Length'Image);
    end Print_Stats;
 
+   package Data_Finalizers is
+      type Finalizer is new Ada.Finalization.Controlled with null record;
+
+      overriding procedure Finalize (X : in out Finalizer);
+   end Data_Finalizers;
+
+   package body Data_Finalizers is
+      overriding procedure Finalize (X : in out Finalizer) is
+      begin
+         Alloc_Set.Destroy;
+         Modif_Set.Destroy;
+         Reach_Set.Destroy;
+         New_Set.Destroy;
+      end Finalize;
+   end Data_Finalizers;
+
+   Data_Finalizer : Data_Finalizers.Finalizer;
 begin
    Alloc_Set.Reserve (10);
    Modif_Set.Reserve (10);
