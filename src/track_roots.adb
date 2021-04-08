@@ -305,83 +305,6 @@ is
       end if;
    end Handle_Exception_Handler;
 
-   procedure Handle_Generic_Instantiation
-     (Inst : LAL.Generic_Instantiation'Class)
-   is
-      Args : LAL.Assoc_List :=
-        (if Inst.Kind in LALCO.Ada_Generic_Subp_Instantiation
-         then Inst.As_Generic_Subp_Instantiation.F_Params
-         else Inst.As_Generic_Package_Instantiation.F_Params);
-
-      Gen_Decl : LAL.Basic_Decl := Inst.P_Designated_Generic_Decl;
-   begin
-      if not Session.Is_File_To_Process (LAL.Get_Filename (Gen_Decl.Unit)) then
-         return;
-      end if;
-
-      for Param_Actual of Args.P_Zip_With_Params loop
-         declare
-            Param  : LAL.Basic_Decl :=
-               LAL.Param (Param_Actual).P_Basic_Decl;
-            Actual : LAL.Expr'Class :=
-               LAL.Actual (Param_Actual);
-         begin
-            if Param.Kind in LALCO.Ada_Base_Type_Decl then
-               LALRW.Append_Child
-                 (LALRW.Handle (Args),
-                  LALRW.Create_From_Template
-                    (RH,
-                     Utils.Visitor_Name (Param.As_Base_Type_Decl, False)
-                     & " => "
-                     & Utils.Visitor_Name
-                       (Actual.As_Name.P_Name_Designated_Type,
-                        Referenced_From => Unit),
-                     (1 .. 0 => <>),
-                     LALCO.Param_Assoc_Rule));
-            end if;
-         end;
-      end loop;
-   end Handle_Generic_Instantiation;
-
-   procedure Handle_Generic_Formal_Package
-     (Node : LAL.Generic_Formal_Package'Class)
-   is
-      Inst : LAL.Generic_Package_Instantiation :=
-         Node.F_Decl.As_Generic_Package_Instantiation;
-
-      P : LAL.Assoc_List := Inst.F_Params;
-
-      Gen_Decl : LAL.Basic_Decl := Inst.P_Designated_Generic_Decl;
-
-      Needs_Box_Expr : Boolean := False;
-   begin
-      if not Session.Is_File_To_Process (LAL.Get_Filename (Gen_Decl.Unit)) then
-         return;
-      end if;
-
-      for I in 1 .. P.Children_Count loop
-         if P.Child (I).As_Param_Assoc.F_R_Expr.Kind in LALCO.Ada_Box_Expr then
-            return;
-         end if;
-      end loop;
-
-      for PM of P.P_Zip_With_Params loop
-         if LAL.Param (PM).P_Basic_Decl.Kind in LALCO.Ada_Base_Type_Decl then
-            Needs_Box_Expr := True;
-            exit;
-         end if;
-      end loop;
-
-      if not Needs_Box_Expr then
-         return;
-      end if;
-
-      LALRW.Append_Child
-        (LALRW.Handle (P),
-         LALRW.Create_From_Template
-           (RH, "<>", (1 .. 0 => <>), LALCO.Param_Assoc_Rule));
-   end Handle_Generic_Formal_Package;
-
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
@@ -402,9 +325,8 @@ is
          when LALCO.Ada_Exception_Handler =>
             Handle_Exception_Handler (Node.As_Exception_Handler);
          when LALCO.Ada_Generic_Instantiation =>
-            Handle_Generic_Instantiation (Node.As_Generic_Instantiation);
+            return LALCO.Over;
          when LALCO.Ada_Generic_Formal_Package =>
-            Handle_Generic_Formal_Package (Node.As_Generic_Formal_Package);
             return LALCO.Over;
          when others =>
             null;

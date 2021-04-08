@@ -23,6 +23,12 @@ package Post_Actions is
       Ref  : Langkit_Support.Text.Unbounded_Text_Type;
    end record;
 
+   type Add_Generic_Actual is record
+      Unit : Analysis_Unit;
+      Sloc : Langkit_Support.Slocs.Source_Location;
+      Fix  : Langkit_Support.Text.Unbounded_Text_Type;
+   end record;
+
    package Move_Actions is new Ada.Containers.Vectors
      (Positive, Move_Action);
 
@@ -32,17 +38,22 @@ package Post_Actions is
    package Add_With_Clause_Actions is new Ada.Containers.Vectors
      (Positive, Add_With_Clause_Action);
 
+   package Add_Generic_Actual_Actions is new Ada.Containers.Vectors
+     (Positive, Add_Generic_Actual);
+
    protected type Actions is
       procedure Register (Action : Move_Action);
       procedure Register (Action : Generate_External_Interface_Action);
       procedure Register (Action : Add_With_Clause_Action);
+      procedure Register (Action : Add_Generic_Actual);
 
       procedure Perform_Actions
         (Ctx   : Analysis_Context;
          Units : in out Libadalang.Helpers.Unit_Vectors.Vector);
    private
-      To_Move     : Move_Actions.Vector;
-      To_Generate : Generate_External_Interface_Actions.Vector;
-      To_With     : Add_With_Clause_Actions.Vector;
+      To_Move        : Move_Actions.Vector;
+      To_Generate    : Generate_External_Interface_Actions.Vector;
+      To_With        : Add_With_Clause_Actions.Vector;
+      Actuals_To_Add : Add_Generic_Actual_Actions.Vector;
    end Actions;
 end Post_Actions;

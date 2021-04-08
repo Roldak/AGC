@@ -22,7 +22,7 @@ with Handle_Temporaries;
 with Extend_Return_Stmts;
 with Track_Roots;
 with Generate_Types_Interfaces;
-with Detect_Misplaced_Bodies;
+with Register_Global_Changes;
 with Output_Unit;
 
 procedure AGC is
@@ -93,7 +93,7 @@ procedure AGC is
          Extend_Return_Stmts (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
-         Detect_Misplaced_Bodies (Job_Ctx, Unit);
+         Register_Global_Changes (Job_Ctx, Unit);
       end if;
    end Process_Unit;
 

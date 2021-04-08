@@ -40,17 +40,20 @@ package body Post_Actions is
    function Lookup
      (Ctx    : LAL.Analysis_Context;
       Origin : LAL.Analysis_Unit;
-      Sloc   : Langkit_Support.Slocs.Source_Location) return LAL.Basic_Decl
+      Sloc   : Langkit_Support.Slocs.Source_Location;
+      F_Kind : LALCO.Ada_Node_Kind_Type := LALCO.Ada_Basic_Decl'First;
+      T_Kind : LALCO.Ada_Node_Kind_Type := LALCO.Ada_Basic_Decl'Last)
+      return LAL.Ada_Node
    is
       use Langkit_Support.Slocs;
 
       Unit : LAL.Analysis_Unit := Actual_Unit (Ctx, Origin);
       Node : LAL.Ada_Node      := LAL.Lookup (Unit.Root, Sloc);
    begin
-      while Node.Kind not in LALCO.Ada_Basic_Decl loop
+      while Node.Kind not in F_Kind .. T_Kind loop
          Node := Node.Parent;
       end loop;
-      return Node.As_Basic_Decl;
+      return Node;
    end Lookup;
 
    Body_Map : Body_Maps.Map;
@@ -154,6 +157,11 @@ package body Post_Actions is
          To_With.Append (Action);
       end Register;
 
+      procedure Register (Action : Add_Generic_Actual) is
+      begin
+         Actuals_To_Add.Append (Action);
+      end Register;
+
       procedure Perform_Actions
         (Ctx   : Analysis_Context;
          Units : in out Helpers.Unit_Vectors.Vector)
@@ -165,7 +173,7 @@ package body Post_Actions is
          for Action of To_Move loop
             declare
                Source : LAL.Basic_Decl :=
-                  Lookup (Ctx, Action.Unit, Action.Sloc);
+                  Lookup (Ctx, Action.Unit, Action.Sloc).As_Basic_Decl;
 
                Dest   : LALRW.Node_Rewriting_Handle :=
                   Find_Or_Create_Destination (Source, RH);
@@ -231,6 +239,22 @@ package body Post_Actions is
                      "with " & Langkit_Support.Text.To_Text (Action.Ref) & ";",
                      (1 .. 0 => <>),
                      LALCO.With_Clause_Rule));
+            end;
+         end loop;
+
+         for Action of Actuals_To_Add loop
+            declare
+               use Langkit_Support.Text;
+
+               Assocs : LAL.Assoc_List := Lookup
+                 (Ctx, Action.Unit, Action.Sloc,
+                  LALCO.Ada_Assoc_List, LALCO.Ada_Assoc_List).As_Assoc_List;
+            begin
+               LALRW.Append_Child
+                 (LALRW.Handle (Assocs),
+                  LALRW.Create_From_Template
+                    (RH, To_Text (Action.Fix), (1 .. 0 => <>),
+                     LALCO.Param_Assoc_Rule));
             end;
          end loop;
 
