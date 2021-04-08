@@ -23,10 +23,23 @@ is
 
       GGP : LAL.Ada_Node'Class := Node.Parent.Parent.Parent;
    begin
-      -- do not move null body procedures as they may define an interface
-      -- method.
       if Node.Kind in LALCO.Ada_Null_Subp_Decl then
+         -- do not move null body procedures as they may define an interface
+         -- method.
          return;
+      elsif Node.Kind in LALCO.Ada_Subp_Renaming_Decl then
+         -- do not move user renaming declarations as they may have different
+         -- visibility behaviors in the spec.
+         declare
+            Name : Langkit_Support.Text.Text_Type :=
+               LAL.Text (Node.P_Defining_Name);
+         begin
+            if Name'Length < 3 or else
+               Name (Name'First .. Name'First + 2) /= "AGC"
+            then
+               return;
+            end if;
+         end;
       end if;
 
       if not GGP.Is_Null and then GGP.Kind in LALCO.Ada_Base_Package_Decl then
