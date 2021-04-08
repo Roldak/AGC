@@ -12,6 +12,7 @@ with System.Storage_Elements; use System.Storage_Elements;
 
 with AGC.Storage.Get;
 with AGC.Validate_Addresses;
+with AGC.Vectors;
 
 package body AGC is
    type Address_Access is access all Address;
@@ -48,9 +49,9 @@ package body AGC is
       Visitor : Address;
    end record;
 
-   package Alloc_Vectors is new Ada.Containers.Vectors (Positive, Alloc);
-   package Address_Vectors is new Ada.Containers.Vectors (Positive, Address);
-   package Root_Vectors is new Ada.Containers.Vectors (Positive, Root);
+   package Alloc_Vectors is new AGC.Vectors (Alloc);
+   package Address_Vectors is new AGC.Vectors (Address);
+   package Root_Vectors is new AGC.Vectors (Root);
 
    Alloc_Set : Alloc_Vectors.Vector;
    Modif_Set : Address_Vectors.Vector;
@@ -59,7 +60,7 @@ package body AGC is
    Current_Size : Storage_Count := 0;
    Max_Size     : constant Storage_Count := 1024 * 1024 * 2;
 
-   function Root_Count return Natural is (Natural (Reach_Set.Length));
+   function Root_Count return Natural is (Reach_Set.Length);
 
    function Push_Root
      (X, Visitor : System.Address) return Empty_Type
@@ -71,7 +72,7 @@ package body AGC is
 
    procedure Pop_Roots (X : Natural) is
    begin
-      Reach_Set.Set_Length (Ada.Containers.Count_Type (X));
+      Reach_Set.Set_Length (X);
    end Pop_Roots;
 
    Total_Registered : Natural := 0;
@@ -331,4 +332,9 @@ package body AGC is
       Put_Line ("Total registered : " & Total_Registered'Image);
       Put_Line ("Root count : " & Reach_Set.Length'Image);
    end Print_Stats;
+
+begin
+   Alloc_Set.Reserve (10);
+   Modif_Set.Reserve (10);
+   Reach_Set.Reserve (10);
 end AGC;
