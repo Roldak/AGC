@@ -17,12 +17,12 @@ library project AGC_Runtime is
    for Library_Name use "agc_runtime";
 
    package Compiler is
-      Mode := external("BUILD_MODE", "debug");
+      Mode := external("BUILD_MODE", "release");
       case Mode is
-         when "debug" =>
+         when "debug" | "dev" =>
             for Switches ("Ada") use ("-g");
-         when "release" =>
-            for Switches ("Ada") use ("-O3", "-flto", "-gnatp");
+         when "release" | "prod" =>
+            for Switches ("Ada") use ("-g", "-O3", "-flto", "-gnatp");
          when others =>
             null;
       end case;
