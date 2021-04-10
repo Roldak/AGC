@@ -40,18 +40,27 @@ package body Analysis is
             case Node.Kind is
                when LALCO.Ada_Allocator =>
                   Self_Allocates := True;
+                  return LALCO.Stop;
                when LALCO.Ada_Name =>
                   declare
                      Called_Spec : LAL.Base_Formal_Param_Holder'Class :=
                         Node.As_Name.P_Called_Subp_Spec;
 
+                     Is_Subp_Access : Boolean :=
+                        not Called_Spec.Is_Null
+                        and then Called_Spec.Parent.Kind
+                           in LALCO.Ada_Access_To_Subp_Def;
+
                      Subp_Body : LAL.Body_Node :=
-                       (if Called_Spec.Is_Null
+                       (if Called_Spec.Is_Null or Is_Subp_Access
                         then LAL.No_Body_Node
                         else Utils.Get_Body
                           (Called_Spec.Parent.As_Basic_Decl));
                   begin
-                     if not Subp_Body.Is_Null then
+                     if Is_Subp_Access then
+                        Self_Allocates := True;
+                        return LALCO.Stop;
+                     elsif not Subp_Body.Is_Null then
                         Calls.Include
                           ((Subp_Body,
                             To_Unbounded_Text

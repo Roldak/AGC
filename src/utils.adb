@@ -290,9 +290,24 @@ package body Utils is
                return False;
             end if;
 
-            return not Analysis.Does_Allocate
-              (Get_Body
-                 (Expr.As_Call_Expr.P_Called_Subp_Spec.Parent.As_Basic_Decl));
+            declare
+               Called_Spec : LAL.Base_Formal_Param_Holder :=
+                  Expr.As_Call_Expr.P_Called_Subp_Spec;
+
+               Subp_Body : LAL.Body_Node;
+            begin
+               if Called_Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def then
+                  return False;
+               end if;
+
+               Subp_Body := Get_Body (Called_Spec.Parent.As_Basic_Decl);
+
+               if Subp_Body.Is_Null then
+                  return False;
+               else
+                  return not Analysis.Does_Allocate (Subp_Body);
+               end if;
+            end;
 
          when LALCO.Ada_Explicit_Deref =>
             return True;
