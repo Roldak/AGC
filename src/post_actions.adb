@@ -142,35 +142,37 @@ package body Post_Actions is
    Insertions : Node_Counters.Counter;
 
    protected body Actions is
-      procedure Register (Action : Move_Action) is
+      procedure Move (Action : Move_Action) is
       begin
          To_Move.Append (Action);
-      end Register;
+      end Move;
 
-      procedure Register (Action : Generate_External_Interface_Action) is
-      begin
-         To_Generate.Append (Action);
-      end Register;
-
-      procedure Register (Action : Add_With_Clause_Action) is
+      procedure Add_With_Clause (Action : Add_With_Clause_Action) is
       begin
          To_With.Append (Action);
-      end Register;
+      end Add_With_Clause;
 
-      procedure Register (Action : Add_Generic_Formal) is
+      procedure Add_Generic_Formal (Action : Add_Generic_Formal_Action) is
       begin
          Formals_To_Add.Append (Action);
-      end Register;
+      end Add_Generic_Formal;
 
-      procedure Register (Action : Add_Generic_Actual) is
+      procedure Add_Generic_Actual (Action : Add_Generic_Actual_Action) is
       begin
          Actuals_To_Add.Append (Action);
-      end Register;
+      end Add_Generic_Actual;
 
-      procedure Register (Action : Add_Basic_Decl_After) is
+      procedure Add_Basic_Decl_After (Action : Add_Basic_Decl_After_Action) is
       begin
          Decls_To_Add.Append (Action);
-      end Register;
+      end Add_Basic_Decl_After;
+
+      procedure Generate_External_Interface
+        (Action : Generate_External_Interface_Action)
+      is
+      begin
+         To_Generate.Append (Action);
+      end Generate_External_Interface;
 
       procedure Perform_Actions
         (Ctx   : Analysis_Context;

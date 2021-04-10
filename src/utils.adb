@@ -514,16 +514,13 @@ package body Utils is
             and then Referenced_From /= LAL.No_Analysis_Unit
             and then not Is_Standard_Type
          then
-            Session.To_Do.Register
-              (Post_Actions.Generate_External_Interface_Action'
-                 (Typ.Unit,
-                  Langkit_Support.Slocs.Start_Sloc
-                    (LAL.Sloc_Range (Typ))));
+            Post_Actions.Actions.Generate_External_Interface
+              ((Typ.Unit,
+                Langkit_Support.Slocs.Start_Sloc (LAL.Sloc_Range (Typ))));
 
-            Session.To_Do.Register
-              (Post_Actions.Add_With_Clause_Action'
-                 (Referenced_From,
-                  Langkit_Support.Text.To_Unbounded_Text (Result)));
+            Post_Actions.Actions.Add_With_Clause
+              ((Referenced_From,
+                Langkit_Support.Text.To_Unbounded_Text (Result)));
          end if;
       end Handle_Reference;
    begin

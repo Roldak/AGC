@@ -23,19 +23,19 @@ package Post_Actions is
       Ref  : Langkit_Support.Text.Unbounded_Text_Type;
    end record;
 
-   type Add_Generic_Formal is record
+   type Add_Generic_Formal_Action is record
       Unit : Analysis_Unit;
       Sloc : Langkit_Support.Slocs.Source_Location;
       Fix  : Langkit_Support.Text.Unbounded_Text_Type;
    end record;
 
-   type Add_Generic_Actual is record
+   type Add_Generic_Actual_Action is record
       Unit : Analysis_Unit;
       Sloc : Langkit_Support.Slocs.Source_Location;
       Fix  : Langkit_Support.Text.Unbounded_Text_Type;
    end record;
 
-   type Add_Basic_Decl_After is record
+   type Add_Basic_Decl_After_Action is record
       Unit : Analysis_Unit;
       Sloc : Langkit_Support.Slocs.Source_Location;
       Fix  : Langkit_Support.Text.Unbounded_Text_Type;
@@ -51,21 +51,22 @@ package Post_Actions is
      (Positive, Add_With_Clause_Action);
 
    package Add_Generic_Formal_Actions is new Ada.Containers.Vectors
-     (Positive, Add_Generic_Formal);
+     (Positive, Add_Generic_Formal_Action);
 
    package Add_Generic_Actual_Actions is new Ada.Containers.Vectors
-     (Positive, Add_Generic_Actual);
+     (Positive, Add_Generic_Actual_Action);
 
    package Add_Basic_Decl_Actions is new Ada.Containers.Vectors
-     (Positive, Add_Basic_Decl_After);
+     (Positive, Add_Basic_Decl_After_Action);
 
-   protected type Actions is
-      procedure Register (Action : Move_Action);
-      procedure Register (Action : Generate_External_Interface_Action);
-      procedure Register (Action : Add_With_Clause_Action);
-      procedure Register (Action : Add_Generic_Formal);
-      procedure Register (Action : Add_Generic_Actual);
-      procedure Register (Action : Add_Basic_Decl_After);
+   protected Actions is
+      procedure Move (Action : Move_Action);
+      procedure Add_With_Clause (Action : Add_With_Clause_Action);
+      procedure Add_Generic_Formal (Action : Add_Generic_Formal_Action);
+      procedure Add_Generic_Actual (Action : Add_Generic_Actual_Action);
+      procedure Add_Basic_Decl_After (Action : Add_Basic_Decl_After_Action);
+      procedure Generate_External_Interface
+        (Action : Generate_External_Interface_Action);
 
       procedure Perform_Actions
         (Ctx   : Analysis_Context;

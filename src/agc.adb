@@ -239,14 +239,15 @@ procedure AGC is
 
       Total_Written : Natural := 0;
    begin
-      Put_Line ("Apply" & Session.To_Do.Length'Image & " Global Changes");
+      Put_Line
+        ("Apply" & Post_Actions.Actions.Length'Image & " Global Changes");
 
       Reparse_All_Units
         (First_Context,
          Jobs (Jobs'First + 1 .. Jobs'Last),
          All_Units);
 
-      Session.To_Do.Perform_Actions (First_Context, All_Units);
+      Post_Actions.Actions.Perform_Actions (First_Context, All_Units);
 
       Put_Line ("Output units");
 

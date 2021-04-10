@@ -25,8 +25,8 @@ package Session is
      (File_Name : String;
       Out_Dir   : GNATCOLL.VFS.Virtual_File) return Boolean;
 
-   To_Do : Post_Actions.Actions;
 private
+
    package String_Sets is new Ada.Containers.Hashed_Sets
      (Unbounded_String, Hash, "=", "=");
 

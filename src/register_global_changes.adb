@@ -55,9 +55,9 @@ is
       end if;
 
       if not GGP.Is_Null and then GGP.Kind in LALCO.Ada_Base_Package_Decl then
-         Session.To_Do.Register (Post_Actions.Move_Action'
-           (Unit => Node.Unit,
-            Sloc => Start_Sloc (LAL.Sloc_Range (Node))));
+         Post_Actions.Actions.Move
+           ((Unit => Node.Unit,
+             Sloc => Start_Sloc (LAL.Sloc_Range (Node))));
       end if;
    end Move_Body;
 
@@ -86,15 +86,15 @@ is
                LAL.Actual (Param_Actual);
          begin
             if Param.Kind in LALCO.Ada_Base_Type_Decl then
-               Session.To_Do.Register (Post_Actions.Add_Generic_Actual'
-                 (Unit => Args.Unit,
-                  Sloc => Start_Sloc (LAL.Sloc_Range (Args)),
-                  Fix  => To_Unbounded_Text
-                    (Utils.Visitor_Name (Param.As_Base_Type_Decl, False)
-                     & " => "
-                     & Utils.Visitor_Name
-                       (Actual.As_Name.P_Name_Designated_Type,
-                        Referenced_From => Unit))));
+               Post_Actions.Actions.Add_Generic_Actual
+                 ((Unit => Args.Unit,
+                   Sloc => Start_Sloc (LAL.Sloc_Range (Args)),
+                   Fix  => To_Unbounded_Text
+                     (Utils.Visitor_Name (Param.As_Base_Type_Decl, False)
+                      & " => "
+                      & Utils.Visitor_Name
+                        (Actual.As_Name.P_Name_Designated_Type,
+                         Referenced_From => Unit))));
             elsif Param.Kind in LALCO.Ada_Generic_Package_Instantiation then
                declare
                   F_Inst : LAL.Generic_Package_Instantiation :=
@@ -114,14 +114,16 @@ is
 
                   A_Decl : LAL.Generic_Package_Decl :=
                      A_Inst.P_Designated_Generic_Decl.As_Generic_Package_Decl;
+
+                  A_Name : LAL.Defining_Name := A_Decl.P_Defining_Name;
                begin
                   if Utils.Starts_With (FQN, "Ada.Containers") then
-                     Session.To_Do.Register (Post_Actions.Add_Generic_Actual'
-                       (Unit => Args.Unit,
-                        Sloc => Start_Sloc (LAL.Sloc_Range (Args)),
-                        Fix  => To_Unbounded_Text
-                          ("AGC_" & F_Name & "_Visitors => "
-                           & Utils.Visitor_Package (A_Decl.P_Defining_Name))));
+                     Post_Actions.Actions.Add_Generic_Actual
+                       ((Unit => Args.Unit,
+                         Sloc => Start_Sloc (LAL.Sloc_Range (Args)),
+                         Fix  => To_Unbounded_Text
+                           ("AGC_" & F_Name & "_Visitors => "
+                            & Utils.Visitor_Package (A_Name))));
                   end if;
                end;
             end if;
@@ -168,12 +170,12 @@ is
       Visitor_Pkg_Name : Text_Type :=
          "AGC.Standard." & Replace_Dots (FQN) & "_Visitors";
    begin
-      Session.To_Do.Register (Post_Actions.Add_Basic_Decl_After'
-        (Unit => Inst.Unit,
-         Sloc => Start_Sloc (LAL.Sloc_Range (Inst)),
-         Fix  => To_Unbounded_Text
-           ("package AGC_" & Inst_Name & "_Visitors is new "
-            & Visitor_Pkg_Name & "(" & Inst_Name & Actuals & ");")));
+      Post_Actions.Actions.Add_Basic_Decl_After
+        ((Unit => Inst.Unit,
+          Sloc => Start_Sloc (LAL.Sloc_Range (Inst)),
+          Fix  => To_Unbounded_Text
+            ("package AGC_" & Inst_Name & "_Visitors is new "
+             & Visitor_Pkg_Name & "(" & Inst_Name & Actuals & ");")));
    end Handle_Container_Package_Instantiation;
 
    procedure Handle_Generic_Instantiation
@@ -213,11 +215,11 @@ is
 
       Visitor_Name : Text_Type := Utils.Visitor_Name (Typ, Is_Ref => False);
    begin
-      Session.To_Do.Register (Post_Actions.Add_Generic_Formal'
-        (Unit => Typ.Unit,
-         Sloc => Start_Sloc (LAL.Sloc_Range (Typ)),
-         Fix  => To_Unbounded_Text
-           ("with procedure " & Visitor_Name & " (X : System.Address);")));
+      Post_Actions.Actions.Add_Generic_Formal
+        ((Unit => Typ.Unit,
+          Sloc => Start_Sloc (LAL.Sloc_Range (Typ)),
+          Fix  => To_Unbounded_Text
+            ("with procedure " & Visitor_Name & " (X : System.Address);")));
    end Handle_Generic_Formal_Type_Decl;
 
    procedure Handle_Formal_Container_Package
@@ -233,12 +235,12 @@ is
       Visitor_Pkg_Name : Text_Type :=
          "AGC.Standard." & Replace_Dots (FQN) & "_Visitors";
    begin
-      Session.To_Do.Register (Post_Actions.Add_Generic_Formal'
-        (Unit => Inst.Unit,
-         Sloc => Start_Sloc (LAL.Sloc_Range (Inst)),
-         Fix  => To_Unbounded_Text
-           ("with package AGC_" & Inst_Name & "_Visitors is new "
-            & Visitor_Pkg_Name & "(" & Inst_Name & ", others => <>);")));
+      Post_Actions.Actions.Add_Generic_Formal
+        ((Unit => Inst.Unit,
+          Sloc => Start_Sloc (LAL.Sloc_Range (Inst)),
+          Fix  => To_Unbounded_Text
+            ("with package AGC_" & Inst_Name & "_Visitors is new "
+             & Visitor_Pkg_Name & "(" & Inst_Name & ", others => <>);")));
    end Handle_Formal_Container_Package;
 
    procedure Handle_Generic_Formal_Package
@@ -269,10 +271,10 @@ is
 
       for PM of P.P_Zip_With_Params loop
          if LAL.Param (PM).P_Basic_Decl.Kind in LALCO.Ada_Base_Type_Decl then
-            Session.To_Do.Register (Post_Actions.Add_Generic_Actual'
-              (Unit => Inst.Unit,
-               Sloc => Start_Sloc (LAL.Sloc_Range (P)),
-               Fix  => To_Unbounded_Text ("<>")));
+            Post_Actions.Actions.Add_Generic_Actual
+              ((Unit => Inst.Unit,
+                Sloc => Start_Sloc (LAL.Sloc_Range (P)),
+                Fix  => To_Unbounded_Text ("<>")));
             return;
          end if;
       end loop;
