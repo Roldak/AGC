@@ -372,19 +372,14 @@ package body Utils is
    end Is_Runtime_Unit;
 
    function Fully_Qualified_Decl_Part_Of
-     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
+     (Node : LAL.Ada_Node'Class) return Langkit_Support.Text.Text_Type
    is
-      FQN : Langkit_Support.Text.Text_Type :=
-         (if Decl.Kind in LALCO.Ada_Classwide_Type_Decl
-          then Decl.Parent.As_Base_Type_Decl.P_Fully_Qualified_Name
-          else Decl.P_Fully_Qualified_Name);
+      Base : LAL.Ada_Node'Class :=
+        (if Node.Kind in LALCO.Ada_Classwide_Type_Decl
+         then Node.Parent
+         else Node);
    begin
-      for I in reverse FQN'First .. FQN'Last loop
-         if FQN (I) = '.' then
-            return FQN (FQN'First .. I);
-         end if;
-      end loop;
-      return FQN;
+      return Base.P_Parent_Basic_Decl.P_Fully_Qualified_Name;
    end Fully_Qualified_Decl_Part_Of;
 
    function Get_Type_Name
@@ -409,6 +404,36 @@ package body Utils is
       (X.Kind in LALCO.Ada_Classwide_Type_Decl and then
        X.As_Classwide_Type_Decl.Parent.Kind in LALCO.Ada_Subtype_Decl));
 
+   function Visitor_Package
+     (Node  : LAL.Ada_Node'Class;
+      First : Boolean := True) return Langkit_Support.Text.Text_Type
+   is
+      use type LAL.Analysis_Unit;
+
+      E : Langkit_Support.Text.Text_Type := (if First then "" else ".");
+   begin
+      if Is_Runtime_Unit (Node.P_Enclosing_Compilation_Unit) then
+         declare
+            Parent : LAL.Basic_Decl := Node.P_Parent_Basic_Decl;
+         begin
+            if Parent.Unit = Node.P_Standard_Unit then
+               return "AGC.Standard" & E;
+            elsif Is_Runtime_Unit (Parent.P_Enclosing_Compilation_Unit) then
+               return Visitor_Package (Parent, False)
+                  & LAL.Text (Parent.P_Defining_Name.P_Relative_Name)
+                  & (if First then "_Visitors" & E else "_");
+            else
+               return Visitor_Package (Parent, False)
+                  & "AGC_"
+                  & LAL.Text (Parent.P_Defining_Name.P_Relative_Name)
+                  & "_Visitors" & E;
+            end if;
+         end;
+      else
+         return Fully_Qualified_Decl_Part_Of (Node) & E;
+      end if;
+   end Visitor_Package;
+
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -420,34 +445,6 @@ package body Utils is
 
       Is_Standard_Type : Boolean :=
          Is_Runtime_Unit (Typ.P_Enclosing_Compilation_Unit);
-
-      function Relevant_Qualified_Decl_Part_Of
-        (Decl  : LAL.Basic_Decl'Class;
-         First : Boolean := True) return Langkit_Support.Text.Text_Type
-      is
-         use type LAL.Analysis_Unit;
-      begin
-         if Is_Runtime_Unit (Decl.P_Enclosing_Compilation_Unit) then
-            declare
-               Parent : LAL.Basic_Decl := Decl.P_Parent_Basic_Decl;
-            begin
-               if Parent.Unit = Decl.P_Standard_Unit then
-                  return "AGC.Standard.";
-               elsif Is_Runtime_Unit (Parent.P_Enclosing_Compilation_Unit) then
-                  return Relevant_Qualified_Decl_Part_Of (Parent, False)
-                     & LAL.Text (Parent.P_Defining_Name.P_Relative_Name)
-                     & (if First then "_Visitors." else "_");
-               else
-                  return Relevant_Qualified_Decl_Part_Of (Parent, False)
-                     & "AGC_"
-                     & LAL.Text (Parent.P_Defining_Name.P_Relative_Name)
-                     & "_Visitors.";
-               end if;
-            end;
-         else
-            return Fully_Qualified_Decl_Part_Of (Decl);
-         end if;
-      end Relevant_Qualified_Decl_Part_Of;
 
       function Normalized_Name
         (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
@@ -482,8 +479,7 @@ package body Utils is
             return Visitor_Name (Typ.P_Base_Subtype, Is_Ref, Referenced_From);
          elsif Is_Ref then
             return Result : Langkit_Support.Text.Text_Type :=
-               Relevant_Qualified_Decl_Part_Of (Typ)
-               & "AGC_Visit_" & Normalized_Name (Typ)
+               Visitor_Package (Typ) & ".AGC_Visit_" & Normalized_Name (Typ)
             do
                Handle_Reference (Result);
             end return;
@@ -507,7 +503,7 @@ package body Utils is
          return Register_Name (Typ.P_Base_Subtype, Is_Ref);
       elsif Is_Ref then
          return Fully_Qualified_Decl_Part_Of (Typ)
-                  & "AGC_Register_" & Type_Name;
+                  & ".AGC_Register_" & Type_Name;
       else
          return "AGC_Register_" & Type_Name;
       end if;
@@ -547,4 +543,10 @@ package body Utils is
    begin
       return Img (Img'First + 1 .. Img'Last);
    end To_String;
+
+   function Starts_With
+     (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean
+   is (Str'Length >= Prefix'Length
+       and then Str (Str'First .. Str'First + Prefix'Length - 1) = Prefix);
+
 end Utils;

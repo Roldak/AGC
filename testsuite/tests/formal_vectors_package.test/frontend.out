@@ -1,0 +1,41 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Containers.Vectors;
+procedure Test is
+   generic
+      type T is private;
+      with package Vectors is new Ada.Containers.Vectors
+        (Element_Type => T, others => <>);
+      with procedure AGC_Visit_T_Private (X : System.Address);
+      with package AGC_Vectors_Visitors is new AGC.Standard
+        .Ada_Containers_Vectors_Visitors
+        (Vectors, others => <>);
+   package Pkg is
+      procedure Main;
+   end Pkg;
+   package body Pkg is
+      procedure Main is
+         AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+         X                   : aliased Vectors.Vector;
+         AGC_Dummy_0         : constant AGC.Empty_Type :=
+           AGC.Push_Root
+             (X'Address,
+              Test.Pkg.AGC_Vectors_Visitors.AGC_Visit_Vector_Private'Address);
+      begin
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end Main;
+   end Pkg;
+   package Int_Vectors is new Ada.Containers.Vectors (Positive, Integer);
+   package AGC_Int_Vectors_Visitors is new AGC.Standard
+     .Ada_Containers_Vectors_Visitors
+     (Int_Vectors, AGC_Visit_Index_Type => AGC.No_Op,
+      AGC_Visit_Element_Type            => AGC.No_Op);
+   package Pkg_I is new Pkg
+     (Integer, Int_Vectors, AGC_Visit_T_Private => AGC.No_Op,
+      AGC_Vectors_Visitors => Test.AGC_Int_Vectors_Visitors);
+begin
+   Pkg_I.Main;
+end Test;

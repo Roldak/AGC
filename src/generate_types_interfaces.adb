@@ -24,11 +24,6 @@ is
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
 
-   function Starts_With
-     (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean
-   is (Str'Length >= Prefix'Length
-       and then Str (Str'First .. Str'First + Prefix'Length - 1) = Prefix);
-
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -109,6 +104,7 @@ is
       end if;
       return
          Base.Unit /= Unit
+         or else Base.P_Is_Generic_Formal
          or else Handled_Types.Contains (Base.As_Ada_Node);
    end Is_Handled;
 
@@ -531,19 +527,6 @@ is
       end if;
    end Generate_Interface_Type_Visitor;
 
-   procedure Generate_Formal_Type_Visitor
-     (Visit_Name : Langkit_Support.Text.Text_Type;
-      Decl       : LAL.Base_Type_Decl'Class;
-      Append     : RWNode_Processor)
-   is
-   begin
-      Append (LALRW.Create_From_Template
-        (RH,
-        "with procedure " & Visit_Name & " (X : System.Address);",
-        (1 .. 0 => <>),
-        LALCO.Generic_Formal_Decl_Rule));
-   end Generate_Formal_Type_Visitor;
-
    procedure Generate_Visitors
      (Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
@@ -551,9 +534,7 @@ is
       Visit_Name : Langkit_Support.Text.Text_Type :=
          Visitor_Name (Decl, Is_Ref => False);
    begin
-      if Decl.P_Is_Generic_Formal then
-         Generate_Formal_Type_Visitor (Visit_Name, Decl, Append);
-      elsif Decl.P_Is_Private then
+      if Decl.P_Is_Private then
          Generate_Private_Type_Visitor (Visit_Name, Decl, Append);
       elsif Decl.P_Is_Access_Type then
          Generate_Access_Type_Visitor (Visit_Name, Decl, Append);
@@ -574,36 +555,20 @@ is
       Type_Name : Langkit_Support.Text.Text_Type :=
          Utils.Get_Type_Name (Decl);
 
-      Is_Generic_Formal : Boolean := Decl.P_Is_Generic_Formal;
-
-      Decl_Part : LAL.Ada_Node :=
-        (if Is_Generic_Formal
-         then Decl.Parent.Parent.As_Ada_Node
-         else Decl.Parent.As_Ada_Node);
+      Decl_Part : LAL.Ada_Node := Decl.Parent.As_Ada_Node;
 
       DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl_Part);
 
-      Index : Natural :=
-        (if Base_Index = -1
-         then Decl.Child_Index
-         else Base_Index) + Node_Counters.Get (Decl_Part_Count, Decl_Part);
-
       procedure Insert_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
+         Index : Natural :=
+           (if Base_Index = -1
+            then Decl.Child_Index
+            else Base_Index) + Node_Counters.Get (Decl_Part_Count, Decl_Part);
       begin
          LALRW.Insert_Child (DH, Index + 2, Visitor);
          Node_Counters.Increase (Decl_Part_Count, Decl_Part);
          Index := Index + 1;
       end Insert_Visitor;
-
-      procedure Append_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
-      begin
-         LALRW.Append_Child (DH, Visitor);
-      end Append_Visitor;
-
-      Add_Visitor : RWNode_Processor :=
-        (if Is_Generic_Formal
-         then Append_Visitor'Unrestricted_Access
-         else Insert_Visitor'Unrestricted_Access);
    begin
       if Decl.Kind
          in LALCO.Ada_Incomplete_Type_Decl
@@ -628,7 +593,7 @@ is
             Decl.As_Ada_Node);
          return;
       else
-         Generate_Visitors (Decl, Add_Visitor);
+         Generate_Visitors (Decl, Insert_Visitor'Unrestricted_Access);
       end if;
 
       if not Handled_Types.Contains (Decl.As_Ada_Node) then
@@ -642,99 +607,17 @@ is
       end if;
    end Handle_Type_Decl;
 
-   procedure Handle_Package_Instantiation
-     (Inst : LAL.Generic_Package_Instantiation'Class)
-   is
-      Inst_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Inst.F_Name);
-
-      G_Pkg : LAL.Generic_Package_Decl'Class :=
-         Inst.P_Designated_Generic_Decl.As_Generic_Package_Decl;
-
-      function Replace_Dots
-        (X : Langkit_Support.Text.Text_Type)
-         return Langkit_Support.Text.Text_Type
-      is
-         Ret : Langkit_Support.Text.Text_Type := X;
-      begin
-         for C of Ret loop
-            if C = '.' then
-               C := '_';
-            end if;
-         end loop;
-         return Ret;
-      end Replace_Dots;
-
-      function Instantiate_Visitor_Package
-        (Pkg_Name : Langkit_Support.Text.Text_Type)
-         return LALRW.Node_Rewriting_Handle
-      is
-         use type Langkit_Support.Text.Unbounded_Text_Type;
-
-         Zipped : LAL.Param_Actual_Array :=
-            Inst.F_Params.P_Zip_With_Params;
-
-         Params : Langkit_Support.Text.Unbounded_Text_Type;
-      begin
-         for Param_Actual of Zipped loop
-            declare
-               Param_Name  : LAL.Defining_Name'Class :=
-                  LAL.Param (Param_Actual);
-               Param_Decl  : LAL.Basic_Decl'Class :=
-                  Param_Name.P_Basic_Decl;
-               Actual : LAL.Expr'Class := LAL.Actual (Param_Actual);
-            begin
-               if Param_Decl.Kind in LALCO.Ada_Base_Type_Decl then
-                  Params :=
-                     Params & ", "
-                     & "AGC_Visit_" & LAL.Text (Param_Name) & " => "
-                     & Visitor_Name
-                         (Actual.As_Name.P_Name_Designated_Type);
-               end if;
-            end;
-         end loop;
-         return LALRW.Create_From_Template
-           (RH,
-            "package AGC_" & Inst_Name & "_Visitors "
-            & "is new " & Pkg_Name
-            & "(" & Inst_Name
-            & Langkit_Support.Text.To_Text (Params) & ");",
-            (1 .. 0 => <>),
-            LALCO.Basic_Decl_Rule);
-      end Instantiate_Visitor_Package;
-
-      FQN : Langkit_Support.Text.Text_Type :=
-         G_Pkg.P_Fully_Qualified_Name;
-
-      Decl_Part : LAL.Ada_Node := Inst.Parent.As_Ada_Node;
-
-      DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl_Part);
-
-      Index : Natural :=
-         Inst.Child_Index + Node_Counters.Get (Decl_Part_Count, Decl_Part);
-   begin
-      if Starts_With (FQN, "Ada.Containers") then
-         LALRW.Insert_Child
-           (DH, Index + 2, Instantiate_Visitor_Package
-              ("AGC.Standard." & Replace_Dots (FQN) & "_Visitors"));
-         Node_Counters.Increase (Decl_Part_Count, Decl_Part);
-      end if;
-   end Handle_Package_Instantiation;
-
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
    begin
       case Node.Kind is
-         when LALCO.Ada_Anonymous_Type =>
+         when LALCO.Ada_Generic_Formal_Part =>
             return LALCO.Over;
-         when LALCO.Ada_Generic_Formal_Package =>
+         when LALCO.Ada_Anonymous_Type =>
             return LALCO.Over;
          when LALCO.Ada_Base_Type_Decl =>
             Handle_Type_Decl (Node.As_Base_Type_Decl);
-         when LALCO.Ada_Generic_Package_Instantiation =>
-            Handle_Package_Instantiation
-              (Node.As_Generic_Package_Instantiation);
          when others =>
             null;
       end case;

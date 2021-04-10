@@ -157,9 +157,19 @@ package body Post_Actions is
          To_With.Append (Action);
       end Register;
 
+      procedure Register (Action : Add_Generic_Formal) is
+      begin
+         Formals_To_Add.Append (Action);
+      end Register;
+
       procedure Register (Action : Add_Generic_Actual) is
       begin
          Actuals_To_Add.Append (Action);
+      end Register;
+
+      procedure Register (Action : Add_Basic_Decl_After) is
+      begin
+         Decls_To_Add.Append (Action);
       end Register;
 
       procedure Perform_Actions
@@ -242,6 +252,23 @@ package body Post_Actions is
             end;
          end loop;
 
+         for Action of Formals_To_Add loop
+            declare
+               use Langkit_Support.Text;
+
+               Formal_Part : LAL.Generic_Formal_Part := Lookup
+                 (Ctx, Action.Unit, Action.Sloc,
+                  LALCO.Ada_Generic_Formal_Part,
+                  LALCO.Ada_Generic_Formal_Part).As_Generic_Formal_Part;
+            begin
+               LALRW.Append_Child
+                 (LALRW.Handle (Formal_part.F_Decls),
+                  LALRW.Create_From_Template
+                    (RH, To_Text (Action.Fix), (1 .. 0 => <>),
+                     LALCO.Generic_Formal_Decl_Rule));
+            end;
+         end loop;
+
          for Action of Actuals_To_Add loop
             declare
                use Langkit_Support.Text;
@@ -255,6 +282,24 @@ package body Post_Actions is
                   LALRW.Create_From_Template
                     (RH, To_Text (Action.Fix), (1 .. 0 => <>),
                      LALCO.Param_Assoc_Rule));
+            end;
+         end loop;
+
+         for Action of Decls_To_Add loop
+            declare
+               use Langkit_Support.Text;
+
+               Decl : LAL.Basic_Decl := Lookup
+                 (Ctx, Action.Unit, Action.Sloc).As_Basic_Decl;
+
+               DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl);
+            begin
+               LALRW.Insert_Child
+                 (LALRW.Parent (DH),
+                  Utils.Child_Index (DH) + 1,
+                  LALRW.Create_From_Template
+                    (RH, To_Text (Action.Fix), (1 .. 0 => <>),
+                     LALCO.Basic_Decl_Rule));
             end;
          end loop;
 

@@ -42,6 +42,10 @@ package Utils is
    function Get_Type_Name
      (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
 
+   function Visitor_Package
+     (Node  : LAL.Ada_Node'Class;
+      First : Boolean := True) return Langkit_Support.Text.Text_Type;
+
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -62,6 +66,9 @@ package Utils is
       Node   : LALRW.Node_Rewriting_Handle);
 
    function To_String (X : Integer) return Langkit_Support.Text.Text_Type;
+
+   function Starts_With
+     (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean;
 
    Storage_Pool_Symbol : Langkit_Support.Text.Unbounded_Text_Type :=
       Langkit_Support.Text.To_Unbounded_Text ("Storage_Pool");
