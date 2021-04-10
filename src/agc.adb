@@ -108,6 +108,10 @@ procedure AGC is
          Result : out Boolean);
    private
 
+      procedure Has_Dependency_Changed
+        (Unit   : LAL.Analysis_Unit;
+         Result : out Boolean);
+
       Change_Set   : String_Sets.Set;
       To_Reprocess : String_Maps.Map;
    end Incremental;
@@ -124,7 +128,7 @@ procedure AGC is
          Session.Iterate_Files_To_Process (Process_File'Access);
       end Compute_Change_Set;
 
-      procedure Must_Reprocess
+      procedure Has_Dependency_Changed
         (Unit   : LAL.Analysis_Unit;
          Result : out Boolean)
       is
@@ -148,7 +152,7 @@ procedure AGC is
          end if;
 
          for Dep of Utils.Imported_Units (Unit) loop
-            Must_Reprocess (Dep, Result);
+            Has_Dependency_Changed (Dep, Result);
             if Result then
                To_Reprocess.Replace_Element (Cursor, True);
                return;
@@ -156,6 +160,42 @@ procedure AGC is
          end loop;
 
          Result := False;
+      end Has_Dependency_Changed;
+
+      procedure Must_Reprocess
+        (Unit   : LAL.Analysis_Unit;
+         Result : out Boolean)
+      is
+         procedure Check_Body (CU : LAL.Compilation_Unit'Class) is
+         begin
+            if CU.P_Unit_Kind in LALCO.Unit_Specification then
+               declare
+                  Body_Part : LAL.Body_Node := CU.P_Decl.P_Body_Part_For_Decl;
+               begin
+                  if not Body_Part.Is_Null then
+                     Has_Dependency_Changed (Body_Part.Unit, Result);
+                  end if;
+               end;
+            end if;
+         end Check_Body;
+      begin
+         Has_Dependency_Changed (Unit, Result);
+
+         if not Result then
+            case Unit.Root.Kind is
+               when LALCO.Ada_Compilation_Unit =>
+                  Check_Body (Unit.Root.As_Compilation_Unit);
+               when LALCO.Ada_Compilation_Unit_List =>
+                  for CU of Unit.Root.As_Compilation_Unit_List loop
+                     Check_Body (CU);
+                     if Result then
+                        return;
+                     end if;
+                  end loop;
+               when others =>
+                  null;
+            end case;
+         end if;
       end Must_Reprocess;
    end Incremental;
 
