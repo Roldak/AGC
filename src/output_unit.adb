@@ -17,7 +17,8 @@ with Utils;
 
 procedure Output_Unit
   (Unit    : Libadalang.Analysis.Analysis_Unit;
-   Out_Dir : VFS.Virtual_File)
+   Out_Dir : VFS.Virtual_File;
+   SHA1    : String)
 is
    package LAL     renames Libadalang.Analysis;
    package LALU    renames Libadalang.Unparsing;
@@ -36,8 +37,6 @@ begin
       declare
          New_Unit : VFS.Writable_File :=
             VFS.Join (Out_Dir, VFS."+" (Basename)).Write_File;
-
-         SHA1 : String := Session.Get_Processed_File_SHA1 (Unit.Get_Filename);
 
          SHA1_Comment : String := "-- " & SHA1 & Ada.Characters.Latin_1.LF;
       begin

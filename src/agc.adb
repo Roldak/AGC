@@ -8,6 +8,9 @@ with GNATCOLL.Opt_Parse;
 with GNATCOLL.Strings; use GNATCOLL.Strings;
 with GNATCOLL.VFS;
 
+with GNAT.Sha1;
+with GNAT.Strings;
+
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
@@ -97,8 +100,11 @@ procedure AGC is
    package String_Sets is new Ada.Containers.Hashed_Sets
      (Unbounded_String, Hash, "=");
 
-   package String_Maps is new Ada.Containers.Hashed_Maps
+   package String_Bool_Maps is new Ada.Containers.Hashed_Maps
      (Unbounded_String, Boolean, Hash, "=", "=");
+
+   package String_SHA1_Maps is new Ada.Containers.Hashed_Maps
+     (Unbounded_String, GNAT.SHA1.Message_Digest, Hash, "=", "=");
 
    protected Incremental is
       procedure Compute_Change_Set;
@@ -106,41 +112,96 @@ procedure AGC is
       procedure Must_Reprocess
         (Unit   : LAL.Analysis_Unit;
          Result : out Boolean);
+
+      function Get_SHA1 (File : String) return String;
+
    private
+
+      function SHA1_Changed
+        (File : String; SHA1 : GNAT.SHA1.Message_Digest)
+         return Boolean;
 
       procedure Has_Dependency_Changed
         (Unit   : LAL.Analysis_Unit;
          Result : out Boolean);
 
       Change_Set   : String_Sets.Set;
-      To_Reprocess : String_Maps.Map;
+      SHA1_Map     : String_SHA1_Maps.Map;
+      To_Reprocess : String_Bool_Maps.Map;
    end Incremental;
 
    protected body Incremental is
       procedure Compute_Change_Set is
+         use GNATCOLL;
+
          procedure Process_File (File : String) is
+            File_Unbounded : Unbounded_String :=
+               To_Unbounded_String (File);
+
+            SHA1 : GNAT.SHA1.Message_Digest :=
+               GNAT.SHA1.Digest (VFS.Create (VFS."+" (File)).Read_File.all);
          begin
-            if Session.Has_Changed (File, Out_Dir_File) then
-               Change_Set.Insert (To_Unbounded_String (File));
+            SHA1_Map.Insert (File_Unbounded, SHA1);
+            if SHA1_Changed (File, SHA1) then
+               Change_Set.Insert (File_Unbounded);
             end if;
          end Process_File;
       begin
          Session.Iterate_Files_To_Process (Process_File'Access);
       end Compute_Change_Set;
 
+      function Get_SHA1 (File : String) return String is
+         use String_SHA1_Maps;
+
+         C : Cursor := SHA1_Map.Find (To_Unbounded_String (File));
+      begin
+         return (if C = No_Element then "" else Element (C));
+      end Get_SHA1;
+
+      function SHA1_Changed
+        (File : String; SHA1 : GNAT.SHA1.Message_Digest)
+         return Boolean
+      is
+         use GNATCOLL;
+
+         SHA1_Comment_Length : constant Natural :=
+            3 + GNAT.SHA1.Message_Digest'Length;
+         -- ^ for "-- "
+
+         Out_File : VFS.Virtual_File :=
+            VFS.Join (Out_Dir_File, VFS."+" (Utils.Base_Name (File)));
+
+         Content_Access       : GNAT.Strings.String_Access;
+      begin
+         if not Out_File.Is_Regular_File then
+            return True;
+         end if;
+
+         Content_Access := Out_File.Read_File;
+
+         if Content_Access.all'Length < SHA1_Comment_Length then
+            return True;
+         end if;
+
+         return Content_Access (4 .. SHA1_Comment_Length) /= SHA1;
+      end SHA1_Changed;
+
       procedure Has_Dependency_Changed
         (Unit   : LAL.Analysis_Unit;
          Result : out Boolean)
       is
-         use type String_Maps.Cursor;
+         use type String_Bool_Maps.Cursor;
 
          Filename : Unbounded_String :=
             To_Unbounded_String (Unit.Get_Filename);
-         Cursor   : String_Maps.Cursor := To_Reprocess.Find (Filename);
+
+         Cursor   : String_Bool_Maps.Cursor :=
+            To_Reprocess.Find (Filename);
+
          Inserted : Boolean;
       begin
-         if Cursor /= String_Maps.No_Element then
-            Result := String_Maps.Element (Cursor);
+         if Cursor /= String_Bool_Maps.No_Element then
+            Result := String_Bool_Maps.Element (Cursor);
             return;
          end if;
 
@@ -278,9 +339,12 @@ procedure AGC is
          Jobs (Jobs'First).Units_Processed;
 
       Total_Written : Natural := 0;
+
+      Post_Action_Count : Natural := Post_Actions.Actions.Length;
    begin
-      Put_Line
-        ("Apply" & Post_Actions.Actions.Length'Image & " Global Changes");
+      if Post_Action_Count > 0 then
+         Put_Line ("Apply" & Post_Action_Count'Image & " Global Changes");
+      end if;
 
       Reparse_All_Units
         (First_Context,
@@ -298,14 +362,17 @@ procedure AGC is
          begin
             Incremental.Must_Reprocess (Unit, Was_Reprocessed);
             if Was_Reprocessed then
-               Output_Unit (Unit, Out_Dir_File);
+               Output_Unit
+                 (Unit    => Unit,
+                  Out_Dir => Out_Dir_File,
+                  SHA1    => Incremental.Get_SHA1 (Unit.Get_Filename));
                Total_Written := Total_Written + 1;
             end if;
          end;
       end loop;
 
       if Total_Written = 0 then
-         Put_Line ("Done: nothing to do");
+         Put_Line ("Done: everything up-to-date.");
       else
          Put_Line ("Done: instrumented" & Total_Written'Image & " units.");
       end if;
