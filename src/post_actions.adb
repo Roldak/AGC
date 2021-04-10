@@ -326,5 +326,19 @@ package body Post_Actions is
             end;
          end loop;
       end Perform_Actions;
+
+      function Length return Natural is
+         use type Ada.Containers.Count_Type;
+
+         Total : Ada.Containers.Count_Type := 0;
+      begin
+         Total := Total + To_Move.Length;
+         Total := Total + To_Generate.Length;
+         Total := Total + To_With.Length;
+         Total := Total + Formals_To_Add.Length;
+         Total := Total + Actuals_To_Add.Length;
+         Total := Total + Decls_To_Add.Length;
+         return Natural (Total);
+      end Length;
    end Actions;
 end Post_Actions;

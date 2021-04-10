@@ -70,6 +70,8 @@ package Post_Actions is
       procedure Perform_Actions
         (Ctx   : Analysis_Context;
          Units : in out Libadalang.Helpers.Unit_Vectors.Vector);
+
+      function Length return Natural;
    private
       To_Move        : Move_Actions.Vector;
       To_Generate    : Generate_External_Interface_Actions.Vector;

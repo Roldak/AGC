@@ -1,7 +1,8 @@
-with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Text_IO;
 
 with GNATCOLL.Opt_Parse;
 with GNATCOLL.Strings; use GNATCOLL.Strings;
+with GNATCOLL.VFS; use GNATCOLL.VFS;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -67,12 +68,33 @@ procedure AGC is
       Long    => "--optimize",
       Help    => "Turn on optimizations");
 
+   package Quiet is new GNATCOLL.Opt_Parse.Parse_Flag
+     (Parser => App.Args.Parser,
+      Short  => "-q",
+      Long   => "--quiet",
+      Help   => "Do not print progress information");
+
+   procedure Put_Line (X : String) is
+   begin
+      if Quiet.Get then
+         return;
+      end if;
+      Ada.Text_IO.Put_Line (X);
+   end Put_Line;
+
+   procedure Print_Processed_Unit (Unit : LAL.Analysis_Unit) is
+      Basename : constant String := +Create (+Unit.Get_Filename).Base_Name;
+   begin
+      Put_Line ("   [Ada]          " & Basename);
+   end Print_Processed_Unit;
+
    procedure Setup
      (Ctx   : Helpers.App_Context;
       Jobs  : Helpers.App_Job_Context_Array;
       Files : Helpers.String_Vectors.Vector)
    is
    begin
+      Put_Line ("Instrument");
       Session.Set_Files_To_Process (Files);
       if Optimize.Get then
          Analysis.Summaries := new Analysis.Summaries_Map;
@@ -84,6 +106,7 @@ procedure AGC is
    is
       use type LALCO.Ada_Node_Kind_Type;
    begin
+      Print_Processed_Unit (Unit);
       if Unit.Has_Diagnostics then
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
       else
@@ -130,6 +153,8 @@ procedure AGC is
       All_Units : Helpers.Unit_Vectors.Vector :=
          Jobs (Jobs'First).Units_Processed;
    begin
+      Put_Line ("Apply" & Session.To_Do.Length'Image & " Global Changes");
+
       Reparse_All_Units
         (First_Context,
          Jobs (Jobs'First + 1 .. Jobs'Last),
@@ -137,10 +162,14 @@ procedure AGC is
 
       Session.To_Do.Perform_Actions (First_Context, All_Units);
 
+      Put_Line ("Output" & All_Units.Length'Image & " Units");
+
       --  output units
       for Unit of All_Units loop
          Output_Unit (Unit, Output_Dir.Get);
       end loop;
+
+      Put_Line ("Done");
    end Post_Process;
 begin
    App.Run;
