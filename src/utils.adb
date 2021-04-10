@@ -1,6 +1,9 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Vectors;
 with Ada.Task_Attributes;
+
+with GNATCOLL.VFS;
 
 with Langkit_Support.Slocs;
 
@@ -211,6 +214,41 @@ package body Utils is
          return LAL.No_Base_Subp_Body;
       end if;
    end Enclosing_Subp_Body;
+
+   function Imported_Units
+     (Unit : LAL.Analysis_Unit) return LAL.Analysis_Unit_Array
+   is
+      package Analysis_Unit_Vectors is new Ada.Containers.Vectors
+        (Positive, LAL.Analysis_Unit, LAL."=");
+
+      Result : Analysis_Unit_Vectors.Vector;
+
+      procedure Append_From_Compilation_Unit (CU : LAL.Compilation_Unit) is
+      begin
+         for Dep of CU.P_Imported_Units loop
+            Result.Append (Dep.Unit);
+         end loop;
+      end Append_From_Compilation_Unit;
+   begin
+      case Unit.Root.Kind is
+         when LALCO.Ada_Compilation_Unit =>
+            Append_From_Compilation_Unit (Unit.Root.As_Compilation_Unit);
+         when LALCO.Ada_Compilation_Unit_List =>
+            for CU of Unit.Root.As_Compilation_Unit_List loop
+               Append_From_Compilation_Unit (CU.As_Compilation_Unit);
+            end loop;
+         when others =>
+            null;
+      end case;
+
+      return
+         Result_Array : LAL.Analysis_Unit_Array (1 .. Natural (Result.Length))
+      do
+         for I in Result_Array'Range loop
+            Result_Array (I) := Result (I);
+         end loop;
+      end return;
+   end Imported_Units;
 
    function Is_Actual_Expr (Expr : LAL.Expr'Class) return Boolean is
       use LAL;
@@ -563,5 +601,11 @@ package body Utils is
      (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean
    is (Str'Length >= Prefix'Length
        and then Str (Str'First .. Str'First + Prefix'Length - 1) = Prefix);
+
+   function Base_Name (Full_Path : String) return String is
+      use GNATCOLL.VFS;
+   begin
+      return +Create (+Full_Path).Base_Name;
+   end Base_Name;
 
 end Utils;

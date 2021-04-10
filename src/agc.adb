@@ -1,8 +1,12 @@
 with Ada.Text_IO;
+with Ada.Containers.Hashed_Sets;
+with Ada.Containers.Hashed_Maps;
+with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
+with Ada.Strings.Unbounded.Hash;
 
 with GNATCOLL.Opt_Parse;
 with GNATCOLL.Strings; use GNATCOLL.Strings;
-with GNATCOLL.VFS; use GNATCOLL.VFS;
+with GNATCOLL.VFS;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -16,6 +20,7 @@ with Libadalang.Unparsing;
 with Analysis;
 with Post_Actions;
 with Session;
+with Utils;
 
 with Add_With_Clauses;
 with Unsugar_Expr_Functions;
@@ -83,29 +88,108 @@ procedure AGC is
    end Put_Line;
 
    procedure Print_Processed_Unit (Unit : LAL.Analysis_Unit) is
-      Basename : constant String := +Create (+Unit.Get_Filename).Base_Name;
    begin
-      Put_Line ("   [Ada]          " & Basename);
+      Put_Line ("   [Ada]          " & Utils.Base_Name (Unit.Get_Filename));
    end Print_Processed_Unit;
+
+   Out_Dir_File    : GNATCOLL.VFS.Virtual_File;
+
+   package String_Sets is new Ada.Containers.Hashed_Sets
+     (Unbounded_String, Hash, "=");
+
+   package String_Maps is new Ada.Containers.Hashed_Maps
+     (Unbounded_String, Boolean, Hash, "=", "=");
+
+   protected Incremental is
+      procedure Compute_Change_Set;
+
+      procedure Must_Reprocess
+        (Unit   : LAL.Analysis_Unit;
+         Result : out Boolean);
+   private
+
+      Change_Set   : String_Sets.Set;
+      To_Reprocess : String_Maps.Map;
+   end Incremental;
+
+   protected body Incremental is
+      procedure Compute_Change_Set is
+         procedure Process_File (File : String) is
+         begin
+            if Session.Has_Changed (File, Out_Dir_File) then
+               Change_Set.Insert (To_Unbounded_String (File));
+            end if;
+         end Process_File;
+      begin
+         Session.Iterate_Files_To_Process (Process_File'Access);
+      end Compute_Change_Set;
+
+      procedure Must_Reprocess
+        (Unit   : LAL.Analysis_Unit;
+         Result : out Boolean)
+      is
+         use type String_Maps.Cursor;
+
+         Filename : Unbounded_String :=
+            To_Unbounded_String (Unit.Get_Filename);
+         Cursor   : String_Maps.Cursor := To_Reprocess.Find (Filename);
+         Inserted : Boolean;
+      begin
+         if Cursor /= String_Maps.No_Element then
+            Result := String_Maps.Element (Cursor);
+            return;
+         end if;
+
+         Result := Change_Set.Contains (Filename);
+         To_Reprocess.Insert (Filename, Result, Cursor, Inserted);
+
+         if Result then
+            return;
+         end if;
+
+         for Dep of Utils.Imported_Units (Unit) loop
+            Must_Reprocess (Dep, Result);
+            if Result then
+               To_Reprocess.Replace_Element (Cursor, True);
+               return;
+            end if;
+         end loop;
+
+         Result := False;
+      end Must_Reprocess;
+   end Incremental;
 
    procedure Setup
      (Ctx   : Helpers.App_Context;
       Jobs  : Helpers.App_Job_Context_Array;
       Files : Helpers.String_Vectors.Vector)
    is
+      use GNATCOLL;
    begin
-      Put_Line ("Instrument");
+      Out_Dir_File :=
+         VFS.Create_From_Base (VFS."+" (Strings.To_String (Output_Dir.Get)));
+
       Session.Set_Files_To_Process (Files);
+      Incremental.Compute_Change_Set;
       if Optimize.Get then
          Analysis.Summaries := new Analysis.Summaries_Map;
       end if;
+
+      Put_Line ("Instrument");
    end Setup;
 
    procedure Process_Unit
      (Job_Ctx : Helpers.App_Job_Context; Unit : LAL.Analysis_Unit)
    is
       use type LALCO.Ada_Node_Kind_Type;
+
+      Must_Reprocess : Boolean;
    begin
+      Incremental.Must_Reprocess (Unit, Must_Reprocess);
+      if not Must_Reprocess then
+         return;
+      end if;
+
       Print_Processed_Unit (Unit);
       if Unit.Has_Diagnostics then
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
@@ -152,6 +236,8 @@ procedure AGC is
 
       All_Units : Helpers.Unit_Vectors.Vector :=
          Jobs (Jobs'First).Units_Processed;
+
+      Total_Written : Natural := 0;
    begin
       Put_Line ("Apply" & Session.To_Do.Length'Image & " Global Changes");
 
@@ -162,14 +248,26 @@ procedure AGC is
 
       Session.To_Do.Perform_Actions (First_Context, All_Units);
 
-      Put_Line ("Output" & All_Units.Length'Image & " Units");
+      Put_Line ("Output units");
 
       --  output units
       for Unit of All_Units loop
-         Output_Unit (Unit, Output_Dir.Get);
+         declare
+            Was_Reprocessed : Boolean;
+         begin
+            Incremental.Must_Reprocess (Unit, Was_Reprocessed);
+            if Was_Reprocessed then
+               Output_Unit (Unit, Out_Dir_File);
+               Total_Written := Total_Written + 1;
+            end if;
+         end;
       end loop;
 
-      Put_Line ("Done");
+      if Total_Written = 0 then
+         Put_Line ("Done: nothing to do");
+      else
+         Put_Line ("Done: instrumented" & Total_Written'Image & " units.");
+      end if;
    end Post_Process;
 begin
    App.Run;

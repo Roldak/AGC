@@ -23,6 +23,9 @@ package Utils is
    function Enclosing_Subp_Body
      (N : LAL.Ada_Node'Class) return LAL.Base_Subp_Body;
 
+   function Imported_Units
+     (Unit : LAL.Analysis_Unit) return LAL.Analysis_Unit_Array;
+
    function Is_Actual_Expr (Expr : LAL.Expr'Class) return Boolean;
 
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean;
@@ -69,6 +72,8 @@ package Utils is
 
    function Starts_With
      (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean;
+
+   function Base_Name (Full_Path : String) return String;
 
    Storage_Pool_Symbol : Langkit_Support.Text.Unbounded_Text_Type :=
       Langkit_Support.Text.To_Unbounded_Text ("Storage_Pool");
