@@ -69,7 +69,7 @@ procedure AGC is
       Convert     => GNATCOLL.Opt_Parse.Convert,
       Default_Val => Null_XString,
       Help        =>
-         "The directory in which to save the transformed ada units.");
+         "The directory in which to output the instrumented ada units.");
 
    package Optimize is new GNATCOLL.Opt_Parse.Parse_Flag
      (Parser  => App.Args.Parser,
