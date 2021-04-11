@@ -178,7 +178,7 @@ procedure AGC is
 
          Content_Access       : GNAT.Strings.String_Access;
       begin
-         if not Out_Dir_File.Is_Regular_File then
+         if not Out_Dir_File.Is_Directory then
             return True;
          end if;
 
