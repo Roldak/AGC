@@ -168,11 +168,16 @@ procedure AGC is
             3 + GNAT.SHA1.Message_Digest'Length;
          -- ^ for "-- "
 
-         Out_File : VFS.Virtual_File :=
-            VFS.Join (Out_Dir_File, VFS."+" (Utils.Base_Name (File)));
+         Out_File : VFS.Virtual_File;
 
          Content_Access       : GNAT.Strings.String_Access;
       begin
+         if not Out_Dir_File.Is_Regular_File then
+            return True;
+         end if;
+
+         Out_File := VFS.Join (Out_Dir_File, VFS."+" (Utils.Base_Name (File)));
+
          if not Out_File.Is_Regular_File then
             return True;
          end if;
@@ -267,8 +272,10 @@ procedure AGC is
    is
       use GNATCOLL;
    begin
-      Out_Dir_File :=
-         VFS.Create_From_Base (VFS."+" (Strings.To_String (Output_Dir.Get)));
+      if Output_Dir.Get /= "" then
+         Out_Dir_File :=
+            VFS.Create_From_Base (VFS."+" (Strings.To_String (Output_Dir.Get)));
+      end if;
 
       Session.Set_Files_To_Process (Files);
       Incremental.Compute_Change_Set;
