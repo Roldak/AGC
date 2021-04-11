@@ -24,7 +24,8 @@ package Utils is
      (N : LAL.Ada_Node'Class) return LAL.Base_Subp_Body;
 
    function Imported_Units
-     (Unit : LAL.Analysis_Unit) return LAL.Analysis_Unit_Array;
+     (Unit        : LAL.Analysis_Unit;
+      All_Visible : Boolean := False) return LAL.Analysis_Unit_Array;
 
    function Is_Actual_Expr (Expr : LAL.Expr'Class) return Boolean;
 
@@ -37,7 +38,9 @@ package Utils is
      (Typ : LAL.Base_Type_Decl'Class) return Boolean;
 
    function Generate_Type_Reference
-     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
+     (Typ             : LAL.Base_Type_Decl'Class;
+      Referenced_From : LAL.Analysis_Unit := LAL.No_Analysis_Unit)
+      return Langkit_Support.Text.Text_Type;
 
    function Get_Type_Name
      (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;

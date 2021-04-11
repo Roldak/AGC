@@ -1,0 +1,93 @@
+package body Bar is
+   procedure AGC_Visit_T (X : System.Address) is
+      pragma Suppress (All_Checks);
+      type Rec_Access is access T'Class with
+         Storage_Size => 0;
+      for Rec_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Rec_Access);
+      R : T'Class renames Conv (X).all;
+   begin
+      null;
+   end AGC_Visit_T;
+   procedure AGC_Visit (X : access T) is
+   begin
+      AGC_Visit_T (X.all'Address);
+   end AGC_Visit;
+   procedure AGC_Visit_T_Classwide (X : System.Address) is
+      pragma Suppress (All_Checks);
+      type T_Access is access T'Class with
+         Storage_Size => 0;
+      for T_Access'Size use Standard'Address_Size;
+      function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
+   begin
+      Conv (X).AGC_Visit;
+   end AGC_Visit_T_Classwide;
+   function Get_U (Self : T) return Foo.U is
+   begin
+      return (null);
+   end Get_U;
+end Bar;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Foo;
+
+package Bar is
+   type T is tagged null record;
+
+   procedure AGC_Visit_T (X : System.Address) with
+      Inline;
+   procedure AGC_Visit (X : access T) with
+      Inline;
+   procedure AGC_Visit_T_Classwide (X : System.Address) with
+      Inline;
+   function Get_U (Self : T) return Foo.U;
+end Bar;
+package body Foo is
+   package AGC_U_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, U, False, AGC.No_Op);
+   procedure AGC_Visit_U (X : System.Address) renames
+     AGC_U_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_U (X : U) return U renames AGC_U_Ops_Implem.Register;
+end Foo;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package Foo is
+   type U is access Integer;
+   for U'Storage_Pool use AGC.Storage.Get.Pool;
+   procedure AGC_Visit_U (X : System.Address) with
+      Inline;
+   function AGC_Register_U (X : U) return U with
+      Inline;
+end Foo;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Bar;
+
+with Foo;
+procedure Main is
+   AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+   X                   : aliased Bar.T;
+   AGC_Dummy_0         : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Bar.AGC_Visit_T'Address);
+   function AGC_Func_0 return Integer;
+   function AGC_Func_0 return Integer is
+      AGC_Temp_0 : Foo.U := X.Get_U;
+   begin
+      return AGC_Ret : Integer := AGC_Temp_0.all do
+         null;
+      end return;
+   end AGC_Func_0;
+   Y : Integer := AGC_Func_0;
+begin
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Main;

@@ -147,7 +147,7 @@ is
    is
       Expr_Type : LAL.Base_Type_Decl'Class := Expr.P_Expression_Type;
    begin
-      return Utils.Generate_Type_Reference (Expr_Type)
+      return Utils.Generate_Type_Reference (Expr_Type, Unit)
          & (if not Expr_Type.P_Is_Classwide and then
                Expr_Type.P_Is_Tagged_Type and then
                Expr.P_Is_Dynamically_Tagged

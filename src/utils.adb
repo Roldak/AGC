@@ -216,7 +216,8 @@ package body Utils is
    end Enclosing_Subp_Body;
 
    function Imported_Units
-     (Unit : LAL.Analysis_Unit) return LAL.Analysis_Unit_Array
+     (Unit        : LAL.Analysis_Unit;
+      All_Visible : Boolean := False) return LAL.Analysis_Unit_Array
    is
       package Analysis_Unit_Vectors is new Ada.Containers.Vectors
         (Positive, LAL.Analysis_Unit, LAL."=");
@@ -224,9 +225,15 @@ package body Utils is
       Result : Analysis_Unit_Vectors.Vector;
 
       procedure Append_From_Compilation_Unit (CU : LAL.Compilation_Unit) is
+         Next : LAL.Compilation_Unit_Array :=
+           (if All_Visible
+            then CU.P_Visible_Units
+            else CU.P_Imported_Units);
       begin
-         for Dep of CU.P_Imported_Units loop
-            Result.Append (Dep.Unit);
+         for Dep of Next loop
+            if not Dep.Is_Null then
+               Result.Append (Dep.Unit);
+            end if;
          end loop;
       end Append_From_Compilation_Unit;
    begin
@@ -249,6 +256,10 @@ package body Utils is
          end loop;
       end return;
    end Imported_Units;
+
+   function Visible_Units
+     (Unit        : LAL.Analysis_Unit) return LAL.Analysis_Unit_Array
+   is (Imported_Units (Unit, All_Visible => True));
 
    function Is_Actual_Expr (Expr : LAL.Expr'Class) return Boolean is
       use LAL;
@@ -385,20 +396,40 @@ package body Utils is
    end Is_Generalized_Access_Type;
 
    function Generate_Type_Reference
-     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+     (Typ             : LAL.Base_Type_Decl'Class;
+      Referenced_From : LAL.Analysis_Unit := LAL.No_Analysis_Unit)
+      return Langkit_Support.Text.Text_Type
    is
+      use type LAL.Analysis_Unit;
+
       Is_Classwide : Boolean := Typ.Kind in LALCO.Ada_Classwide_Type_Decl;
 
-      Base : Langkit_Support.Text.Text_Type :=
+      Actual_Type : LAL.Base_Type_Decl :=
         (if Is_Classwide
-         then Typ.Parent.As_Base_Type_Decl.P_Fully_Qualified_Name
-         else Typ.P_Fully_Qualified_Name);
+         then Typ.Parent.As_Base_Type_Decl
+         else Typ.As_Base_Type_Decl);
+
+      Base : Langkit_Support.Text.Text_Type :=
+         Actual_Type.P_Fully_Qualified_Name;
 
       Suffix : Langkit_Support.Text.Text_Type :=
         (if Is_Classwide
          then "'Class"
          else "");
    begin
+      --  Add the missing with clause if the referenced typ is currently
+      --  not visible from the "Referenced_From" unit.
+      if Referenced_From /= LAL.No_Analysis_Unit and then
+         Referenced_From /= Typ.Unit and then
+         (for all U of Visible_Units (Referenced_From) => U /= Typ.Unit)
+      then
+         Post_Actions.Actions.Add_With_Clause
+           ((Referenced_From,
+             Langkit_Support.Text.To_Unbounded_Text
+               (Actual_Type
+                .P_Enclosing_Compilation_Unit.P_Decl
+                .P_Fully_Qualified_Name)));
+      end if;
       return Base & Suffix;
    end Generate_Type_Reference;
 
