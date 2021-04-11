@@ -82,6 +82,12 @@ procedure AGC is
       Long   => "--quiet",
       Help   => "Do not print progress information");
 
+   package No_Hash is new GNATCOLL.Opt_Parse.Parse_Flag
+     (Parser => App.Args.Parser,
+      Long   => "--no-hash",
+      Help   => "Do not include the original unit's hash when emitting "
+                & "an instrumented unit. This prevents incrementality.");
+
    procedure Put_Line (X : String) is
    begin
       if Quiet.Get then
@@ -366,13 +372,17 @@ procedure AGC is
       for Unit of All_Units loop
          declare
             Was_Reprocessed : Boolean;
+            SHA1 : String :=
+              (if No_Hash.Get
+               then ""
+               else Incremental.Get_SHA1 (Unit.Get_Filename));
          begin
             Incremental.Must_Reprocess (Unit, Was_Reprocessed);
             if Was_Reprocessed then
                Output_Unit
                  (Unit    => Unit,
                   Out_Dir => Out_Dir_File,
-                  SHA1    => Incremental.Get_SHA1 (Unit.Get_Filename));
+                  SHA1    => SHA1);
                Total_Written := Total_Written + 1;
             end if;
          end;

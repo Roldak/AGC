@@ -38,7 +38,10 @@ begin
          New_Unit : VFS.Writable_File :=
             VFS.Join (Out_Dir, VFS."+" (Basename)).Write_File;
 
-         SHA1_Comment : String := "-- " & SHA1 & Ada.Characters.Latin_1.LF;
+         SHA1_Comment : String :=
+           (if SHA1 = ""
+            then ""
+            else "-- " & SHA1 & Ada.Characters.Latin_1.LF);
       begin
          VFS.Write (New_Unit, SHA1_Comment & Content);
          VFS.Close (New_Unit);
