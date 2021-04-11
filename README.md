@@ -3,28 +3,33 @@ AGC adds a garbage collector to your Ada programs.
 
 ## Usage
 
-1. The sources of your project must be processed by AGC as a first step before
-   you invoke gprbuild. Run
+1. The sources of your project must be instrumented by AGC as a first step before you invoke gprbuild. Run
    ```
-   agc -P <project_file.gpr> --output-dir <new-project-dir> [--jobs|-j JOBS] [--optimize]
+   agc -P <project_file.gpr> --output-dir <instr-dir> [--jobs|-j JOBS] [--optimize]
    ```
-   * A new set of sources will be generated in the directory specified by `<new-project-dir>`.
+   * A new set of sources will be generated in the directory specified by `<instr-dir>`.
    * Using `-j0` allows AGC to treat several source files in parallel, which can heavily speed up this part.
    * AGC will try to generate optimized code when using `--optimize`, but will take more time.
+   * AGC works incrementally by re-instrumenting only units which have been impacted by a change since the last run.
    
    Run `agc --help` to find out all the available options.
    
-2. Then, you must write a new project file that can compile the set of generated sources.
-   Typically (but not necessarily), this project file will be similar to that of your original project,
-   but must include the AGC's runtime:
-   ```
-   with "<path-to-AGC>/lib/agc_runtime.gpr";
-   ```
-   Don't forget to rectify the relative paths appearing in the project file.
+2. We now have to tell gprbuild to consider this set of files as a substitute for the original sources,
+   but also to tell it that we depend on a new library, AGC's runtime, which implements the actual garbage
+   collection routines that will run during your program's execution.
    
-3. You can now invoke `gprbuild` on this new project file. The built binary will behave as your original program, but will benefit from garbage collection!
+   The simplest way is to use gprbuild's newly added ``--src-subdirs`` and ``--implicit-with`` switches, which were
+   in fact implemented to handle instrumenting tools (such as gnatcoverage). This step might look like:
+   ```
+   gprbuild -P <project_file.gpr> --src-subdirs <instr-dir> --implicit-with=<path-to-AGC>/lib/agc_runtime.gpr
+   ```
+   
+   Another way is to create a copy of your existing project file and replace its `Source_Dirs` value so that it points
+   to `<instr-dir>` instead. You should also add a top level `with "<path-to-AGC>/lib/agc_runtime.gpr"` clause.
+   This approach is less convenient but more flexible, as it allows you to configure a totally different build process when targetting AGC.
+3. That's it! The built binary will behave as your original program, but will benefit from garbage collection!
 
-Note that it is possible to configure the runtime behavior of AGC by choosing which storage pool it will choose internally. This can be done either statically at compile-time by passing the scenario variable `-XAGC_POOL=<POOL>`, or dynamically by compiling with `-XAGC_POOL=dynamic` and running your final executable with the environment variable `AGC_POOL` set to the desired pool identifier. Possible values for `AGC_POOL` are:
+Note that it is possible to configure the runtime behavior of AGC by choosing which storage pool it will use internally. This can be done either at compile-time by passing the scenario variable `-XAGC_POOL=<POOL>`, or dynamically by compiling with `-XAGC_POOL=dynamic` and running your final executable with the environment variable `AGC_POOL` set to the desired pool identifier. Possible values for `AGC_POOL` are:
 * `malloc_free`: The storage pool is managed by the system using malloc/free.
 * `free_list`: The storage pool is managed by AGC which allocates a big chunk of memory and manages all allocations using a free-list based mechanism.
 
