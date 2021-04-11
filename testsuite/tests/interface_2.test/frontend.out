@@ -6,12 +6,14 @@ with Ada.Unchecked_Conversion;
 procedure Test is
    package Pkg is
       type I is interface;
+
       procedure AGC_Visit (X : access I) is abstract;
       procedure AGC_Visit_I_Classwide (X : System.Address) with
          Inline;
       function Foo (X : I) return I is abstract;
       function Get (X : I) return Integer is abstract;
    end Pkg;
+
    package body Pkg is
       procedure AGC_Visit_I_Classwide (X : System.Address) is
          pragma Suppress (All_Checks);

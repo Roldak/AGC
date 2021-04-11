@@ -1,10 +1,11 @@
 with AGC;
 with AGC.Standard;
 with AGC.Storage.Get;
-with Ada.Command_Line;
 with System;
 with Ada.Unchecked_Conversion;
+with Ada.Command_Line;
 with Ada.Text_IO; use Ada.Text_IO;
+
 procedure Main is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    type Tree;
@@ -20,6 +21,7 @@ procedure Main is
             null;
       end case;
    end record;
+
    procedure AGC_Visit_Tree (X : System.Address) with
       Inline;
    for Tree_Access'Storage_Pool use AGC.Storage.Get.Pool;
@@ -53,6 +55,7 @@ procedure Main is
    end AGC_Visit_Tree;
    Empty_Tree : aliased Tree_Access :=
      Main.AGC_Register_Tree_Access (Main.Tree_Access'(new Tree'(K => Leaf)));
+
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (Empty_Tree'Address, Main.AGC_Visit_Tree_Access'Address);
    function Insert (T : Tree_Access; V : Integer) return Tree_Access is
@@ -107,6 +110,7 @@ procedure Main is
             end return;
       end case;
    end Insert;
+
    function To_String (T : Tree_Access) return String is
    begin
       case T.K is
@@ -124,6 +128,7 @@ procedure Main is
             end return;
       end case;
    end To_String;
+
    procedure Bench (Rng : Integer) is
       AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
       T                   : aliased Tree_Access     := Insert (Empty_Tree, 0);

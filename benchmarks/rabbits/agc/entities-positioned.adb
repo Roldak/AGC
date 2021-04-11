@@ -38,14 +38,17 @@ package body Entities.Positioned is
       E.P_X := X;
       E.P_Y := Y;
    end Initialize;
+
    function X (P : Positioned) return Natural is
    begin
       return P.P_X;
    end X;
+
    function Y (P : Positioned) return Natural is
    begin
       return P.P_Y;
    end Y;
+
    procedure Relocate
      (P : aliased in out Positioned; W : in out World; New_X, New_Y : Natural)
    is

@@ -4,6 +4,7 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Lib_Types;
+
 procedure Main is
    X : Lib_Types.Integer_Access := new Integer'(2);
 begin

@@ -5,6 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 procedure Test is
    type Integer_Access is access all Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -22,6 +23,7 @@ procedure Test is
    begin
       return X;
    end Id;
+
    procedure Foo is
       AGC_Base_Root_Count : constant Natural       := AGC.Root_Count;
       X                   : aliased Integer_Access :=
@@ -46,6 +48,7 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
          return;
       end if;
+
       X.all := 3;
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Foo;

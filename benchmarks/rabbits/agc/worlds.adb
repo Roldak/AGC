@@ -9,6 +9,7 @@ with Entities.Positioned;
 with Entities.Rabbits;
 with Entities.Grass;
 with Entities.Wolves;
+
 package body Worlds is
    package AGC_Entity_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Entities.Entity'Class, Entity_Access, False,
@@ -59,10 +60,12 @@ package body Worlds is
       Conv (X).AGC_Visit;
    end AGC_Visit_World_Classwide;
    use type Ada.Containers.Count_Type;
+
    procedure Spawn (W : in out World; E : Entity_Access) is
    begin
       W.New_Entities.Append (E);
    end Spawn;
+
    procedure Update (W : in out World) is
    begin
       for I in reverse W.Entities.First_Index .. W.Entities.Last_Index loop
@@ -72,6 +75,7 @@ package body Worlds is
             E.all.Update (W);
             if not E.all.Is_Alive then
                W.Entities.Delete (I);
+
                if E.all in Entities.Positioned.Positioned'Class then
                   declare
                      P : constant Positioned_Access := Positioned_Access (E);
@@ -82,9 +86,11 @@ package body Worlds is
             end if;
          end;
       end loop;
+
       for E of W.New_Entities loop
          E.all.Start (W);
          W.Entities.Append (E);
+
          if E.all in Entities.Positioned.Positioned'Class then
             declare
                P : constant Positioned_Access := Positioned_Access (E);
@@ -93,8 +99,10 @@ package body Worlds is
             end;
          end if;
       end loop;
+
       W.New_Entities.Clear;
    end Update;
+
    procedure Move
      (W : in out World; I : Positioned_Access; Old_X, Old_Y : Natural)
    is
@@ -102,6 +110,7 @@ package body Worlds is
       W.Cells.Del (Old_X, Old_Y, I);
       W.Cells.Put (I.X, I.Y, I);
    end Move;
+
    function Is_Running (W : in out World) return Boolean is
    begin
       return
@@ -110,6 +119,7 @@ package body Worlds is
          null;
       end return;
    end Is_Running;
+
    function Located (W : in World; X, Y : Natural) return Positioned_Array is
       Acc : constant Grid.Item_Vectors.Vector := W.Cells.Get (X, Y);
    begin
@@ -119,6 +129,7 @@ package body Worlds is
          end loop;
       end return;
    end Located;
+
    procedure Stats (W : World; Rabbits, Wolves, Grass : out Natural) is
       R, F, G : Natural := 0;
    begin
@@ -131,10 +142,12 @@ package body Worlds is
             G := G + 1;
          end if;
       end loop;
+
       Rabbits := R;
       Wolves  := F;
       Grass   := G;
    end Stats;
+
    function Has_Grass (W : World; X, Y : Natural) return Boolean is
    begin
       for E of W.Cells.Get (X, Y) loop

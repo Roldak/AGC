@@ -52,6 +52,7 @@ package body Pkg is
          end return;
       end;
    end Create;
+
    function Get (X : T) return Integer is
    begin
       return X.X.all;
@@ -64,10 +65,13 @@ with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
    type T is private;
+
    procedure AGC_Visit_T_Private (X : System.Address) with
       Inline;
    function Create (X : Integer) return T;
+
    function Get (X : T) return Integer;
+
 private
    type Integer_Access is access Integer;
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
@@ -93,6 +97,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
+
 procedure Test is
    AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
    X                   : aliased Pkg.T           := Pkg.Create (2);

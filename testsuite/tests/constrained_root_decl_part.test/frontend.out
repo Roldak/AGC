@@ -20,6 +20,7 @@ procedure Test is
      (X : Integer_Access) return Integer_Access renames
      AGC_Integer_Access_Ops_Implem.Register;
    type Int_Array is array (Positive range <>) of Integer_Access;
+
    procedure AGC_Visit_Int_Array is new AGC.Visit_Unconstrained_Array_1_Type
      (Integer_Access, Positive, Int_Array, Test.AGC_Visit_Integer_Access);
    function AGC_Func_0 return Int_Array;

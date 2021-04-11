@@ -6,6 +6,7 @@ with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    type Integer_Access is access Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -23,6 +24,7 @@ procedure Test is
       X     : Integer;
       Dummy : Integer_Access := null;
    end record;
+
    procedure AGC_Visit_T (X : System.Address) with
       Inline;
    procedure AGC_Visit_T (X : System.Address) is
@@ -37,6 +39,7 @@ procedure Test is
       Test.AGC_Visit_Integer_Access (R.Dummy'Address);
    end AGC_Visit_T;
    type T_Access is access T;
+
    for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address) with
       Inline;
@@ -51,6 +54,7 @@ procedure Test is
    type U is record
       A : T_Access;
    end record;
+
    procedure AGC_Visit_U (X : System.Address) with
       Inline;
    procedure AGC_Visit_U (X : System.Address) is
@@ -65,6 +69,7 @@ procedure Test is
       Test.AGC_Visit_T_Access (R.A'Address);
    end AGC_Visit_U;
    type U_Access is access U;
+
    for U_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_U_Access (X : System.Address) with
       Inline;

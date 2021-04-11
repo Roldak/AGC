@@ -5,9 +5,11 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Containers.Vectors;
+
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    type Integer_Access is access all Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -23,6 +25,7 @@ procedure Test is
      AGC_Integer_Access_Ops_Implem.Register;
    package Int_Vectors is new Ada.Containers.Vectors
      (Positive, Integer_Access);
+
    package AGC_Int_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
      (Int_Vectors, AGC_Visit_Index_Type => AGC.No_Op,

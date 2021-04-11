@@ -7,6 +7,7 @@ procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    subtype My_Natural is Integer range 0 .. Integer'Last;
    type My_Nat_Access is access My_Natural;
+
    for My_Nat_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_My_Nat_Access (X : System.Address) with
       Inline;

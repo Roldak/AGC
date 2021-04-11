@@ -12,6 +12,7 @@ procedure Test is
    package Pkg is
       function Foo (X : U) return T;
    end Pkg;
+
    package body Pkg is
       function Foo (X : U) return T is
          AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
@@ -23,6 +24,7 @@ procedure Test is
          return Y;
       end Foo;
    end Pkg;
+
    package My_Pkg is new Pkg
      (Integer, Boolean, AGC_Visit_T_Private => AGC.No_Op,
       AGC_Visit_U_Private                   => AGC.No_Op);

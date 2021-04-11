@@ -25,6 +25,7 @@ with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
    type Integer_Access is access Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;

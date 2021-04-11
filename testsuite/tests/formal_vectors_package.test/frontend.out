@@ -4,6 +4,7 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Containers.Vectors;
+
 procedure Test is
    generic
       type T is private;
@@ -16,6 +17,7 @@ procedure Test is
    package Pkg is
       procedure Main;
    end Pkg;
+
    package body Pkg is
       procedure Main is
          AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
@@ -28,7 +30,9 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end Main;
    end Pkg;
+
    package Int_Vectors is new Ada.Containers.Vectors (Positive, Integer);
+
    package AGC_Int_Vectors_Visitors is new AGC.Standard
      .Ada_Containers_Vectors_Visitors
      (Int_Vectors, AGC_Visit_Index_Type => AGC.No_Op,

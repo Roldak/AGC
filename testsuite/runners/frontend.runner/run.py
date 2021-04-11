@@ -10,7 +10,7 @@ def run(arg):
     with tempfile.TemporaryDirectory() as d:
         # Run AGC
         agc_out = subprocess.run(
-            ["agc", arg, "--output-dir", d],
+            ["agc", arg, "--output-dir", d, "--no-hash"],
             capture_output=True,
             text=True
         )

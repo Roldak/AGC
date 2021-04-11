@@ -4,8 +4,10 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
+
 procedure Test is
    type Integer_Access is access Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -29,6 +31,7 @@ procedure Test is
          null;
       end return;
    end Inner;
+
    function Add (A, B, C : Integer) return Integer is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -53,6 +56,7 @@ procedure Test is
          end return;
       end;
    end Add;
+
    A : Integer := Add (1, 2, 3);
 begin
    AGC.Collect;

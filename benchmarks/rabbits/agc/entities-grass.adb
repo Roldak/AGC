@@ -40,6 +40,7 @@ package body Entities.Grass is
          null;
       end return;
    end Create;
+
    function Create (X, Y : Natural) return Entity_Access is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -57,10 +58,12 @@ package body Entities.Grass is
          end return;
       end;
    end Create;
+
    overriding procedure Start (G : in out Grass; W : in out World) is
    begin
       G.Content := 5;
    end Start;
+
    overriding procedure Update (G : in out Grass; W : in out World) is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       X                   : Natural          := G.X;
@@ -83,15 +86,18 @@ package body Entities.Grass is
       end if;
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Update;
+
    function Eat (G : in out Grass) return Boolean is
    begin
       if not G.Is_Alive then
          return False;
       end if;
+
       G.Content := G.Content - 1;
       if G.Content = 0 then
          G.Delete;
       end if;
+
       return True;
    end Eat;
 end Entities.Grass;

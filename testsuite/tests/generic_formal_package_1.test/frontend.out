@@ -10,6 +10,7 @@ procedure Test is
    package Pkg is
       function Get return T;
    end Pkg;
+
    package body Pkg is
       function Get return T is
          AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
@@ -21,11 +22,13 @@ procedure Test is
          return R;
       end Get;
    end Pkg;
+
    generic
       with package P is new Pkg (<>);
    package G is
       procedure Foo;
    end G;
+
    package body G is
       procedure Foo is
          AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
@@ -36,6 +39,7 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end Foo;
    end G;
+
    package Pkg_I is new Pkg (Integer, AGC_Visit_T_Private => AGC.No_Op);
    package G_I is new G (Pkg_I);
 begin

@@ -9,8 +9,10 @@ procedure Test is
       with procedure AGC_Visit_T_Private (X : System.Address);
    package Pkg is
       subtype U is T;
+
       procedure Foo;
    end Pkg;
+
    package body Pkg is
       procedure Foo is
          AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;

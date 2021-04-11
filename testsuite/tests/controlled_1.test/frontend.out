@@ -5,11 +5,13 @@ with System;
 with Ada.Unchecked_Conversion;
 with AGC;
 with Ada.Finalization;
+
 procedure Test is
    package Pkg is
       type T is new Ada.Finalization.Controlled with record
          X : Integer;
       end record;
+
       procedure AGC_Visit_T (X : System.Address) with
          Inline;
       procedure AGC_Visit (X : access T) with
@@ -23,6 +25,7 @@ procedure Test is
       function AGC_Register_T_Access (X : T_Access) return T_Access with
          Inline;
    end Pkg;
+
    package body Pkg is
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (All_Checks);
@@ -57,6 +60,7 @@ procedure Test is
         AGC_T_Access_Ops_Implem.Register;
    end Pkg;
    use Pkg;
+
    procedure Main is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       X                   : aliased T_Access :=

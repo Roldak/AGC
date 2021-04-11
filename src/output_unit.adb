@@ -26,7 +26,7 @@ is
    use type Strings.XString;
    use type VFS.Virtual_File;
 
-   Content  : String := LALU.Unparse (Unit.Root);
+   Content  : String := LALU.Unparse (Unit.Root, Preserve_Formatting => True);
    Basename : String := Utils.Base_Name (Unit.Get_Filename);
 begin
    if Out_Dir = VFS.No_File then

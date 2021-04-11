@@ -5,6 +5,7 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Pkg;
+
 procedure Main is
    AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
    X                   : aliased Pkg.T_Access    := Pkg.Create (3);
@@ -62,6 +63,7 @@ with System;
 with Ada.Unchecked_Conversion;
 package Pkg is
    type Integer_Access is access Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -75,6 +77,7 @@ package Pkg is
    procedure AGC_Visit_T (X : System.Address) with
       Inline;
    type T_Access is access T;
+
    for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address) with
       Inline;

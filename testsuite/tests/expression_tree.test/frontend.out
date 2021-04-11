@@ -4,6 +4,7 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
+
 procedure Test is
    type Expr_Kind is (Add, Mul, Lit, Var);
    type Expr;
@@ -19,6 +20,7 @@ procedure Test is
             Name : Character;
       end case;
    end record;
+
    procedure AGC_Visit_Expr (X : System.Address) with
       Inline;
    for Expr_Access'Storage_Pool use AGC.Storage.Get.Pool;
@@ -53,12 +55,14 @@ procedure Test is
       end case;
    end AGC_Visit_Expr;
    type Env is array (Character) of Integer;
+
    function Is_Lit (Ex : Expr_Access; V : Integer) return Boolean is
    begin
       return AGC_Ret : Boolean := Ex.K = Lit and then Ex.Value = V do
          null;
       end return;
    end Is_Lit;
+
    function Simplify (Ex : Expr_Access) return Expr_Access is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -157,6 +161,7 @@ procedure Test is
             return Ex;
       end case;
    end Simplify;
+
    function Substitute (Ex : Expr_Access; Ev : Env) return Expr_Access is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -218,6 +223,7 @@ procedure Test is
             end return;
       end case;
    end Substitute;
+
    function Evaluate (Ex : Expr_Access; Ev : Env) return Integer is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       function AGC_Func_0 return Expr_Access;
@@ -245,6 +251,7 @@ procedure Test is
          end return;
       end if;
    end Evaluate;
+
    function To_String (Ex : Expr_Access) return String is
    begin
       return
@@ -259,6 +266,7 @@ procedure Test is
          null;
       end return;
    end To_String;
+
    procedure Main is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       function AGC_Func_0 return Expr_Access;
@@ -297,7 +305,8 @@ procedure Test is
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end AGC_Func_0;
-      X           : aliased Expr_Access     := AGC_Func_0;
+      X : aliased Expr_Access := AGC_Func_0;
+
       AGC_Dummy_0 : constant AGC.Empty_Type :=
         AGC.Push_Root (X'Address, Test.AGC_Visit_Expr_Access'Address);
       function AGC_Func_1 return Expr_Access;
@@ -324,12 +333,14 @@ procedure Test is
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end AGC_Func_1;
-      Y           : aliased Expr_Access     := AGC_Func_1;
+      Y : aliased Expr_Access := AGC_Func_1;
+
       AGC_Dummy_1 : constant AGC.Empty_Type :=
         AGC.Push_Root (Y'Address, Test.AGC_Visit_Expr_Access'Address);
       Z : aliased Expr_Access :=
         Test.AGC_Register_Expr_Access
           (Test.Expr_Access'(new Expr'(Add, X, Y)));
+
       AGC_Dummy_2 : constant AGC.Empty_Type :=
         AGC.Push_Root (Z'Address, Test.AGC_Visit_Expr_Access'Address);
       Ev : Env := ('x' => 42, others => 0);

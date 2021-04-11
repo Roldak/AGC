@@ -4,10 +4,12 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
+
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    package P is
       type T is private;
+
       procedure AGC_Visit_T_Private (X : System.Address) with
          Inline;
       function Create (X : Integer) return T;
@@ -20,6 +22,7 @@ procedure Test is
       function AGC_Register_T (X : T) return T with
          Inline;
    end P;
+
    package body P is
       procedure AGC_Visit_T_Private (X : System.Address) renames
         Test.P.AGC_Visit_T;
@@ -36,11 +39,13 @@ procedure Test is
             null;
          end return;
       end Create;
+
       function Get (X : T) return Integer is
       begin
          return X.all;
       end Get;
    end P;
+
    X           : aliased P.T             := P.Create (2);
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.P.AGC_Visit_T_Private'Address);

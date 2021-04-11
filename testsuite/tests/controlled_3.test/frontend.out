@@ -5,9 +5,11 @@ with System;
 with Ada.Unchecked_Conversion;
 with AGC;
 with Ada.Containers.Vectors;
+
 procedure Test is
    package Foo is
       type T is abstract tagged null record;
+
       procedure AGC_Visit_T (X : System.Address) with
          Inline;
       procedure AGC_Visit (X : access T) with
@@ -21,6 +23,7 @@ procedure Test is
       function AGC_Register_T_Access (X : T_Access) return T_Access with
          Inline;
    end Foo;
+
    package body Foo is
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (All_Checks);
@@ -56,6 +59,7 @@ procedure Test is
    end Foo;
    package Bar is
       package Int_Vectors is new Ada.Containers.Vectors (Positive, Integer);
+
       package AGC_Int_Vectors_Visitors is new AGC.Standard
         .Ada_Containers_Vectors_Visitors
         (Int_Vectors, AGC_Visit_Index_Type => AGC.No_Op,
@@ -70,6 +74,7 @@ procedure Test is
       procedure AGC_Visit_U_Classwide (X : System.Address) with
          Inline;
    end Bar;
+
    package body Bar is
       procedure AGC_Visit_U (X : System.Address) is
          pragma Suppress (All_Checks);
@@ -108,6 +113,7 @@ procedure Test is
       procedure AGC_Visit_U_Classwide (X : System.Address) with
          Inline;
    end Baz;
+
    package body Baz is
       procedure AGC_Visit_U (X : System.Address) is
          pragma Suppress (All_Checks);

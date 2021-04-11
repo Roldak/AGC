@@ -6,6 +6,8 @@ with Ada.Unchecked_Conversion;
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    type Integer_Access is access Integer;
+
+   --  unconstrained array
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -20,9 +22,12 @@ procedure Test is
      (X : Integer_Access) return Integer_Access renames
      AGC_Integer_Access_Ops_Implem.Register;
    type Int_Arr is array (Positive range <>) of Integer_Access;
+
+   --  constrained array
    procedure AGC_Visit_Int_Arr is new AGC.Visit_Unconstrained_Array_1_Type
      (Integer_Access, Positive, Int_Arr, Test.AGC_Visit_Integer_Access);
    type Char_Arr is array (Character) of Integer_Access;
+
    procedure AGC_Visit_Char_Arr is new AGC.Visit_Constrained_Array_1_Type
      (Integer_Access, Character, Char_Arr, Test.AGC_Visit_Integer_Access);
    function AGC_Func_0 return Int_Arr;
@@ -53,7 +58,8 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;
-   X           : aliased Int_Arr         := AGC_Func_0;
+   X : aliased Int_Arr := AGC_Func_0;
+
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Arr'Address);
    Y           : aliased Char_Arr;

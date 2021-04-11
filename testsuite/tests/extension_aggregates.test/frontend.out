@@ -16,6 +16,7 @@ procedure Test is
       procedure AGC_Visit_T_Classwide (X : System.Address) with
          Inline;
    end Base;
+
    package body Base is
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (All_Checks);
@@ -54,6 +55,7 @@ procedure Test is
       procedure AGC_Visit_T_Classwide (X : System.Address) with
          Inline;
    end Derived;
+
    package body Derived is
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (All_Checks);
@@ -82,6 +84,7 @@ procedure Test is
       end AGC_Visit_T_Classwide;
    end Derived;
    use Base;
+
    X           : aliased Derived.T       := (T with Y => True);
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.Derived.AGC_Visit_T'Address);

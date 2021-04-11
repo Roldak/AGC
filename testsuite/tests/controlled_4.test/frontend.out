@@ -5,8 +5,10 @@ with System;
 with Ada.Unchecked_Conversion;
 with AGC;
 with Ada.Finalization;
+
 procedure Test is
    type Integer_Access is access Integer;
+
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
       Inline;
@@ -35,6 +37,7 @@ procedure Test is
       procedure AGC_Visit_T_Classwide (X : System.Address) with
          Inline;
    end Foo;
+
    package body Foo is
       procedure AGC_Visit_T_Private (X : System.Address) renames
         Test.Foo.AGC_Visit_T;
@@ -73,6 +76,7 @@ procedure Test is
       function AGC_Register_T_Access (X : T_Access) return T_Access with
          Inline;
    end Bar;
+
    package body Bar is
       package AGC_T_Access_Ops_Implem is new AGC.Access_Type_Operations
         (Test.Foo.T, T_Access, False, Test.Foo.AGC_Visit_T_Private);

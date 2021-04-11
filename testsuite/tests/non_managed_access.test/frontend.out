@@ -6,10 +6,13 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Unchecked_Conversion;
 with System;      use System;
+
 with AGC;
+
 procedure Test is
    type My_Integer_Access is access Integer with
       Storage_Pool => AGC.Non_Managed'Storage_Pool;
+
    procedure AGC_Visit_My_Integer_Access (X : System.Address) with
       Inline;
    package AGC_My_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
@@ -26,6 +29,7 @@ procedure Test is
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end Alloc;
+
    function Deref (X : Address) return Integer is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
       function Convert is new Ada.Unchecked_Conversion
@@ -41,6 +45,7 @@ procedure Test is
          return AGC_Temp_0.all;
       end;
    end Deref;
+
    X : System.Address := Alloc (3);
 begin
    AGC.Collect;

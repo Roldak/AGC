@@ -4,6 +4,7 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Q;
+
 package body P is
    package AGC_U_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Q.U, U_Access, False, Q.AGC_Visit_U);
@@ -33,8 +34,10 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 limited with Q;
+
 package P is
    type U_Access is access Q.U;
+
    for U_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_U_Access (X : System.Address) with
       Inline;
@@ -43,6 +46,7 @@ package P is
    type Rec is record
       X : U_Access;
    end record;
+
    procedure AGC_Visit_Rec (X : System.Address) with
       Inline;
    procedure Bar (X : Rec);
@@ -75,10 +79,12 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with P;
+
 package Q is
    type U is record
       Y : P.Rec;
    end record;
+
    procedure AGC_Visit_U (X : System.Address) with
       Inline;
    procedure Foo (X : U);

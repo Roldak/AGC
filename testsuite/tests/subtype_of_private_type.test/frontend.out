@@ -23,6 +23,7 @@ procedure Test is
       procedure AGC_Visit_T (X : System.Address) with
          Inline;
    end Pkg;
+
    package body Pkg is
       procedure AGC_Visit_T_Private (X : System.Address) renames
         Test.Pkg.AGC_Visit_T;
@@ -46,10 +47,12 @@ procedure Test is
       end AGC_Visit_T;
    end Pkg;
    subtype PT is Pkg.T;
+
    type R is record
       V : Natural;
       D : PT;
    end record;
+
    procedure AGC_Visit_R (X : System.Address) with
       Inline;
    procedure AGC_Visit_R (X : System.Address) is

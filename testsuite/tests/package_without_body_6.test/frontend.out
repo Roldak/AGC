@@ -32,6 +32,7 @@ with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
 with Pkg;
+
 procedure Test is
    package I is new Pkg (Integer, AGC_Visit_T_Private => AGC.No_Op);
 begin

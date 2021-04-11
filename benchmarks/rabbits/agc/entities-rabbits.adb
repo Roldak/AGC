@@ -5,7 +5,9 @@ with System;
 with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Numerics.Discrete_Random;
+
 with Entities.Grass;
+
 package body Entities.Rabbits is
    procedure AGC_Visit_Rabbit_Private (X : System.Address) renames
      Entities.Rabbits.AGC_Visit_Rabbit;
@@ -36,7 +38,9 @@ package body Entities.Rabbits is
       Conv (X).AGC_Visit;
    end AGC_Visit_Rabbit_Classwide;
    package Bool_Generators is new Ada.Numerics.Discrete_Random (Boolean);
+
    Bool_Generator : Bool_Generators.Generator;
+
    function Create return Entity_Access is
       X, Y : Natural;
    begin
@@ -45,6 +49,7 @@ package body Entities.Rabbits is
          null;
       end return;
    end Create;
+
    function Create (X, Y : Natural) return Entity_Access is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
@@ -62,23 +67,28 @@ package body Entities.Rabbits is
          end return;
       end;
    end Create;
+
    overriding procedure Start (R : in out Rabbit; W : in out World) is
    begin
       R.Age  := 0;
       R.Food := 30;
    end Start;
+
    procedure Try_Reproducing (Self, Other : in out Rabbit; W : in out World) is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       if Self.Age < 10 or Other.Age < 10 then
          return;
       end if;
+
       if Self.Food < 40 or Other.Food < 40 then
          return;
       end if;
+
       if Bool_Generators.Random (Bool_Generator) then
          return;
       end if;
+
       declare
          AGC_Temp_0  : aliased Worlds.Entity_Access := Create (Self.X, Self.Y);
          AGC_Dummy_0 : constant AGC.Empty_Type      :=
@@ -89,18 +99,22 @@ package body Entities.Rabbits is
       end;
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Try_Reproducing;
+
    procedure Try_Eat (R : in out Rabbit; G : in out Grass.Grass) is
    begin
       if R.Food = 45 then
          return;
       end if;
+
       if G.Eat then
          R.Food := R.Food + 5;
+
          if R.Food > 45 then
             R.Food := 45;
          end if;
       end if;
    end Try_Eat;
+
    overriding procedure Update (R : in out Rabbit; W : in out World) is
       X : Natural := R.X;
       Y : Natural := R.Y;
@@ -109,11 +123,14 @@ package body Entities.Rabbits is
          R.Delete;
          return;
       end if;
+
       R.Age  := R.Age + 1;
       R.Food := R.Food - 3;
+
       while not Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) loop
          null;
       end loop;
+
       for E of W.Located (X, Y) loop
          if E.all in Rabbit'Class then
             Try_Reproducing (R, Rabbit (E.all), W);
@@ -121,6 +138,7 @@ package body Entities.Rabbits is
             Try_Eat (R, Grass.Grass (E.all));
          end if;
       end loop;
+
       R.Relocate (W, X, Y);
    end Update;
 end Entities.Rabbits;

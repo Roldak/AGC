@@ -8,6 +8,7 @@ procedure Test is
    type Int;
    type Int_Access is access Int;
    type Int is range 1 .. 10;
+
    for Int_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Int_Access (X : System.Address) with
       Inline;
