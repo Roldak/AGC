@@ -402,19 +402,6 @@ package body Utils is
       return Base & Suffix;
    end Generate_Type_Reference;
 
-   function Unique_Identifier
-     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type
-   is
-      Name : Langkit_Support.Text.Text_Type := Decl.P_Fully_Qualified_Name;
-   begin
-      for C of Name loop
-         if C = '.' then
-            C := '_';
-         end if;
-      end loop;
-      return Name;
-   end Unique_Identifier;
-
    function Is_Runtime_Unit (U : LAL.Compilation_Unit) return Boolean is
       use type Langkit_Support.Text.Unbounded_Text_Type;
 

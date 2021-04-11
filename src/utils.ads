@@ -39,9 +39,6 @@ package Utils is
    function Generate_Type_Reference
      (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
 
-   function Unique_Identifier
-     (Decl : LAL.Basic_Decl'Class) return Langkit_Support.Text.Text_Type;
-
    function Get_Type_Name
      (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type;
 
