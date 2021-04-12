@@ -305,9 +305,36 @@ package body Utils is
 
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean is
       use type Analysis.Summaries_Access;
+
+      function Handle_Call (Name : LAL.Name) return Boolean is
+         Called_Spec : LAL.Base_Formal_Param_Holder :=
+            Name.P_Called_Subp_Spec;
+
+         Subp_Body   : LAL.Body_Node;
+      begin
+         if Called_Spec.Parent.Kind in LALCO.Ada_Enum_Literal_Decl then
+            return True;
+         elsif Called_Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def then
+            return False;
+         elsif Analysis.Summaries = null then
+            return False;
+         end if;
+
+         Subp_Body := Get_Body (Called_Spec.Parent.As_Basic_Decl);
+
+         if Subp_Body.Is_Null then
+            return False;
+         else
+            return not Analysis.Does_Allocate (Subp_Body);
+         end if;
+      end Handle_Call;
    begin
       case Expr.Kind is
          when LALCO.Ada_Identifier =>
+            if Expr.As_Identifier.P_Is_Call then
+               return Handle_Call (Expr.As_Name);
+            end if;
+
             declare
                Decl : LAL.Basic_Decl'Class :=
                   Expr.As_Identifier.P_Referenced_Decl;
@@ -333,30 +360,9 @@ package body Utils is
          when LALCO.Ada_Call_Expr =>
             if not Expr.As_Call_Expr.P_Is_Call then
                return True;
+            else
+               return Handle_Call (Expr.As_Name);
             end if;
-
-            if Analysis.Summaries = null then
-               return False;
-            end if;
-
-            declare
-               Called_Spec : LAL.Base_Formal_Param_Holder :=
-                  Expr.As_Call_Expr.P_Called_Subp_Spec;
-
-               Subp_Body : LAL.Body_Node;
-            begin
-               if Called_Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def then
-                  return False;
-               end if;
-
-               Subp_Body := Get_Body (Called_Spec.Parent.As_Basic_Decl);
-
-               if Subp_Body.Is_Null then
-                  return False;
-               else
-                  return not Analysis.Does_Allocate (Subp_Body);
-               end if;
-            end;
 
          when LALCO.Ada_Explicit_Deref =>
             return True;
