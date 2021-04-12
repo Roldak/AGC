@@ -62,7 +62,11 @@ package body Grids is
 
    function Random_Direction return Direction is
    begin
-      return Random_Directions.Random (Random_Direction_Generator);
+      return
+        AGC_Ret : Direction :=
+          Random_Directions.Random (Random_Direction_Generator) do
+         null;
+      end return;
    end Random_Direction;
 
    function Moved (X, Y : in out Natural; Dir : Direction) return Boolean is

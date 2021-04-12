@@ -33,6 +33,48 @@ package body Analysis is
       end Set_Target;
 
       procedure Compute_Summary is
+         function Handle_Call
+           (Spec : LAL.Base_Formal_Param_Holder'Class)
+            return LALCO.Visit_Status
+         is
+            Is_Subp_Access : Boolean :=
+               Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def;
+
+            Called_Decl : LAL.Basic_Decl :=
+              (if Is_Subp_Access
+               then LAL.No_Basic_Decl
+               else Spec.Parent.As_Basic_Decl);
+
+            Called_Body : LAL.Body_Node :=
+              (if Is_Subp_Access
+               then LAL.No_Body_Node
+               else Utils.Get_Body (Called_Decl));
+         begin
+            if Called_Decl.Is_Null then
+               Self_Allocates := True;
+               return LALCO.Stop;
+            elsif Called_Body.Is_Null then
+               --  An instantiation with a null body is probably an
+               --  instantiation of Unchecked_Deallocation,
+               --  Unchecked_Conversion, etc.
+               if Called_Decl.Kind
+                     in LALCO.Ada_Enum_Literal_Decl
+                      | LALCO.Ada_Generic_Subp_Internal
+               then
+                  return LALCO.Into;
+               else
+                  Self_Allocates := True;
+                  return LALCO.Stop;
+               end if;
+            else
+               Calls.Include
+                 ((Called_Body,
+                   To_Unbounded_Text
+                     (Called_Body.P_Unique_Identifying_Name)));
+            end if;
+            return LALCO.Into;
+         end Handle_Call;
+
          function Process_Node
            (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
          is
@@ -41,32 +83,19 @@ package body Analysis is
                when LALCO.Ada_Allocator =>
                   Self_Allocates := True;
                   return LALCO.Stop;
+
                when LALCO.Ada_Name =>
                   declare
                      Called_Spec : LAL.Base_Formal_Param_Holder'Class :=
                         Node.As_Name.P_Called_Subp_Spec;
-
-                     Is_Subp_Access : Boolean :=
-                        not Called_Spec.Is_Null
-                        and then Called_Spec.Parent.Kind
-                           in LALCO.Ada_Access_To_Subp_Def;
-
-                     Subp_Body : LAL.Body_Node :=
-                       (if Called_Spec.Is_Null or Is_Subp_Access
-                        then LAL.No_Body_Node
-                        else Utils.Get_Body
-                          (Called_Spec.Parent.As_Basic_Decl));
                   begin
-                     if Is_Subp_Access then
-                        Self_Allocates := True;
-                        return LALCO.Stop;
-                     elsif not Subp_Body.Is_Null then
-                        Calls.Include
-                          ((Subp_Body,
-                            To_Unbounded_Text
-                              (Subp_Body.P_Unique_Identifying_Name)));
+                     if Called_Spec.Is_Null then
+                        return LALCO.Into;
                      end if;
+
+                     return Handle_Call (Called_Spec);
                   end;
+
                when others =>
                   null;
             end case;
