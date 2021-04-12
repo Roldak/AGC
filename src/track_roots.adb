@@ -10,6 +10,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
+with Analysis;
 with Node_Counters;
 with Utils;
 with Session;
@@ -202,6 +203,7 @@ is
 
    procedure Handle_Declarative_Part (Decl_Part : LAL.Declarative_Part) is
       use type LALCO.Ada_Node_Kind_Type;
+      use type Analysis.Summaries_Access;
 
       Decls      : LAL.Ada_Node_List := Decl_Part.F_Decls;
       Subp_Level : Boolean :=
@@ -217,7 +219,16 @@ is
             and then Next_Sibling.Kind in LALCO.Ada_Handled_Stmts
          then Next_Sibling.As_Handled_Stmts
          else LAL.No_Handled_Stmts);
+
+      Enclosing_Subp : LAL.Base_Subp_Body :=
+         Utils.Enclosing_Subp_Body (Decl_Part);
    begin
+      if Analysis.Summaries /= null and not Enclosing_Subp.Is_Null then
+         if not Analysis.Does_Allocate (Enclosing_Subp) then
+            return;
+         end if;
+      end if;
+
       for N in Decls.First_Child_Index .. Decls.Last_Child_Index loop
          declare
             C : LAL.Ada_Node := LAL.Child (Decls, N);
