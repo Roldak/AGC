@@ -73,7 +73,9 @@ package body Analysis is
             return LALCO.Into;
          exception
             when LALCO.Property_Error =>
-               Put_Line ("Abandonning analysis of " & LAL.Image (Target));
+               Trace
+                 (Analysis_Trace,
+                  "Abandonning analysis of " & LAL.Image (Target));
                Self_Allocates := True;
                return LALCO.Stop;
          end Process_Node;
@@ -88,11 +90,17 @@ package body Analysis is
       is
       begin
          if not Is_Computed then
-            Put_Line ("Computing summary for " & LAL.Image (Target));
+            Trace
+              (Analysis_Trace,
+               "Computing summary for " & LAL.Image (Target));
             Compute_Summary;
+            Trace
+              (Analysis_Trace,
+               "Result for " & LAL.Image (Target)
+               & " : " & Self_Allocates'Image);
             Is_Computed := True;
          else
-            Put_Line ("Reusing summary");
+            Trace (Analysis_Trace, "Reusing summary");
          end if;
 
          Does_Allocate := Self_Allocates;
@@ -105,7 +113,7 @@ package body Analysis is
          when Is_Computed
       is
       begin
-         Put_Line ("Reusing summary (potentially waited)");
+         Trace (Analysis_Trace, "Reusing summary (potentially waited)");
          Does_Allocate := Self_Allocates;
          Called_Subps  := Calls;
       end Get_Blocking;
@@ -144,7 +152,9 @@ package body Analysis is
          if Cursor = Local_Summaries.No_Element then
             Map.Insert (K, new Local_Summary, Cursor, Inserted);
          else
-            Put_Line ("Summary for " & LAL.Image (Subprogram) & " already requested");
+            Trace
+              (Analysis_Trace,
+               "Summary for " & LAL.Image (Subprogram) & " already requested");
          end if;
          Summary := Local_Summaries.Element (Cursor);
          if not Local_Summary (Summary.all).Has_Target then

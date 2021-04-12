@@ -8,7 +8,11 @@ with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
 
+with GNATCOLL.Traces; use GNATCOLL.Traces;
+
 package Analysis is
+
+   Analysis_Trace : constant Trace_Handle := Create ("AGC.ANALYSIS");
 
    type Summaries_Holder is synchronized interface;
    type Summaries_Access is access Summaries_Holder'Class;

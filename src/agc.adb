@@ -6,6 +6,7 @@ with Ada.Strings.Unbounded.Hash;
 
 with GNATCOLL.Opt_Parse;
 with GNATCOLL.Strings; use GNATCOLL.Strings;
+with GNATCOLL.Traces;
 with GNATCOLL.VFS;
 
 with GNAT.Sha1;
@@ -278,6 +279,8 @@ procedure AGC is
    is
       use GNATCOLL;
    begin
+      Traces.Parse_Config_File;
+
       if Output_Dir.Get /= "" then
          Out_Dir_File :=
             VFS.Create_From_Base (VFS."+" (Strings.To_String (Output_Dir.Get)));
@@ -285,6 +288,7 @@ procedure AGC is
 
       Session.Set_Files_To_Process (Files);
       Incremental.Compute_Change_Set;
+
       if Optimize.Get then
          Analysis.Summaries := new Analysis.Summaries_Map;
       end if;
