@@ -16,9 +16,9 @@ with Session;
 with Utils;
 
 procedure Output_Unit
-  (Unit    : Libadalang.Analysis.Analysis_Unit;
-   Out_Dir : VFS.Virtual_File;
-   SHA1    : String)
+  (Unit     : Libadalang.Analysis.Analysis_Unit;
+   Out_File : VFS.Virtual_File;
+   SHA1     : String)
 is
    package LAL     renames Libadalang.Analysis;
    package LALU    renames Libadalang.Unparsing;
@@ -27,16 +27,15 @@ is
    use type VFS.Virtual_File;
 
    Content  : String := LALU.Unparse (Unit.Root, Preserve_Formatting => True);
-   Basename : String := Utils.Base_Name (Unit.Get_Filename);
 begin
-   if Out_Dir = VFS.No_File then
-      Put_Line ("--  " & Basename);
+   if Out_File = VFS.No_File then
+      Put_Line ("--  " & Utils.Base_Name (Unit.Get_Filename));
       Put_Line (Content);
       New_Line;
    else
+      VFS.Make_Dir (Out_File.Dir, Recursive => True);
       declare
-         New_Unit : VFS.Writable_File :=
-            VFS.Join (Out_Dir, VFS."+" (Basename)).Write_File;
+         New_Unit : VFS.Writable_File := Out_File.Write_File;
 
          SHA1_Comment : String :=
            (if SHA1 = ""

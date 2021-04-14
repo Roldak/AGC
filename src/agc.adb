@@ -5,6 +5,7 @@ with Ada.Strings.Unbounded; use Ada.Strings.Unbounded;
 with Ada.Strings.Unbounded.Hash;
 
 with GNATCOLL.Opt_Parse;
+with GNATCOLL.Projects;
 with GNATCOLL.Strings; use GNATCOLL.Strings;
 with GNATCOLL.Traces;
 with GNATCOLL.VFS;
@@ -70,7 +71,10 @@ procedure AGC is
       Convert     => GNATCOLL.Opt_Parse.Convert,
       Default_Val => Null_XString,
       Help        =>
-         "The directory in which to output the instrumented ada units.");
+         "The directory in which to output the instrumented ada units."
+       & "When invoked with a project file, this path is treated as "
+       & "relative to the (sub-)projects' object directories, unless "
+       & "this is an absolute path.");
 
    package Optimize is new GNATCOLL.Opt_Parse.Parse_Flag
      (Parser  => App.Args.Parser,
@@ -102,8 +106,6 @@ procedure AGC is
       Put_Line ("   [Ada]          " & Utils.Base_Name (Unit.Get_Filename));
    end Print_Processed_Unit;
 
-   Out_Dir_File    : GNATCOLL.VFS.Virtual_File;
-
    package String_Sets is new Ada.Containers.Hashed_Sets
      (Unbounded_String, Hash, "=");
 
@@ -112,6 +114,82 @@ procedure AGC is
 
    package String_SHA1_Maps is new Ada.Containers.Hashed_Maps
      (Unbounded_String, GNAT.SHA1.Message_Digest, Hash, "=", "=");
+
+   package String_File_Maps is new Ada.Containers.Hashed_Maps
+     (Unbounded_String, GNATCOLL.VFS.Virtual_File,
+      Hash, "=", GNATCOLL.VFS."=");
+
+   protected Unit_Info is
+      procedure Compute_Units_Info
+        (Ctx : Helpers.App_Context; Out_Dir_File : GNATCOLL.VFS.Virtual_File);
+
+      procedure Get_Out_File
+        (X : String; F : out GNATCOLL.VFS.Virtual_File);
+   private
+
+      Unit_Out_Map : String_File_Maps.Map;
+   end Unit_Info;
+
+   protected body Unit_Info is
+      procedure Compute_Units_Info
+        (Ctx : Helpers.App_Context; Out_Dir_File : GNATCOLL.VFS.Virtual_File)
+      is
+         use GNATCOLL.Projects;
+         use GNATCOLL.VFS;
+
+         Project : Project_Tree_Access;
+
+         procedure Process_File_No_Dir (Name : String) is
+         begin
+            Unit_Out_Map.Insert (To_Unbounded_String (Name), No_File);
+         end Process_File_No_Dir;
+
+         procedure Process_File_Absolute_Dir (Name : String) is
+            File    : Virtual_File := Create (Filesystem_String (Name));
+         begin
+            Unit_Out_Map.Insert
+              (To_Unbounded_String (Name),
+               Out_Dir_File.Join (File.Base_Name));
+         end Process_File_Absolute_Dir;
+
+         procedure Process_File_Object_Dir (Name : String) is
+            File    : Virtual_File := Create (Filesystem_String (Name));
+            Info    : File_Info    := Project.Info (File);
+            Actual  : Project_Type := Info.Project;
+            Obj_Dir : Virtual_File := Actual.Object_Dir;
+         begin
+            Unit_Out_Map.Insert
+              (To_Unbounded_String (Name),
+               Obj_Dir.Join (Out_Dir_File).Join (File.Base_Name));
+         end Process_File_Object_Dir;
+      begin
+         if Out_Dir_File = No_File then
+            Session.Iterate_Files_To_Process
+              (Process_File_No_Dir'Access);
+         elsif Out_Dir_File.Is_Absolute_Path then
+            Session.Iterate_Files_To_Process
+              (Process_File_Absolute_Dir'Access);
+         elsif Ctx.Provider.Kind in Helpers.Project_File then
+            Project := Ctx.Provider.Project;
+            Session.Iterate_Files_To_Process
+              (Process_File_Object_Dir'Access);
+         end if;
+      end Compute_Units_Info;
+
+      procedure Get_Out_File
+        (X : String; F : out GNATCOLL.VFS.Virtual_File)
+      is
+         use String_File_Maps;
+
+         C : Cursor := Unit_Out_Map.Find (To_Unbounded_String (X));
+      begin
+         if C = No_Element then
+            raise Program_Error
+               with "Cannot request Out_Dir of non-processed file " & X;
+         end if;
+         F := Element (C);
+      end Get_Out_File;
+   end Unit_Info;
 
    protected Incremental is
       procedure Compute_Change_Set;
@@ -177,13 +255,9 @@ procedure AGC is
 
          Out_File : VFS.Virtual_File;
 
-         Content_Access       : GNAT.Strings.String_Access;
+         Content_Access : GNAT.Strings.String_Access;
       begin
-         if not Out_Dir_File.Is_Directory then
-            return True;
-         end if;
-
-         Out_File := VFS.Join (Out_Dir_File, VFS."+" (Utils.Base_Name (File)));
+         Unit_Info.Get_Out_File (File, Out_File);
 
          if not Out_File.Is_Regular_File then
             return True;
@@ -278,15 +352,18 @@ procedure AGC is
       Files : Helpers.String_Vectors.Vector)
    is
       use GNATCOLL;
+
+      Out_Dir_File : VFS.Virtual_File := GNATCOLL.VFS.No_File;
    begin
       Traces.Parse_Config_File;
 
       if Output_Dir.Get /= "" then
          Out_Dir_File :=
-            VFS.Create_From_Base (VFS."+" (Strings.To_String (Output_Dir.Get)));
+            VFS.Create (VFS."+" (Strings.To_String (Output_Dir.Get)));
       end if;
 
       Session.Set_Files_To_Process (Files);
+      Unit_Info.Compute_Units_Info (Ctx, Out_Dir_File);
       Incremental.Compute_Change_Set;
 
       if Optimize.Get then
@@ -375,18 +452,21 @@ procedure AGC is
       --  output units
       for Unit of All_Units loop
          declare
+            Unit_File_Name  : String := Unit.Get_Filename;
             Was_Reprocessed : Boolean;
-            SHA1 : String :=
+            Out_File        : GNATCOLL.VFS.Virtual_File;
+            SHA1            : String :=
               (if No_Hash.Get
                then ""
-               else Incremental.Get_SHA1 (Unit.Get_Filename));
+               else Incremental.Get_SHA1 (Unit_File_Name));
          begin
             Incremental.Must_Reprocess (Unit, Was_Reprocessed);
             if Was_Reprocessed then
+               Unit_Info.Get_Out_File (Unit_File_Name, Out_File);
                Output_Unit
-                 (Unit    => Unit,
-                  Out_Dir => Out_Dir_File,
-                  SHA1    => SHA1);
+                 (Unit     => Unit,
+                  Out_File => Out_File,
+                  SHA1     => SHA1);
                Total_Written := Total_Written + 1;
             end if;
          end;
