@@ -1,0 +1,37 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package body Pkg is
+   package AGC_Int_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Int_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Int_Access (X : System.Address) renames
+     AGC_Int_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Int_Access (X : Int_Access) return Int_Access renames
+     AGC_Int_Access_Ops_Implem.Register;
+   Y : aliased Int_Access;
+
+   AGC_Dummy_B_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (Y'Address, Pkg.AGC_Visit_Int_Access'Address);
+   procedure Foo is null;
+end Pkg;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+package Pkg is
+   type Int_Access is access Integer;
+
+   for Int_Access'Storage_Pool use AGC.Storage.Get.Pool;
+   procedure AGC_Visit_Int_Access (X : System.Address) with
+      Inline;
+   function AGC_Register_Int_Access (X : Int_Access) return Int_Access with
+      Inline;
+   procedure Foo;
+
+   X           : aliased Int_Access;
+   AGC_Dummy_0 : constant AGC.Empty_Type :=
+     AGC.Push_Root (X'Address, Pkg.AGC_Visit_Int_Access'Address);
+end Pkg;

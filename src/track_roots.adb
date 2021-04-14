@@ -80,11 +80,16 @@ is
       Obj_Type : LAL.Base_Type_Decl'Class :=
          X.P_Type_Expression.P_Designated_Type_Decl;
 
-      Dummy_Count : Natural := Node_Counters.Get (Subp_Roots, Enclosing_Subp);
-      Dummy_Index : Langkit_Support.Text.Text_Type :=
+      Dummy_Count  : Natural := Node_Counters.Get (Subp_Roots, Enclosing_Subp);
+      Dummy_Index  : Langkit_Support.Text.Text_Type :=
          Dummy_Count'Wide_Wide_Image;
-      Dummy_Name  : Langkit_Support.Text.Text_Type :=
-         "AGC_Dummy_"
+      Dummy_Suffix : Langkit_Support.Text.Text_Type :=
+         (if Enclosing_Subp.Is_Null and then
+             X.P_Enclosing_Compilation_Unit.P_Unit_Kind in LALCO.Unit_Body
+          then "B_"
+          else "");
+      Dummy_Name   : Langkit_Support.Text.Text_Type :=
+         "AGC_Dummy_" & Dummy_Suffix
          & Dummy_Index (Dummy_Index'First + 1 .. Dummy_Index'Last);
    begin
       LALRW.Insert_Child
