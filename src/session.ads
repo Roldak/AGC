@@ -25,6 +25,9 @@ package Session is
    procedure Iterate_Files_To_Process
      (Process: access procedure (File : String));
 
+   procedure Include_New_Unit
+     (Derived_From : LAL.Analysis_Unit; Name : String);
+
    function Get_Out_File (X : String) return GNATCOLL.VFS.Virtual_File;
 
    function Get_SHA1 (File : String) return String;
@@ -52,8 +55,11 @@ private
       procedure Compute_Units_Info
         (Ctx : App_Context; Out_Dir_File : GNATCOLL.VFS.Virtual_File);
 
+      procedure Add_Unit_Info
+        (Name : String; Out_File : GNATCOLL.VFS.Virtual_File);
+
       procedure Get_Out_File
-        (X : String; F : out GNATCOLL.VFS.Virtual_File);
+        (Name : String; F : out GNATCOLL.VFS.Virtual_File);
    private
 
       Unit_Out_Map : String_File_Maps.Map;

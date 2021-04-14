@@ -53,6 +53,23 @@ package body Session is
       end loop;
    end Iterate_Files_To_Process;
 
+   procedure Include_New_Unit
+     (Derived_From : LAL.Analysis_Unit; Name : String)
+   is
+      use GNATCOLL.VFS;
+
+      Derived_Unit_Name : String := Derived_From.Get_Filename;
+      Derived_Out_File  : Virtual_File := Get_Out_File (Derived_Unit_Name);
+
+      Base_Name         : String := Utils.Base_Name (Name);
+      Hypothetical_Path : Virtual_File :=
+         Create (+Derived_Unit_Name).Dir.Join (+Base_Name);
+   begin
+      Unit_Info.Add_Unit_Info
+        (Hypothetical_Path.Display_Full_Name,
+         Derived_Out_File.Dir.Join (+Base_Name));
+   end Include_New_Unit;
+
    function Get_Out_File (X : String) return GNATCOLL.VFS.Virtual_File is
       Result : GNATCOLL.VFS.Virtual_File;
    begin
@@ -116,16 +133,23 @@ package body Session is
          end if;
       end Compute_Units_Info;
 
+      procedure Add_Unit_Info
+        (Name : String; Out_File : GNATCOLL.VFS.Virtual_File)
+      is
+      begin
+         Unit_Out_Map.Insert (To_Unbounded_String (Name), Out_File);
+      end Add_Unit_Info;
+
       procedure Get_Out_File
-        (X : String; F : out GNATCOLL.VFS.Virtual_File)
+        (Name : String; F : out GNATCOLL.VFS.Virtual_File)
       is
          use String_File_Maps;
 
-         C : Cursor := Unit_Out_Map.Find (To_Unbounded_String (X));
+         C : Cursor := Unit_Out_Map.Find (To_Unbounded_String (Name));
       begin
          if C = No_Element then
             raise Program_Error
-               with "Cannot request Out_Dir of non-processed file " & X;
+               with "Cannot request Out_Dir of non-processed file " & Name;
          end if;
          F := Element (C);
       end Get_Out_File;

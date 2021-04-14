@@ -11,6 +11,7 @@ with Libadalang.Rewriting;
 with Libadalang.Unit_Files;
 
 with Node_Counters;
+with Session;
 with Utils;
 
 package body Post_Actions is
@@ -27,6 +28,7 @@ package body Post_Actions is
       Name : Unbounded_String;
       Root : LALRW.Node_Rewriting_Handle;
       Buff : Unbounded_String;
+      From : LAL.Analysis_Unit;
    end record;
 
    package Unit_Info_Vectors is new Ada.Containers.Vectors
@@ -96,7 +98,8 @@ package body Post_Actions is
             Created_Units.Append
               ((Name => To_Unbounded_String (Unit_name),
                 Root => New_Body,
-                Buff => <>));
+                Buff => <>,
+                From => Pkg.Unit));
          end;
       elsif Allows_Body then
          LALRW.Insert_Child
@@ -233,7 +236,8 @@ package body Post_Actions is
                New_Unit : Unit_Info :=
                  (Name => To_Unbounded_String (Unit_Name),
                   Root => Dest,
-                  Buff => <>);
+                  Buff => <>,
+                  From => Action.Unit);
             begin
                Created_Units.Append (New_Unit);
             end;
@@ -318,13 +322,15 @@ package body Post_Actions is
 
          for Unit_Info of Created_Units loop
             declare
+               Name : String := To_String (Unit_Info.Name);
                Unit : LAL.Analysis_Unit :=
                   LAL.Get_From_Buffer
                     (Ctx,
-                     Filename => To_String (Unit_Info.Name),
+                     Filename => Name,
                      Buffer   => Unit_Info.Buff);
             begin
                Units.Append (Unit);
+               Session.Include_New_Unit (Unit_Info.From, Name);
             end;
          end loop;
       end Perform_Actions;
