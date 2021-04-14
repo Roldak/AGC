@@ -124,7 +124,7 @@ package body AGC is
             else null);
 
          Size : constant Storage_Count :=
-            T'Object_Size / Storage_Unit + Storage.Extra_Bytes;
+            Acc.all'Size / Storage_Unit + Storage.Extra_Bytes;
       begin
          Register (Header_Address, Object_Address, Size, Final);
          return Acc;
