@@ -130,6 +130,9 @@ package body Session is
             Project := Ctx.Provider.Project;
             Session.Iterate_Files_To_Process
               (Process_File_Object_Dir'Access);
+         else
+            Session.Iterate_Files_To_Process
+              (Process_File_Absolute_Dir'Access);
          end if;
       end Compute_Units_Info;
 
