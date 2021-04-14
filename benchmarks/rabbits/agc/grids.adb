@@ -31,7 +31,9 @@ package body Grids is
         (System.Address, Rec_Access);
       R : Grid'Class renames Conv (X).all;
    begin
-      Grids.AGC_Visit_Matrix (R.Cells'Address);
+      for C of R.Cells loop
+         Grids.AGC_Visit_Cell (C'Address);
+      end loop;
    end AGC_Visit_Grid;
    procedure AGC_Visit (X : access Grid) is
    begin

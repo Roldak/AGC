@@ -266,6 +266,21 @@ is
       procedure Handle_Component_List
         (Stmts : LALRW.Node_Rewriting_Handle; List : LAL.Component_List'Class)
       is
+         function Inline_Array_Visitor
+           (Array_Type : LAL.Base_Type_Decl'Class;
+            Array_Comp : Langkit_Support.Text.Text_Type)
+            return LALRW.Node_Rewriting_Handle
+         is
+            Elem_Type : LAL.Base_Type_Decl'Class := Array_Type.P_Comp_Type;
+         begin
+            return LALRW.Create_From_Template
+              (RH,
+               "for C of R." & Array_Comp & " loop "
+               & Visitor_Name (Elem_Type) & "(C'Address); "
+               & "end loop;", (1 .. 0 => <>),
+               LALCO.Stmt_Rule);
+         end Inline_Array_Visitor;
+
          Comps : LAL.Ada_Node_List := List.F_Components;
       begin
          for I in 1 .. Comps.Children_Count loop
@@ -284,11 +299,16 @@ is
                      LAL.Text (Comp_Name);
                begin
                   if Utils.Is_Relevant_Type (Comp_Type) then
-                     LALRW.Append_Child (Stmts, LALRW.Create_From_Template
-                       (RH,
-                        Visitor_Name (Comp_Type)
-                        & "(R." & Comp_Text & "'Address);",
-                        (1 .. 0 => <>), LALCO.Stmt_Rule));
+                     if Comp_Type.P_Is_Array_Type then
+                        LALRW.Append_Child
+                          (Stmts, Inline_Array_Visitor (Comp_Type, Comp_Text));
+                     else
+                        LALRW.Append_Child (Stmts, LALRW.Create_From_Template
+                          (RH,
+                           Visitor_Name (Comp_Type)
+                           & "(R." & Comp_Text & "'Address);",
+                           (1 .. 0 => <>), LALCO.Stmt_Rule));
+                     end if;
                   end if;
                end;
             end if;

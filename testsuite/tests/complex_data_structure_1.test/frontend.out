@@ -45,7 +45,9 @@ procedure Test is
         (System.Address, Rec_Access);
       R : Quad_Tree renames Conv (X).all;
    begin
-      Test.AGC_Visit_Quad_Tree_Access_Array (R.Nodes'Address);
+      for C of R.Nodes loop
+         Test.AGC_Visit_Quad_Tree_Access (C'Address);
+      end loop;
    end AGC_Visit_Quad_Tree;
    X           : aliased Quad_Tree_Access;
    AGC_Dummy_0 : constant AGC.Empty_Type :=
