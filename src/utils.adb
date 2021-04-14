@@ -162,9 +162,17 @@ package body Utils is
       Is_Constant : Boolean :=
          Decl.F_Has_Constant.Kind in LALCO.Ada_Constant_Present;
    begin
-      return not Decl.F_Renaming_Clause.Is_Null
-             or else (Is_Constant
-                      and then Utils.Is_Named_Expr (Decl.F_Default_Expr));
+      if not Decl.F_Renaming_Clause.Is_Null then
+         return True;
+      elsif Is_Constant then
+         if Decl.F_Default_Expr.Is_Null then
+            --  public constant declaration with completion in private part
+            return True;
+         else
+            return Utils.Is_Named_Expr (Decl.F_Default_Expr);
+         end if;
+      end if;
+      return False;
    end is_Alias;
 
    function Find_Scope (N : LAL.Ada_Node'Class) return LAL.Ada_Node'Class
