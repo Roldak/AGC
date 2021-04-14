@@ -137,6 +137,7 @@ procedure AGC is
       end if;
 
       Print_Processed_Unit (Unit);
+
       if Unit.Has_Diagnostics then
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
       else
@@ -202,21 +203,10 @@ procedure AGC is
 
       --  output units
       for Unit of All_Units loop
-         declare
-            Unit_File_Name  : String := Unit.Get_Filename;
-            SHA1            : String :=
-              (if No_Hash.Get
-               then ""
-               else Session.Get_SHA1 (Unit_File_Name));
-         begin
-            if Session.Must_Reprocess (Unit) then
-               Output_Unit
-                 (Unit     => Unit,
-                  Out_File => Session.Get_Out_File (Unit_File_Name),
-                  SHA1     => SHA1);
-               Total_Written := Total_Written + 1;
-            end if;
-         end;
+         if Session.Must_Reprocess (Unit) then
+            Output_Unit (Unit => Unit, With_SHA1 => not No_Hash.Get);
+            Total_Written := Total_Written + 1;
+         end if;
       end loop;
 
       if Total_Written = 0 then
