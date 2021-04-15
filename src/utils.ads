@@ -73,6 +73,9 @@ package Utils is
    function Starts_With
      (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean;
 
+   function Dot_Concat
+     (X : LAL.Unbounded_Text_Type_Array) return Langkit_Support.Text.Text_Type;
+
    function Base_Name (Full_Path : String) return String;
 
    Storage_Pool_Symbol : Langkit_Support.Text.Unbounded_Text_Type :=

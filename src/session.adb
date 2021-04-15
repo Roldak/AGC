@@ -257,19 +257,6 @@ package body Session is
 
          Provider : LAL.Unit_Provider_Reference := Unit.Context.Unit_Provider;
 
-         function Dot_Concat
-           (X : LAL.Unbounded_Text_Type_Array) return Text_Type
-         is
-         begin
-            if X'Length > 1 then
-               return To_Text (X (X'First))
-                  & "." & Dot_Concat (X (X'First + 1 .. X'Last));
-            elsif X'Length > 0 then
-               return To_Text (X (X'First));
-            end if;
-            return "";
-         end Dot_Concat;
-
          procedure Check_Body (CU : LAL.Compilation_Unit'Class) is
          begin
             if CU.P_Unit_Kind in LALCO.Unit_Specification then
@@ -278,7 +265,7 @@ package body Session is
                      CU.P_Syntactic_Fully_Qualified_Name;
                   Body_Unit : LAL.Analysis_Unit'Class := Provider.Get.Get_Unit
                     (Unit.Context,
-                     Dot_Concat (FQN),
+                     Utils.Dot_Concat (FQN),
                      LALCO.Unit_Body);
                begin
                   if not Body_Unit.Root.Is_Null then

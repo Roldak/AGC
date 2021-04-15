@@ -227,22 +227,74 @@ package body Utils is
      (Unit        : LAL.Analysis_Unit;
       All_Visible : Boolean := False) return LAL.Analysis_Unit_Array
    is
+      use Langkit_Support.Text;
+
+      Provider : LAL.Unit_Provider_Reference := Unit.Context.Unit_Provider;
+
       package Analysis_Unit_Vectors is new Ada.Containers.Vectors
         (Positive, LAL.Analysis_Unit, LAL."=");
 
       Result : Analysis_Unit_Vectors.Vector;
 
-      procedure Append_From_Compilation_Unit (CU : LAL.Compilation_Unit) is
-         Next : LAL.Compilation_Unit_Array :=
-           (if All_Visible
-            then CU.P_Visible_Units
-            else CU.P_Imported_Units);
+      function Designated_Unit (FQN : Text_Type) return LAL.Analysis_Unit is
+         Result : LAL.Analysis_Unit'Class := Provider.Get.Get_Unit
+           (Unit.Context, FQN, LALCO.Unit_Specification);
       begin
-         for Dep of Next loop
-            if not Dep.Is_Null then
-               Result.Append (Dep.Unit);
+         if not Result.Root.Is_Null then
+            return LAL.Analysis_Unit (Result);
+         else
+            return LAL.Analysis_Unit (Provider.Get.Get_Unit
+              (Unit.Context, FQN, LALCO.Unit_Body));
+         end if;
+      end Designated_Unit;
+
+      function Parent_Unit
+        (CU : LAL.Compilation_Unit) return LAL.Analysis_Unit
+      is
+         Is_Body   : Boolean := CU.P_Unit_Kind in LALCO.Unit_Body;
+
+         FQN_Array : LAL.Unbounded_Text_Type_Array :=
+            CU.P_Syntactic_Fully_Qualified_Name;
+
+         FQN          : Text_Type :=
+            Dot_Concat (FQN_Array);
+
+         FQN_But_Last : Text_Type :=
+            Dot_Concat (FQN_Array (FQN_Array'First .. FQN_Array'Last - 1));
+
+         Result : LAL.Analysis_Unit;
+      begin
+         if Is_Body then
+            Result := LAL.Analysis_Unit (Provider.Get.Get_Unit
+              (Unit.Context, FQN, LALCO.Unit_Specification));
+
+            if not Result.Root.Is_Null then
+               return Result;
+            end if;
+         end if;
+         return Designated_Unit (FQN_But_Last);
+      end Parent_Unit;
+
+      procedure Append_From_Compilation_Unit (CU : LAL.Compilation_Unit) is
+         Parent : LAL.Analysis_Unit := Parent_Unit (CU);
+      begin
+         for Node of CU.F_Prelude loop
+            if Node.Kind in LALCO.Ada_With_Clause then
+               for Pkg of Node.As_With_Clause.F_Packages loop
+                  Result.Append (Designated_Unit (LAL.Text (Pkg.As_Name)));
+               end loop;
             end if;
          end loop;
+         if not Parent.Root.Is_Null then
+            Result.Append (Parent);
+            if All_Visible then
+               for U of Imported_Units (Parent, All_Visible => True) loop
+                  Result.Append (U);
+               end loop;
+            end if;
+         else
+            Result.Append (CU.P_Standard_Unit);
+         end if;
       end Append_From_Compilation_Unit;
    begin
       case Unit.Root.Kind is
@@ -630,6 +682,20 @@ package body Utils is
      (Str, Prefix : Langkit_Support.Text.Text_Type) return Boolean
    is (Str'Length >= Prefix'Length
        and then Str (Str'First .. Str'First + Prefix'Length - 1) = Prefix);
+
+   function Dot_Concat
+     (X : LAL.Unbounded_Text_Type_Array) return Langkit_Support.Text.Text_Type
+   is
+      use Langkit_Support.Text;
+   begin
+      if X'Length > 1 then
+         return To_Text (X (X'First))
+            & "." & Dot_Concat (X (X'First + 1 .. X'Last));
+      elsif X'Length > 0 then
+         return To_Text (X (X'First));
+      end if;
+      return "";
+   end Dot_Concat;
 
    function Base_Name (Full_Path : String) return String is
       use GNATCOLL.VFS;
