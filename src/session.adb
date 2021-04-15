@@ -6,7 +6,9 @@ with GNATCOLL.VFS;
 
 with GNAT.Strings;
 
+with Langkit_Support.Text;
 with Libadalang.Common;
+with Libadalang.Unit_Files;
 
 with Utils;
 
@@ -171,7 +173,7 @@ package body Session is
          begin
             SHA1_Map.Insert (File_Unbounded, SHA1);
             if SHA1_Changed (File, SHA1) then
-               Change_Set.Insert (File_Unbounded);
+               To_Reprocess.Insert (File_Unbounded, True);
             end if;
          end Process_File;
       begin
@@ -234,12 +236,7 @@ package body Session is
             return;
          end if;
 
-         Result := Change_Set.Contains (Filename);
-         To_Reprocess.Insert (Filename, Result, Cursor, Inserted);
-
-         if Result then
-            return;
-         end if;
+         To_Reprocess.Insert (Filename, False, Cursor, Inserted);
 
          for Dep of Utils.Imported_Units (Unit) loop
             Has_Dependency_Changed (Dep, Result);
@@ -256,14 +253,37 @@ package body Session is
         (Unit   : LAL.Analysis_Unit;
          Result : out Boolean)
       is
+         use Langkit_Support.Text;
+
+         Provider : LAL.Unit_Provider_Reference := Unit.Context.Unit_Provider;
+
+         function Dot_Concat
+           (X : LAL.Unbounded_Text_Type_Array) return Text_Type
+         is
+         begin
+            if X'Length > 1 then
+               return To_Text (X (X'First))
+                  & "." & Dot_Concat (X (X'First + 1 .. X'Last));
+            elsif X'Length > 0 then
+               return To_Text (X (X'First));
+            end if;
+            return "";
+         end Dot_Concat;
+
          procedure Check_Body (CU : LAL.Compilation_Unit'Class) is
          begin
             if CU.P_Unit_Kind in LALCO.Unit_Specification then
                declare
-                  Body_Part : LAL.Body_Node := CU.P_Decl.P_Body_Part_For_Decl;
+                  FQN : LAL.Unbounded_Text_Type_Array :=
+                     CU.P_Syntactic_Fully_Qualified_Name;
+                  Body_Unit : LAL.Analysis_Unit'Class := Provider.Get.Get_Unit
+                    (Unit.Context,
+                     Dot_Concat (FQN),
+                     LALCO.Unit_Body);
                begin
-                  if not Body_Part.Is_Null then
-                     Has_Dependency_Changed (Body_Part.Unit, Result);
+                  if not Body_Unit.Root.Is_Null then
+                     Has_Dependency_Changed
+                       (LAL.Analysis_Unit (Body_Unit), Result);
                   end if;
                end;
             end if;

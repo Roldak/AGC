@@ -84,7 +84,6 @@ private
         (Unit   : LAL.Analysis_Unit;
          Result : out Boolean);
 
-      Change_Set   : String_Sets.Set;
       SHA1_Map     : String_SHA1_Maps.Map;
       To_Reprocess : String_Bool_Maps.Map;
    end Incremental;
