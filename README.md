@@ -40,7 +40,7 @@ AGC adds a garbage collector to your Ada programs.
 
 *Warning: this is still in prototype phase. A lot of features are missing and a lot of Ada constructs are not supported yet. Check out the tests and benchmarks to have an idea of what is currently supported.*
 
-## Confiruation
+## Configuration
 
 It is possible to configure the runtime behavior of AGC by choosing which storage pool it will use internally. This can be done either at compile-time by passing the scenario variable `-XAGC_POOL=<POOL>`, or dynamically by first compiling with `-XAGC_POOL=dynamic` and then running your final executable with the environment variable `AGC_POOL` set to the desired pool identifier. Possible values for `AGC_POOL` are:
 * `malloc_free`: The storage pool is managed by the system using malloc/free.
