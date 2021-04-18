@@ -180,6 +180,8 @@ procedure AGC is
       end loop;
    end Reparse_All_Units;
 
+   Done : Boolean := False;
+
    procedure Post_Process
      (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
    is
@@ -227,7 +229,17 @@ procedure AGC is
       else
          Put_Line ("Done: instrumented" & Total_Written'Image & " units.");
       end if;
+
+      Post_Actions.Actions.Clear;
+      Done := True;
    end Post_Process;
 begin
    App.Run;
+exception
+   when Program_Error =>
+      if not Done then
+         --  TODO: Fix finalization errors occurring during
+         --  Libadalang.Helpers.Run.Finalize. In the meantime, do not crash.
+         raise;
+      end if;
 end AGC;

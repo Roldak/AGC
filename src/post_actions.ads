@@ -73,6 +73,8 @@ package Post_Actions is
         (Ctx   : Analysis_Context;
          Units : in out Libadalang.Helpers.Unit_Vectors.Vector);
 
+      procedure Clear;
+
       function Length return Natural;
    private
       To_Move        : Move_Actions.Vector;

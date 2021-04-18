@@ -335,6 +335,16 @@ package body Post_Actions is
          end loop;
       end Perform_Actions;
 
+      procedure Clear is
+      begin
+         To_Move        := Move_Actions.Empty_Vector;
+         To_Generate    := Generate_External_Interface_Actions.Empty_Vector;
+         To_With        := Add_With_Clause_Actions.Empty_Vector;
+         Formals_To_Add := Add_Generic_Formal_Actions.Empty_Vector;
+         Actuals_To_Add := Add_Generic_Actual_Actions.Empty_Vector;
+         Decls_To_Add   := Add_Basic_Decl_Actions.Empty_Vector;
+      end Clear;
+
       function Length return Natural is
          use type Ada.Containers.Count_Type;
 
