@@ -16,6 +16,7 @@ package Post_Actions is
    type Generate_External_Interface_Action is record
       Unit : Analysis_Unit;
       Sloc : Langkit_Support.Slocs.Source_Location;
+      From : Analysis_Unit;
    end record;
 
    type Add_With_Clause_Action is record

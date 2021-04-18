@@ -600,7 +600,8 @@ package body Utils is
          then
             Post_Actions.Actions.Generate_External_Interface
               ((Typ.Unit,
-                Langkit_Support.Slocs.Start_Sloc (LAL.Sloc_Range (Typ))));
+                Langkit_Support.Slocs.Start_Sloc (LAL.Sloc_Range (Typ)),
+                Referenced_From));
 
             Post_Actions.Actions.Add_With_Clause
               ((Referenced_From,

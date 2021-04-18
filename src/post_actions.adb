@@ -237,7 +237,7 @@ package body Post_Actions is
                  (Name => To_Unbounded_String (Unit_Name),
                   Root => Dest,
                   Buff => <>,
-                  From => Action.Unit);
+                  From => Action.From);
             begin
                Created_Units.Append (New_Unit);
             end;

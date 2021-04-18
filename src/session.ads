@@ -74,6 +74,8 @@ private
 
       function Get_SHA1 (File : String) return String;
 
+      procedure Requires_Processing (File : String);
+
    private
 
       function SHA1_Changed

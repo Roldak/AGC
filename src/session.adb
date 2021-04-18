@@ -66,10 +66,13 @@ package body Session is
       Base_Name         : String := Utils.Base_Name (Name);
       Hypothetical_Path : Virtual_File :=
          Create (+Derived_Unit_Name).Dir.Join (+Base_Name);
+      Hypothetical_Full : String := Hypothetical_Path.Display_Full_Name;
    begin
       Unit_Info.Add_Unit_Info
-        (Hypothetical_Path.Display_Full_Name,
+        (Hypothetical_Full,
          Derived_Out_File.Dir.Join (+Base_Name));
+
+      Incremental.Requires_Processing (Hypothetical_Full);
    end Include_New_Unit;
 
    function Get_Out_File (X : String) return GNATCOLL.VFS.Virtual_File is
@@ -187,6 +190,11 @@ package body Session is
       begin
          return (if C = No_Element then "" else Element (C));
       end Get_SHA1;
+
+      procedure Requires_Processing (File : String) is
+      begin
+         To_Reprocess.Include (To_Unbounded_String (File), True);
+      end Requires_Processing;
 
       function SHA1_Changed
         (File : String; SHA1 : GNAT.SHA1.Message_Digest)
