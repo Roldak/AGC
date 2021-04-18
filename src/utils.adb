@@ -26,8 +26,18 @@ package body Utils is
       return Session.Is_File_To_Process (LAL.Get_Filename (BD.Unit));
    end Defined_In_Session;
 
+   function Cached_Node_Hash
+     (X : LAL.Ada_Node) return Ada.Containers.Hash_Type
+   is
+   begin
+      return LAL.Hash (X);
+   exception
+      when LALCO.Stale_Reference_Error =>
+         return Ada.Containers.Hash_Type (0);
+   end Cached_Node_Hash;
+
    package Node_Bool_Maps is new Ada.Containers.Hashed_Maps
-     (LAL.Ada_Node, Boolean, LAL.Hash, LAL."=", "=");
+     (LAL.Ada_Node, Boolean, Cached_Node_Hash, LAL."=", "=");
 
    package RT_Cache is new Ada.Task_Attributes
      (Node_Bool_Maps.Map, Node_Bool_Maps.Empty_Map);
@@ -114,19 +124,14 @@ package body Utils is
 
       Full_Typ := Typ.P_Base_Subtype.P_Full_View;
 
-      begin
-         Cursor := RT_Cache.Reference.Find (Full_Typ.As_Ada_Node);
-         if Cursor /= Node_Bool_Maps.No_Element then
-            return Node_Bool_Maps.Element (Cursor);
-         end if;
-         RT_Cache.Reference.Insert
-           (Full_Typ.As_Ada_Node, False, Cursor, Inserted);
-      exception
-         when Program_Error =>
-            RT_Cache.Reference.Clear;
-            RT_Cache.Reference.Insert
-              (Full_Typ.As_Ada_Node, False, Cursor, Inserted);
-      end;
+      Cursor := RT_Cache.Reference.Find (Full_Typ.As_Ada_Node);
+
+      if Cursor /= Node_Bool_Maps.No_Element then
+         return Node_Bool_Maps.Element (Cursor);
+      end if;
+
+      RT_Cache.Reference.Insert
+        (Full_Typ.As_Ada_Node, False, Cursor, Inserted);
 
       declare
          Res : Boolean := Compute;
