@@ -23,6 +23,7 @@ with Post_Actions;
 with Session;
 with Utils;
 
+with Check_Consistency;
 with Add_With_Clauses;
 with Unsugar_Expr_Functions;
 with Handle_Temporaries;
@@ -188,14 +189,20 @@ procedure AGC is
 
       Post_Action_Count : Natural := Post_Actions.Actions.Length;
    begin
-      if Post_Action_Count > 0 then
-         Put_Line ("Apply" & Post_Action_Count'Image & " Global Changes");
-      end if;
+      Put_Line ("Check consistency");
 
       Reparse_All_Units
         (First_Context,
          Jobs (Jobs'First + 1 .. Jobs'Last),
          All_Units);
+
+      if not Check_Consistency (Ctx, First_Context, All_Units) then
+         return;
+      end if;
+
+      if Post_Action_Count > 0 then
+         Put_Line ("Apply" & Post_Action_Count'Image & " Global Changes");
+      end if;
 
       Post_Actions.Actions.Perform_Actions (First_Context, All_Units);
 
