@@ -90,6 +90,12 @@ procedure AGC is
       Help   => "Do not include the original unit's hash when emitting "
                 & "an instrumented unit. This prevents incrementality.");
 
+   package Force is new GNATCOLL.Opt_Parse.Parse_Flag
+     (Parser => App.Args.Parser,
+      Short  => "-f",
+      Long   => "--force",
+      Help   => "Force (re-)instrumentation of all units");
+
    procedure Put_Line (X : String) is
    begin
       if Quiet.Get then
@@ -133,7 +139,7 @@ procedure AGC is
    is
       use type LALCO.Ada_Node_Kind_Type;
    begin
-      if not Session.Must_Reprocess (Unit) then
+      if not Force.Get and then not Session.Must_Reprocess (Unit) then
          return;
       end if;
 
@@ -210,7 +216,7 @@ procedure AGC is
 
       --  output units
       for Unit of All_Units loop
-         if Session.Must_Reprocess (Unit) then
+         if Force.Get or else Session.Must_Reprocess (Unit) then
             Output_Unit (Unit => Unit, With_SHA1 => not No_Hash.Get);
             Total_Written := Total_Written + 1;
          end if;
