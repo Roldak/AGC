@@ -121,4 +121,4 @@ jobs:
             gprbuild agc.gpr -j0 -p -XLIBRARY_TYPES=relocatable -XXMLADA_BUILD=relocatable
       - name: Build AGC runtime
         run: |
-            gprbuild lib/agc_runtime.gpr -XBUILD_MODE=prod
+            gprbuild lib/agc_runtime.gpr -XBUILD_MODE=prod -XAGC_POOL=malloc_free -XVALIDATE_ADDRESSES=no -p
