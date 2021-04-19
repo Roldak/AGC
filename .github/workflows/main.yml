@@ -118,7 +118,7 @@ jobs:
             langkit/utils/gh_wrap_errors.py ./libadalang/manage.py install $PREFIX
       - name: Build AGC instrumenter
         run: |
-            gprbuild agc.gpr -j0 -p -XLIBRARY_TYPES=relocatable
+            gprbuild agc.gpr -j0 -p -XLIBRARY_TYPES=relocatable -XXMLADA_BUILD=relocatable
       - name: Build AGC runtime
         run: |
             gprbuild lib/agc_runtime.gpr -XBUILD_MODE=prod
