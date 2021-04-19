@@ -108,18 +108,17 @@ jobs:
             python gnatcoll-bindings/gmp/setup.py install
       - name: Build Langkit
         run: |
-            langkit/manage.py build-langkit-support
+            langkit/manage.py build-langkit-support --library-types=static
             langkit/manage.py install-langkit-support $PREFIX
-            langkit/manage.py make --no-langkit-support
       - name: Build libadalang
         run: |
-            langkit/utils/gh_wrap_errors.py ./libadalang/manage.py make -Dgnu-full
+            langkit/utils/gh_wrap_errors.py ./libadalang/manage.py make -Dgnu-full --library-types=static
       - name: Install & package libadalang
         run: |
             langkit/utils/gh_wrap_errors.py ./libadalang/manage.py install $PREFIX
       - name: Build AGC instrumenter
         run: |
-            gprbuild agc.gpr -j0 -p
+            gprbuild agc.gpr -j0 -p -XLIBRARY_TYPES=static
       - name: Build AGC runtime
         run: |
             gprbuild lib/agc_runtime.gpr -XBUILD_MODE=prod
