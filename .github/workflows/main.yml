@@ -122,6 +122,9 @@ jobs:
       - name: Build AGC runtime
         run: |
             gprbuild lib/agc_runtime.gpr -XBUILD_MODE=prod -XAGC_POOL=malloc_free -XVALIDATE_ADDRESSES=no -p
+      - name: Install valgrind
+        run: |
+            sudo apt install -y valgrind
       - name: Test AGC
         run: |
             export PATH=$PWD/bin:$PATH
