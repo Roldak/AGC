@@ -1,4 +1,4 @@
-# AGC
+# AGC ![example workflow](https://github.com/roldak/agc/actions/workflows/main.yml/badge.svg) 
 
 AGC adds a garbage collector to your Ada programs.
 
