@@ -5,7 +5,7 @@ on:
   pull_request:
     branches:
       - master
-name: AGC CI
+name: Build & Test
 jobs:
   build:
     runs-on: ubuntu-latest
