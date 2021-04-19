@@ -122,3 +122,8 @@ jobs:
       - name: Build AGC runtime
         run: |
             gprbuild lib/agc_runtime.gpr -XBUILD_MODE=prod -XAGC_POOL=malloc_free -XVALIDATE_ADDRESSES=no -p
+      - name: Test AGC
+        run: |
+            export PATH=$PWD/bin:$PATH
+            export GPR_PROJECT_PATH=$PWD/lib:$GPR_PROJECT_PATH
+            python testsuite/run_testsuite.py
