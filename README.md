@@ -69,7 +69,7 @@ As you can see the AGC version that uses its own free-list based storage pool pe
 
 Run `gprbuild agc.gpr -p -j0` to produce AGC's frontend binary in the `bin/` directory.
 
-For `x86_64-linux` machines, the `release.yml` github workflow produces an `AGC` binary artifact, which you can download directly from github and place in the bin/ folder.
+For **x86_64-linux** machines, the [`Release`](https://github.com/Roldak/AGC/actions/workflows/release.yml) github workflow produces an `AGC` binary artifact, which you can download directly from github. Simply follow the link, click on the most recent run and scroll all the way down to the *Artifacts* section.
 
 **Test requirements**:
  - Python3
