@@ -5,7 +5,8 @@ AGC adds a garbage collector to your Ada programs.
 ## Usage
 
 1. In order to benefit from garbage collection, the sources of your project must be instrumented by AGC as a pre-processing
-   step before you invoke gprbuild to build your application. To do that, run:
+   step before you invoke gprbuild to build your application. Assuming AGC's `bin/` directory containing the `agc` executable
+   is included in your `$PATH`, you can run:
    ```
    agc -P <project_file.gpr> --output-dir <instr-dir> [--jobs|-j JOBS] [--optimize]
    ```
@@ -21,24 +22,26 @@ AGC adds a garbage collector to your Ada programs.
    
 2. We now have to tell gprbuild to consider this set of files as a substitute for the original sources,
    but also to tell it that we depend on a new library, AGC's runtime, which implements the actual garbage
-   collection routines that will run during your program's execution. There are two different ways to achieve that:
+   collection routines that will run during your program's execution. First, make sure AGC's `lib/` directory
+   containing the `agc_runtime.gpr` project file is included in your `$GPR_PROJECT_PATH`, and then:
    
    - The simplest way is to use gprbuild's newly added ``--src-subdirs`` and ``--implicit-with`` switches, which were
-     in fact implemented to handle instrumenting tools (such as gnatcoverage). This step might look like:
+     in fact implemented to handle instrumenting tools (such as gnatcoverage). Building your application might then look like:
      ```
-     gprbuild -P <project_file.gpr> --src-subdirs <instr-dir> --implicit-with=<path-to-AGC>/lib/agc_runtime.gpr
+     gprbuild -P <project_file.gpr> --src-subdirs <instr-dir> --implicit-with=agc_runtime.gpr
      ```
      *Note: just like AGC's ``--output-dir`` switch, ``--src-subdirs`` takes a path relative to the project's object
      directory. This implies that you can use the exact same value for both.*
    
    - Another way is to create a copy of your existing project file and replace its `Source_Dirs` value so that it points
-     to `<instr-dir>` instead. You should also add a top level `with "<path-to-AGC>/lib/agc_runtime.gpr"` clause.
+     to `<instr-dir>` instead. You should also add a top level `with "agc_runtime.gpr"` clause.
      This approach is less convenient but more flexible, as it allows you to configure a totally different build process
      when targetting AGC.
    
 3. That's it! The built binary will behave as your original program, but will benefit from garbage collection!
 
-*Warning: this is still in prototype phase. A lot of features are missing and a lot of Ada constructs are not supported yet. Check out the tests and benchmarks to have an idea of what is currently supported.*
+*Warning: this is still in prototype phase. A lot of features are missing and a lot of Ada constructs are not supported yet.
+Check out the tests and benchmarks to have an idea of what is currently supported.*
 
 ## Configuration
 
