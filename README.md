@@ -72,14 +72,16 @@ As you can see the AGC version that uses its own free-list based storage pool pe
 
 Run `gprbuild agc.gpr -p -j0` to produce AGC's frontend binary in the `bin/` directory.
 
-For **x86_64-linux** machines, the [`Release`](https://github.com/Roldak/AGC/actions/workflows/release.yml) github workflow produces an `AGC` binary artifact, which you can download directly from github. Simply follow the link, click on the most recent run and scroll all the way down to the *Artifacts* section.
-
 **Test requirements**:
  - Python3
  - AGC's frontend available in the `$PATH`
  - AGC's runtime project file available in `$GPR_PROJECT_PATH` (simply add the `lib/` directory)
  
 Run `python3 testsuite/run_testsuite.py`.
+
+**Pre-built binaries**:
+
+For **x86_64-linux** machines, the [`Release`](https://github.com/Roldak/AGC/actions/workflows/release.yml) github workflow produces an `AGC` binary artifact, which you can download directly from github. Simply follow the link, click on the most recent run and scroll all the way down to the *Artifacts* section. The archive contains a ready-to-use AGC frontend, which allows you to instrument sources of your project right away. However you will still need to clone this repository and make available the `lib/agc_runtime.gpr` dependency before you can build it.
 
 ## Internals
 
