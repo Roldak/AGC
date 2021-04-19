@@ -124,11 +124,11 @@ jobs:
         run: |
             gprbuild agc.gpr -j0 -p -XLIBRARY_TYPES=static \
                 -XXMLADA_BUILD=static -XBUILD_MODE=prod
-      - name: Install AGC instrumenter
+      - name: Tar instrumenter
         run: |
-            cp bin/agc $PREFIX
+            tar -cvf AGC.tar bin/agc
       - name: Upload release
         uses: actions/upload-artifact@v2
         with:
             name: AGC
-            path: bin/agc
+            path: AGC.tar
