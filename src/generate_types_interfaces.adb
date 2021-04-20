@@ -31,16 +31,16 @@ is
       Referenced_From     : LAL.Analysis_Unit := Unit)
       return Langkit_Support.Text.Text_Type renames Utils.Visitor_Name;
 
-   function Visitor_Overriding_Qualifier
+   function Derives_From_Instrumented_Type
      (Typ  : LAL.Base_Type_Decl'Class;
-      Warn : Boolean) return Langkit_Support.Text.Text_Type
+      Warn : Boolean) return Boolean
    is
       use Langkit_Support.Text;
    begin
       for T of Typ.P_Ancestor_Types loop
          if not T.P_Is_Private then
             if Session.Is_File_To_Process (T.Unit.Get_Filename) then
-               return "overriding ";
+               return True;
             elsif Warn then
                Put_Line
                  (LAL.Full_Sloc_Image (Typ) & "warning: deriving from non-"
@@ -49,8 +49,8 @@ is
             end if;
          end if;
       end loop;
-      return "";
-   end Visitor_Overriding_Qualifier;
+      return False;
+   end Derives_From_Instrumented_Type;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
 
@@ -400,10 +400,14 @@ is
       end Generate_Visitor_Body;
 
       procedure Generate_Dispatcher (For_Body : Boolean) is
-         Spec : Langkit_Support.Text.Text_Type :=
-            Visitor_Overriding_Qualifier
+         Qual : Langkit_Support.Text.Text_Type :=
+           (if Derives_From_Instrumented_Type
               (Decl, Warn => Is_Tagged and not For_Body)
-            & "procedure AGC_Visit (X : access " & Type_Name & ")";
+            then "overriding "
+            else "");
+
+         Spec : Langkit_Support.Text.Text_Type :=
+            Qual & "procedure AGC_Visit (X : access " & Type_Name & ")";
       begin
          if For_Body then
             Append (LALRW.Create_From_Template
@@ -518,10 +522,14 @@ is
          Visit_Name & "_Classwide";
 
       procedure Generate_Dispatcher is
+         Qual : Langkit_Support.Text.Text_Type :=
+           (if Derives_From_Instrumented_Type (Decl, Warn => True)
+            then "overriding "
+            else "");
       begin
          Append (LALRW.Create_From_Template
            (RH,
-            Visitor_Overriding_Qualifier (Decl, Warn => True)
+            Qual
             & "procedure AGC_Visit (X : access "
             & Type_Name
             & ") is abstract;",
