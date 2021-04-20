@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 with Ada.Containers.Hashed_Sets;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
@@ -31,18 +32,24 @@ is
       return Langkit_Support.Text.Text_Type renames Utils.Visitor_Name;
 
    function Visitor_Overriding_Qualifier
-     (Typ : LAL.Base_Type_Decl'Class) return Langkit_Support.Text.Text_Type
+     (Typ  : LAL.Base_Type_Decl'Class;
+      Warn : Boolean) return Langkit_Support.Text.Text_Type
    is
-      Has_Public_Base : Boolean :=
-        (for some T of Typ.P_Ancestor_Types
-            => not T.P_Is_Private
-               and then Session.Is_File_To_Process
-                          (LAL.Get_Filename (T.Unit)));
+      use Langkit_Support.Text;
    begin
-      return
-        (if Has_Public_Base
-         then "overriding "
-         else "");
+      for T of Typ.P_Ancestor_Types loop
+         if not T.P_Is_Private then
+            if Session.Is_File_To_Process (T.Unit.Get_Filename) then
+               return "overriding ";
+            elsif Warn then
+               Put_Line
+                 (LAL.Full_Sloc_Image (Typ) & "warning: deriving from non-"
+                  & "instrumented tagged type " & Utils.Get_Type_Name (T));
+               Put_Line (LAL.Full_Sloc_Image (T) & "declared here");
+            end if;
+         end if;
+      end loop;
+      return "";
    end Visitor_Overriding_Qualifier;
 
    RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
@@ -394,7 +401,8 @@ is
 
       procedure Generate_Dispatcher (For_Body : Boolean) is
          Spec : Langkit_Support.Text.Text_Type :=
-            Visitor_Overriding_Qualifier (Decl)
+            Visitor_Overriding_Qualifier
+              (Decl, Warn => Is_Tagged and not For_Body)
             & "procedure AGC_Visit (X : access " & Type_Name & ")";
       begin
          if For_Body then
@@ -513,7 +521,7 @@ is
       begin
          Append (LALRW.Create_From_Template
            (RH,
-            Visitor_Overriding_Qualifier (Decl)
+            Visitor_Overriding_Qualifier (Decl, Warn => True)
             & "procedure AGC_Visit (X : access "
             & Type_Name
             & ") is abstract;",
