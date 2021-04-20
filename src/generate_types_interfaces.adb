@@ -162,7 +162,7 @@ is
          Decl.P_Accessed_Type;
 
       Element_Type_Name : Langkit_Support.Text.Text_Type :=
-         Utils.Generate_Type_Reference (Element_Type);
+         Utils.Generate_Type_Reference (Element_Type, Decl.Unit);
 
       Is_Generalized : Langkit_Support.Text.Text_Type :=
         (if Utils.Is_Generalized_Access_Type (Decl) then "True" else "False");
