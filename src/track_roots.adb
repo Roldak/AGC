@@ -130,8 +130,23 @@ is
    procedure Pop_Objects
      (Stmts        : LALRW.Node_Rewriting_Handle;
       Leaving_Subp : Boolean;
-      Index        : Integer := -1)
+      Index        : Integer := -1;
+      Offset       : Natural := 0)
    is
+      Offset_Text : Langkit_Support.Text.Text_Type :=
+        (if Offset > 0
+         then " + " & Offset'Wide_Wide_Image
+         else "");
+
+      Stmt : LALRW.Node_Rewriting_Handle :=
+         LALRW.Create_From_Template
+           (RH,
+            "AGC.Pop_Roots ("
+            & Root_Count_Name (Leaving_Subp)
+            & Offset_Text
+            & ");",
+            (1 .. 0 => <>),
+            LALCO.Call_Stmt_Rule);
    begin
       if LALRW.Children_Count (Stmts) = 1
          and then LALRW.Kind (LALRW.Child (Stmts, 1)) in LALCO.Ada_Null_Stmt
@@ -139,20 +154,11 @@ is
          LALRW.Remove_Child (Stmts, 1);
       end if;
 
-      declare
-         Stmt : LALRW.Node_Rewriting_Handle :=
-            LALRW.Create_From_Template
-              (RH,
-               "AGC.Pop_Roots (" & Root_Count_Name (Leaving_Subp) & ");",
-               (1 .. 0 => <>),
-               LALCO.Call_Stmt_Rule);
-      begin
-         if Index = -1 then
-            LALRW.Append_Child (Stmts, Stmt);
-         else
-            LALRW.Insert_Child (Stmts, Index, Stmt);
-         end if;
-      end;
+      if Index = -1 then
+         LALRW.Append_Child (Stmts, Stmt);
+      else
+         LALRW.Insert_Child (Stmts, Index, Stmt);
+      end if;
    end Pop_Objects;
 
    procedure Handle_Allocator (Alloc : LAL.Allocator'Class)
@@ -308,15 +314,27 @@ is
          LAL.Previous_Sibling (Handled_Stmts).As_Declarative_Part;
       Subp_Level    : Boolean :=
          Handled_Stmts.Parent.Kind in LALCO.Ada_Base_Subp_Body;
+      Offset        : Natural := 0;
    begin
+      if not Decl_Part.Is_Null then
+         Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+
+         --  Compute offset
+         for Decl of Decl_Part.F_Decls loop
+            if Decl.Kind in LALCO.Ada_Object_Decl_Range then
+               Offset := Offset + 1;
+            end if;
+         end loop;
+      elsif Handled_Stmts.Parent.Kind in LALCO.Ada_Begin_Block then
+         Require_Root_Count.Include (Handled_Stmts.Parent);
+      end if;
+
+      Pop_Objects (LALRW.Handle (Handler.F_Stmts), Subp_Level, 1, Offset);
+
       if (Subp_Level or else not Parent_Block_Already_Pops (Handled_Stmts))
-         and then not Ends_With_Return_Stmt (Handler.F_Stmts)
+          and then not Ends_With_Return_Stmt (Handler.F_Stmts)
+          and then Offset > 0
       then
-         if not Decl_Part.Is_Null then
-            Require_Root_Count.Include (Decl_Part.As_Ada_Node);
-         elsif Handled_Stmts.Parent.Kind in LALCO.Ada_Begin_Block then
-            Require_Root_Count.Include (Handled_Stmts.Parent);
-         end if;
          Pop_Objects (LALRW.Handle (Handler.F_Stmts), Subp_Level);
       end if;
    end Handle_Exception_Handler;

@@ -15,6 +15,6 @@ begin
    raise Program_Error;
 exception
    when E : Program_Error =>
-      Foo (E);
       AGC.Pop_Roots (AGC_Base_Root_Count);
+      Foo (E);
 end Test;
