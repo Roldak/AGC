@@ -42,6 +42,8 @@ is
             return True;
          when LALCO.Ada_Extended_Return_Stmt =>
             return True;
+         when LALCO.Ada_Raise_Stmt =>
+            return True;
          when LALCO.Ada_Decl_Block =>
             return Ends_With_Return_Stmt
               (Last_Stmt.As_Decl_Block.F_Stmts.F_Stmts);

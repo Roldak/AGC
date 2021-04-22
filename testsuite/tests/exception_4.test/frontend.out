@@ -30,7 +30,6 @@ procedure Test is
         AGC.Push_Root (X'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
       raise Ex;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
    exception
       when Ex =>
          AGC.Pop_Roots (AGC_Base_Root_Count + 1);

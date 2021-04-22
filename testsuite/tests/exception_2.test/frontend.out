@@ -32,7 +32,6 @@ procedure Test is
       begin
          raise Error;
       end;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
    exception
       when Error =>
          AGC.Pop_Roots (AGC_Base_Root_Count);
