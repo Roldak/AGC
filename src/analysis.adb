@@ -81,8 +81,10 @@ package body Analysis is
          begin
             case Node.Kind is
                when LALCO.Ada_Allocator =>
-                  Self_Allocates := True;
-                  return LALCO.Stop;
+                  if Utils.Is_Managed (Node.As_Allocator.P_Expression_Type) then
+                     Self_Allocates := True;
+                     return LALCO.Stop;
+                  end if;
 
                when LALCO.Ada_Name =>
                   declare
