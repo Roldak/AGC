@@ -429,6 +429,9 @@ package body Utils is
                return Handle_Call (Expr.As_Name);
             end if;
 
+         when LALCO.Ada_Aggregate =>
+            return True;
+
          when LALCO.Ada_Explicit_Deref =>
             return True;
 

@@ -75,16 +75,12 @@ procedure Test is
    end Outer;
 begin
    declare
-      AGC_Temp_1  : aliased Test.Pkg.T_Access := Pkg.Create (2);
+      AGC_Temp_0  : aliased Test.Pkg.T_Access := Pkg.Create (2);
       AGC_Dummy_0 : constant AGC.Empty_Type   :=
         AGC.Push_Root
-          (AGC_Temp_1'Address, Test.Pkg.AGC_Visit_T_Access'Address);
-      AGC_Temp_0  : aliased Test.Outer.Inner.Rec := (X => AGC_Temp_1);
-      AGC_Dummy_1 : constant AGC.Empty_Type      :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.Outer.Inner.AGC_Visit_Rec'Address);
+          (AGC_Temp_0'Address, Test.Pkg.AGC_Visit_T_Access'Address);
    begin
-      Outer.Inner.Foo (AGC_Temp_0);
+      Outer.Inner.Foo ((X => AGC_Temp_0));
    end;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

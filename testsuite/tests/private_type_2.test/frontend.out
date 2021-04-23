@@ -47,9 +47,8 @@ package body Pkg is
            AGC.Push_Root
              (AGC_Temp_0'Address, Pkg.AGC_Visit_Integer_Access'Address);
       begin
-         return AGC_Ret : T := (X => AGC_Temp_0) do
-            AGC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return (X => AGC_Temp_0);
       end;
    end Create;
 
