@@ -1,0 +1,48 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+with AGC;
+
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   type Int_Access is access Integer;
+
+   for Int_Access'Storage_Pool use AGC.Storage.Get.Pool;
+   procedure AGC_Visit_Int_Access (X : System.Address) with
+      Inline;
+   package AGC_Int_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Int_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Int_Access (X : System.Address) renames
+     AGC_Int_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Int_Access (X : Int_Access) return Int_Access with
+      Inline;
+   function AGC_Register_Int_Access (X : Int_Access) return Int_Access renames
+     AGC_Int_Access_Ops_Implem.Register;
+   function Foo return Int_Access is
+   begin
+      AGC.Collect;
+      return
+        AGC_Ret : Int_Access :=
+          Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1))) do
+         null;
+      end return;
+   end Foo;
+
+   type Int_Array is array (Positive range <>) of Int_Access;
+
+   procedure AGC_Visit_Int_Array is new AGC.Visit_Unconstrained_Array_1_Type
+     (Int_Access, Positive, Int_Array, Test.AGC_Visit_Int_Access);
+   X           : aliased Int_Array (1 .. 10) := (others => Foo);
+   AGC_Dummy_0 : constant AGC.Empty_Type     :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Array'Address);
+   Y           : aliased Int_Array (1 .. 2) := (1 | 2 => Foo);
+   AGC_Dummy_1 : constant AGC.Empty_Type    :=
+     AGC.Push_Root (Y'Address, Test.AGC_Visit_Int_Array'Address);
+begin
+   Put_Line (X (3).all'Image);
+   Put_Line (Y (2).all'Image);
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

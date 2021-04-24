@@ -31,6 +31,8 @@ package Utils is
 
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean;
 
+   function Expands_To_Loop (Expr : LAL.Expr'Class) return Boolean;
+
    function Get_Body
      (Decl : LAL.Basic_Decl'Class) return LAL.Body_Node;
 

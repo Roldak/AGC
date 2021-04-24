@@ -443,6 +443,41 @@ package body Utils is
       end case;
    end Is_Named_Expr;
 
+   function Expands_To_Loop (Expr : LAL.Expr'Class) return Boolean is
+      function Designates_Multiple_Targets
+        (X : LAL.Alternatives_List) return Boolean
+      is
+      begin
+         if X.Is_Null then
+            return False;
+         elsif X.Children_Count > 1 then
+            return True;
+         elsif X.Children_Count = 0 then
+            return False;
+         else
+            return X.Child (1).Kind in
+               LALCO.Ada_Others_Designator
+               | LALCO.Ada_Bin_Op;
+         end if;
+      end Designates_Multiple_Targets;
+
+      Parent : constant LAL.Ada_Node := Expr.Parent;
+   begin
+      if Parent.Kind in
+            LALCO.Ada_Quantified_Expr
+          | LALCO.Ada_Iterated_Assoc
+      then
+         return True;
+      elsif Parent.Kind in LALCO.Ada_Aggregate_Assoc
+            and then Designates_Multiple_Targets
+              (Parent.As_Aggregate_Assoc.F_Designators)
+      then
+         return True;
+      else
+         return False;
+      end if;
+   end Expands_To_Loop;
+
    function Get_Body
      (Decl : LAL.Basic_Decl'Class) return LAL.Body_Node
    is

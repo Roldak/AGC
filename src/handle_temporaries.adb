@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
@@ -310,6 +311,12 @@ is
                   and then Utils.Is_Relevant_Type (Expr.P_Expression_Type)
                   and then not Utils.Is_Named_Expr (Expr)
                then
+                  if Utils.Expands_To_Loop (Expr) then
+                     Put_Line
+                       (LAL.Full_Sloc_Image (Expr) & "warning: expression "
+                        & "expanding to loop not yet handled.");
+                  end if;
+
                   if Expr.Parent.Kind in
                        LALCO.Ada_Paren_Expr
                        | LALCO.Ada_Object_Decl
