@@ -197,12 +197,12 @@ procedure AGC is
 
       Post_Action_Count : Natural := Post_Actions.Actions.Length;
    begin
-      Put_Line ("Check consistency");
-
       Reparse_All_Units
         (First_Context,
          Jobs (Jobs'First + 1 .. Jobs'Last),
          All_Units);
+
+      Put_Line ("Check consistency");
 
       if not Check_Consistency (Ctx, First_Context, All_Units) then
          return;
