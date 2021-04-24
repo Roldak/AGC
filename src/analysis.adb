@@ -103,7 +103,7 @@ package body Analysis is
             end case;
             return LALCO.Into;
          exception
-            when LALCO.Property_Error =>
+            when LALCO.Property_Error | LALCO.Precondition_Failure =>
                Trace
                  (Analysis_Trace,
                   "Abandonning analysis of " & LAL.Image (Target));
