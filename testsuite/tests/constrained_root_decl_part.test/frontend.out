@@ -3,6 +3,8 @@ with AGC.Standard;
 with AGC.Storage.Get;
 with System;
 with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+
 procedure Test is
    AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    type Integer_Access is access Integer;
@@ -23,23 +25,15 @@ procedure Test is
 
    procedure AGC_Visit_Int_Array is new AGC.Visit_Unconstrained_Array_1_Type
      (Integer_Access, Positive, Int_Array, Test.AGC_Visit_Integer_Access);
-   function AGC_Func_0 return Int_Array;
-   function AGC_Func_0 return Int_Array is
-      AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_0          : aliased Test.Integer_Access :=
+   X : aliased Int_Array (2 .. 10) :=
+     (others =>
         Test.AGC_Register_Integer_Access
-          (Test.Integer_Access'(new Integer'(1)));
-      AGC_Dummy_0 : constant AGC.Empty_Type :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-   begin
-      return AGC_Ret : Int_Array (2 .. 10) := (others => AGC_Temp_0) do
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-      end return;
-   end AGC_Func_0;
-   X           : aliased Int_Array       := AGC_Func_0;
+          (Test.Integer_Access'(new Integer'(1))));
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Array'Address);
 begin
+   X (3).all := 2;
+   Put_Line (X (4).all'Image);
+   null;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

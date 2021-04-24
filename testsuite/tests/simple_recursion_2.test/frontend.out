@@ -6,7 +6,6 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Test is
-   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    type Integer_Access is access Integer;
 
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
@@ -36,18 +35,8 @@ procedure Test is
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Foo;
 begin
-   declare
-      AGC_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_0     : aliased Test.Integer_Access :=
-        Test.AGC_Register_Integer_Access
-          (Test.Integer_Access'(new Integer'(0)));
-      AGC_Dummy_0 : constant AGC.Empty_Type :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-   begin
-      Foo (AGC_Temp_0);
-      AGC.Pop_Roots (AGC_Root_Count);
-   end;
+   Foo
+     (Test.AGC_Register_Integer_Access
+        (Test.Integer_Access'(new Integer'(0))));
    AGC.Collect;
-   AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

@@ -28,96 +28,15 @@ procedure Main is
    end Print_Stats;
 begin
    for I in 1 .. 80 loop
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Rabbits.Create;
-         AGC_Dummy_1    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Rabbits.Create;
-         AGC_Dummy_2    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Rabbits.Create;
-         AGC_Dummy_3    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Rabbits.Create;
-         AGC_Dummy_4    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Rabbits.Create;
-         AGC_Dummy_5    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Grass.Create;
-         AGC_Dummy_6    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Grass.Create;
-         AGC_Dummy_7    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Grass.Create;
-         AGC_Dummy_8    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural             := AGC.Root_Count;
-         AGC_Temp_0 : aliased Worlds.Entity_Access := Entities.Grass.Create;
-         AGC_Dummy_9    : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
+      W.Spawn (Entities.Rabbits.Create);
+      W.Spawn (Entities.Rabbits.Create);
+      W.Spawn (Entities.Rabbits.Create);
+      W.Spawn (Entities.Rabbits.Create);
+      W.Spawn (Entities.Rabbits.Create);
+      W.Spawn (Entities.Grass.Create);
+      W.Spawn (Entities.Grass.Create);
+      W.Spawn (Entities.Grass.Create);
+      W.Spawn (Entities.Grass.Create);
    end loop;
 
    for I in 1 .. 8 loop
@@ -126,18 +45,7 @@ begin
       begin
          Worlds.Grid.Random_Position (X, Y);
          for J in 1 .. 10 loop
-            declare
-               AGC_Root_Count : constant Natural             := AGC.Root_Count;
-               AGC_Temp_0     : aliased Worlds.Entity_Access :=
-                 Entities.Wolves.Create (X, Y);
-               AGC_Dummy_10 : constant AGC.Empty_Type :=
-                 AGC.Push_Root
-                   (AGC_Temp_0'Address,
-                    Worlds.AGC_Visit_Entity_Access'Address);
-            begin
-               W.Spawn (AGC_Temp_0);
-               AGC.Pop_Roots (AGC_Root_Count);
-            end;
+            W.Spawn (Entities.Wolves.Create (X, Y));
          end loop;
       end;
    end loop;

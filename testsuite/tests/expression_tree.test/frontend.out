@@ -346,26 +346,8 @@ procedure Test is
       Ev : Env := ('x' => 42, others => 0);
    begin
       Put_Line (To_String (Z));
-      declare
-         AGC_Root_Count : constant Natural         := AGC.Root_Count;
-         AGC_Temp_0     : aliased Test.Expr_Access := Simplify (Z);
-         AGC_Dummy_3    : constant AGC.Empty_Type  :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Test.AGC_Visit_Expr_Access'Address);
-      begin
-         Put_Line (To_String (AGC_Temp_0));
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural         := AGC.Root_Count;
-         AGC_Temp_0     : aliased Test.Expr_Access := Substitute (Z, Ev);
-         AGC_Dummy_4    : constant AGC.Empty_Type  :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Test.AGC_Visit_Expr_Access'Address);
-      begin
-         Put_Line (To_String (AGC_Temp_0));
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
+      Put_Line (To_String (Simplify (Z)));
+      Put_Line (To_String (Substitute (Z, Ev)));
       Put_Line (Evaluate (Z, Ev)'Image);
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Main;

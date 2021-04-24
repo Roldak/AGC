@@ -65,26 +65,14 @@ package body Entities.Grass is
    end Start;
 
    overriding procedure Update (G : in out Grass; W : in out World) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
-      X                   : Natural          := G.X;
-      Y                   : Natural          := G.Y;
+      X : Natural := G.X;
+      Y : Natural := G.Y;
    begin
       if Worlds.Grid.Moved (X, Y, Worlds.Grid.Random_Direction) then
          if not W.Has_Grass (X, Y) then
-            declare
-               AGC_Root_Count : constant Natural             := AGC.Root_Count;
-               AGC_Temp_0     : aliased Worlds.Entity_Access := Create (X, Y);
-               AGC_Dummy_0    : constant AGC.Empty_Type      :=
-                 AGC.Push_Root
-                   (AGC_Temp_0'Address,
-                    Worlds.AGC_Visit_Entity_Access'Address);
-            begin
-               W.Spawn (AGC_Temp_0);
-               AGC.Pop_Roots (AGC_Root_Count);
-            end;
+            W.Spawn (Create (X, Y));
          end if;
       end if;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
    end Update;
 
    function Eat (G : in out Grass) return Boolean is

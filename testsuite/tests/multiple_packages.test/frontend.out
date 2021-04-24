@@ -6,7 +6,6 @@ with Ada.Unchecked_Conversion;
 with Ada.Text_IO; use Ada.Text_IO;
 
 procedure Test is
-   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    package Pkg is
       type T is new Integer;
       type T_Access is access T;
@@ -74,13 +73,5 @@ procedure Test is
       end Inner;
    end Outer;
 begin
-   declare
-      AGC_Temp_0  : aliased Test.Pkg.T_Access := Pkg.Create (2);
-      AGC_Dummy_0 : constant AGC.Empty_Type   :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.Pkg.AGC_Visit_T_Access'Address);
-   begin
-      Outer.Inner.Foo ((X => AGC_Temp_0));
-   end;
-   AGC.Pop_Roots (AGC_Base_Root_Count);
+   Outer.Inner.Foo ((X => Pkg.Create (2)));
 end Test;

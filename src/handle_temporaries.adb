@@ -1,6 +1,7 @@
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Ada.Containers.Hashed_Maps;
+with Ada.Containers.Hashed_Sets;
 
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
@@ -31,9 +32,13 @@ is
       LAL."=",
       LALRW."=");
 
-   Decl_Blocks : Node_Maps.Map;
-   Temp_Site   : Node_Counters.Counter;
-   Decl_Site   : Node_Counters.Counter;
+   package Node_Sets is new Ada.Containers.Hashed_Sets
+     (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
+
+   Decl_Blocks  : Node_Maps.Map;
+   Temp_Site    : Node_Counters.Counter;
+   Decl_Site    : Node_Counters.Counter;
+   Dirty_Scopes : Node_Sets.Set;
 
    function Get_Or_Create_Decl_Block
      (Scope : LAL.Ada_Node) return LALRW.Node_Rewriting_Handle
@@ -274,6 +279,18 @@ is
       Node_Counters.Increase (Temp_Site, Scope.As_Ada_Node);
    end Handle_Expr;
 
+   procedure Flag_Dirty (Expr : LAL.Expr'Class) is
+      Scope : LAL.Ada_Node'Class := Find_Scope_Or_Raise (Expr);
+   begin
+      Dirty_Scopes.Include (Scope.As_Ada_Node);
+   end Flag_Dirty;
+
+   function Is_Dirty (Expr : LAL.Expr'Class) return Boolean is
+      Scope : LAL.Ada_Node'Class := Find_Scope_Or_Raise (Expr);
+   begin
+      return Dirty_Scopes.Contains (Scope.As_Ada_Node);
+   end Is_Dirty;
+
    function Process_Node
      (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
    is
@@ -292,20 +309,28 @@ is
                   Utils.Is_Actual_Expr (Expr)
                   and then Utils.Is_Relevant_Type (Expr.P_Expression_Type)
                   and then not Utils.Is_Named_Expr (Expr)
-                  and then Expr.Parent.Kind not in
-                    LALCO.Ada_Paren_Expr
-                    | LALCO.Ada_Object_Decl
-                    | LALCO.Ada_Component_Decl
-                    | LALCO.Ada_Assign_Stmt
-                    | LALCO.Ada_Return_Stmt
-                    | LALCO.Ada_Extended_Return_Stmt
-                    | LALCO.Ada_Renaming_Clause
-                    | LALCO.Ada_Case_Expr_Alternative
-                    | LALCO.Ada_Elsif_Expr_Part
-                  and then (Expr.Parent.Kind not in LALCO.Ada_If_Expr
-                            or else Expr.Parent.As_If_Expr.F_Cond_Expr = Expr)
                then
-                  Handle_Expr (Expr);
+                  if Expr.Parent.Kind in
+                       LALCO.Ada_Paren_Expr
+                       | LALCO.Ada_Object_Decl
+                       | LALCO.Ada_Component_Decl
+                       | LALCO.Ada_Assign_Stmt
+                       | LALCO.Ada_Return_Stmt
+                       | LALCO.Ada_Extended_Return_Stmt
+                       | LALCO.Ada_Renaming_Clause
+                       | LALCO.Ada_Case_Expr_Alternative
+                       | LALCO.Ada_Elsif_Expr_Part
+                     or else (Expr.Parent.Kind in LALCO.Ada_If_Expr and then
+                              Expr.Parent.As_If_Expr.F_Cond_Expr /= Expr)
+                  then
+                     Flag_Dirty (Expr);
+                  elsif (Expr.Parent.Kind in LALCO.Ada_Basic_Assoc
+                         and then not Is_Dirty (Expr))
+                  then
+                     Flag_Dirty (Expr);
+                  else
+                     Handle_Expr (Expr);
+                  end if;
                end if;
             exception
                when LALCO.Property_Error =>

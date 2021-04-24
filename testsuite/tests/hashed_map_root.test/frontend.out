@@ -75,92 +75,81 @@ procedure Test is
    begin
       declare
          AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_1     : aliased Test.Integer_Access :=
+         AGC_Temp_0     : aliased Test.Integer_Access :=
            Test.AGC_Register_Integer_Access
              (Test.Integer_Access'(new Integer'(2)));
          AGC_Dummy_1 : constant AGC.Empty_Type :=
            AGC.Push_Root
-             (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-         AGC_Temp_0 : aliased Test.Integer_Access :=
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         M.Insert
+           ((Value =>
+               Test.AGC_Register_Integer_Access
+                 (Test.Integer_Access'(new Integer'(1)))),
+            (Value => AGC_Temp_0));
+         AGC.Pop_Roots (AGC_Root_Count);
+      end;
+      declare
+         AGC_Root_Count : constant Natural            := AGC.Root_Count;
+         AGC_Temp_0     : aliased Test.Integer_Access :=
            Test.AGC_Register_Integer_Access
-             (Test.Integer_Access'(new Integer'(1)));
+             (Test.Integer_Access'(new Integer'(4)));
          AGC_Dummy_2 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       begin
-         M.Insert ((Value => AGC_Temp_0), (Value => AGC_Temp_1));
+         M.Insert
+           ((Value =>
+               Test.AGC_Register_Integer_Access
+                 (Test.Integer_Access'(new Integer'(3)))),
+            (Value => AGC_Temp_0));
          AGC.Pop_Roots (AGC_Root_Count);
       end;
       declare
          AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_1     : aliased Test.Integer_Access :=
-           Test.AGC_Register_Integer_Access
-             (Test.Integer_Access'(new Integer'(4)));
-         AGC_Dummy_3 : constant AGC.Empty_Type :=
-           AGC.Push_Root
-             (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-         AGC_Temp_0 : aliased Test.Integer_Access :=
-           Test.AGC_Register_Integer_Access
-             (Test.Integer_Access'(new Integer'(3)));
-         AGC_Dummy_4 : constant AGC.Empty_Type :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-      begin
-         M.Insert ((Value => AGC_Temp_0), (Value => AGC_Temp_1));
-         AGC.Pop_Roots (AGC_Root_Count);
-      end;
-      declare
-         AGC_Root_Count : constant Natural            := AGC.Root_Count;
-         AGC_Temp_1     : aliased Test.Integer_Access :=
+         AGC_Temp_0     : aliased Test.Integer_Access :=
            Test.AGC_Register_Integer_Access
              (Test.Integer_Access'(new Integer'(6)));
-         AGC_Dummy_5 : constant AGC.Empty_Type :=
-           AGC.Push_Root
-             (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-         AGC_Temp_0 : aliased Test.Integer_Access :=
-           Test.AGC_Register_Integer_Access
-             (Test.Integer_Access'(new Integer'(5)));
-         AGC_Dummy_6 : constant AGC.Empty_Type :=
+         AGC_Dummy_3 : constant AGC.Empty_Type :=
            AGC.Push_Root
              (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
       begin
-         M.Insert ((Value => AGC_Temp_0), (Value => AGC_Temp_1));
+         M.Insert
+           ((Value =>
+               Test.AGC_Register_Integer_Access
+                 (Test.Integer_Access'(new Integer'(5)))),
+            (Value => AGC_Temp_0));
          AGC.Pop_Roots (AGC_Root_Count);
       end;
       AGC.Collect;
       declare
-         AGC_Temp_5 : aliased Test.Integer_Access :=
+         AGC_Temp_4 : aliased Test.Integer_Access :=
            Test.AGC_Register_Integer_Access
              (Test.Integer_Access'(new Integer'(5)));
-         AGC_Dummy_7 : constant AGC.Empty_Type :=
+         AGC_Dummy_4 : constant AGC.Empty_Type :=
            AGC.Push_Root
-             (AGC_Temp_5'Address, Test.AGC_Visit_Integer_Access'Address);
-         AGC_Temp_4 : aliased Test.Pkg.Int_Maps.Cursor :=
-           M.Find ((Value => AGC_Temp_5));
-         AGC_Dummy_8 : constant AGC.Empty_Type :=
+             (AGC_Temp_4'Address, Test.AGC_Visit_Integer_Access'Address);
+         AGC_Temp_3 : aliased Test.Pkg.Int_Maps.Cursor :=
+           M.Find ((Value => AGC_Temp_4));
+         AGC_Dummy_5 : constant AGC.Empty_Type :=
            AGC.Push_Root
-             (AGC_Temp_4'Address,
+             (AGC_Temp_3'Address,
               Test.Pkg.AGC_Int_Maps_Visitors.AGC_Visit_Cursor_Private'Address);
-         AGC_Temp_3  : aliased Test.Pkg.Rec := Int_Maps.Element (AGC_Temp_4);
-         AGC_Dummy_9 : constant AGC.Empty_Type :=
-           AGC.Push_Root (AGC_Temp_3'Address, Test.Pkg.AGC_Visit_Rec'Address);
-         AGC_Temp_2 : aliased Test.Integer_Access :=
+         AGC_Temp_2  : aliased Test.Pkg.Rec := Int_Maps.Element (AGC_Temp_3);
+         AGC_Dummy_6 : constant AGC.Empty_Type :=
+           AGC.Push_Root (AGC_Temp_2'Address, Test.Pkg.AGC_Visit_Rec'Address);
+         AGC_Temp_1 : aliased Test.Integer_Access :=
            Test.AGC_Register_Integer_Access
              (Test.Integer_Access'(new Integer'(3)));
-         AGC_Dummy_10 : constant AGC.Empty_Type :=
+         AGC_Dummy_7 : constant AGC.Empty_Type :=
            AGC.Push_Root
-             (AGC_Temp_2'Address, Test.AGC_Visit_Integer_Access'Address);
-         AGC_Temp_1 : aliased Test.Pkg.Int_Maps.Cursor :=
-           M.Find ((Value => AGC_Temp_2));
-         AGC_Dummy_11 : constant AGC.Empty_Type :=
-           AGC.Push_Root
-             (AGC_Temp_1'Address,
-              Test.Pkg.AGC_Int_Maps_Visitors.AGC_Visit_Cursor_Private'Address);
-         AGC_Temp_0   : aliased Test.Pkg.Rec := Int_Maps.Element (AGC_Temp_1);
-         AGC_Dummy_12 : constant AGC.Empty_Type :=
+             (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
+         AGC_Temp_0 : aliased Test.Pkg.Rec :=
+           Int_Maps.Element (M.Find ((Value => AGC_Temp_1)));
+         AGC_Dummy_8 : constant AGC.Empty_Type :=
            AGC.Push_Root (AGC_Temp_0'Address, Test.Pkg.AGC_Visit_Rec'Address);
       begin
-         AGC_Temp_0.Value.all := AGC_Temp_3.Value.all;
+         AGC_Temp_0.Value.all := AGC_Temp_2.Value.all;
       end;
       AGC.Pop_Roots (AGC_Base_Root_Count);
    end Main;

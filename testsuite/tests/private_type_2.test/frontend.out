@@ -37,19 +37,11 @@ package body Pkg is
       Conv (X).AGC_Visit;
    end AGC_Visit_T_Classwide;
    function Create (X : Integer) return T is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
-      declare
-         AGC_Temp_0 : aliased Pkg.Integer_Access :=
+      return
+        (X =>
            Pkg.AGC_Register_Integer_Access
-             (Pkg.Integer_Access'(new Integer'(X)));
-         AGC_Dummy_0 : constant AGC.Empty_Type :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Pkg.AGC_Visit_Integer_Access'Address);
-      begin
-         AGC.Pop_Roots (AGC_Base_Root_Count);
-         return (X => AGC_Temp_0);
-      end;
+             (Pkg.Integer_Access'(new Integer'(X))));
    end Create;
 
    function Get (X : T) return Integer is

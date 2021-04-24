@@ -43,16 +43,12 @@ procedure Test is
    function AGC_Func_0 return Integer;
    function AGC_Func_0 return Integer is
       AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_1          : aliased Test.Integer_Access := Inner (2);
+      AGC_Temp_0          : aliased Test.Integer_Access := Inner (2);
       AGC_Dummy_0         : constant AGC.Empty_Type     :=
-        AGC.Push_Root
-          (AGC_Temp_1'Address, Test.AGC_Visit_Integer_Access'Address);
-      AGC_Temp_0  : aliased Test.Integer_Access := Inner (1);
-      AGC_Dummy_1 : constant AGC.Empty_Type     :=
         AGC.Push_Root
           (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
-      return AGC_Ret : Integer := Add (AGC_Temp_0, AGC_Temp_1) do
+      return AGC_Ret : Integer := Add (Inner (1), AGC_Temp_0) do
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;

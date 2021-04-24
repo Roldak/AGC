@@ -74,7 +74,6 @@ package body Entities.Wolves is
    end Start;
 
    procedure Try_Reproducing (Self, Other : in out Wolf; W : in out World) is
-      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       if Self.Age < 10 or Other.Age < 10 then
          return;
@@ -88,15 +87,7 @@ package body Entities.Wolves is
          return;
       end if;
 
-      declare
-         AGC_Temp_0  : aliased Worlds.Entity_Access := Create (Self.X, Self.Y);
-         AGC_Dummy_0 : constant AGC.Empty_Type      :=
-           AGC.Push_Root
-             (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
-      begin
-         W.Spawn (AGC_Temp_0);
-      end;
-      AGC.Pop_Roots (AGC_Base_Root_Count);
+      W.Spawn (Create (Self.X, Self.Y));
    end Try_Reproducing;
 
    procedure Try_Eat

@@ -36,42 +36,15 @@ procedure Test is
        (V'Address,
         Test.AGC_Int_Vectors_Visitors.AGC_Visit_Vector_Private'Address);
 begin
-   declare
-      AGC_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_0     : aliased Test.Integer_Access :=
-        Test.AGC_Register_Integer_Access
-          (Test.Integer_Access'(new Integer'(1)));
-      AGC_Dummy_1 : constant AGC.Empty_Type :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-   begin
-      V.Append (AGC_Temp_0);
-      AGC.Pop_Roots (AGC_Root_Count);
-   end;
-   declare
-      AGC_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_0     : aliased Test.Integer_Access :=
-        Test.AGC_Register_Integer_Access
-          (Test.Integer_Access'(new Integer'(2)));
-      AGC_Dummy_2 : constant AGC.Empty_Type :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-   begin
-      V.Append (AGC_Temp_0);
-      AGC.Pop_Roots (AGC_Root_Count);
-   end;
-   declare
-      AGC_Root_Count : constant Natural            := AGC.Root_Count;
-      AGC_Temp_0     : aliased Test.Integer_Access :=
-        Test.AGC_Register_Integer_Access
-          (Test.Integer_Access'(new Integer'(3)));
-      AGC_Dummy_3 : constant AGC.Empty_Type :=
-        AGC.Push_Root
-          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
-   begin
-      V.Append (AGC_Temp_0);
-      AGC.Pop_Roots (AGC_Root_Count);
-   end;
+   V.Append
+     (Test.AGC_Register_Integer_Access
+        (Test.Integer_Access'(new Integer'(1))));
+   V.Append
+     (Test.AGC_Register_Integer_Access
+        (Test.Integer_Access'(new Integer'(2))));
+   V.Append
+     (Test.AGC_Register_Integer_Access
+        (Test.Integer_Access'(new Integer'(3))));
    AGC.Collect;
    for X of V loop
       Put_Line (X.all'Image);
