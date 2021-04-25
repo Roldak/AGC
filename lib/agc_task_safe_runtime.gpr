@@ -1,21 +1,16 @@
-library project AGC_Runtime is
-   type AGC_Pool_Type is ("dynamic", "malloc_free", "free_list");
-
-   type Address_Validation_Type is ("no", "yes");
+library project AGC_Task_Safe_Runtime is
+   type AGC_Pool_Type is ("dynamic", "malloc_free");
 
    AGC_Pool : AGC_Pool_Type := external("AGC_POOL", "malloc_free");
 
-   Validate_Addrs : Address_Validation_Type :=
-      external ("VALIDATE_ADDRESSES", "no");
-
-   Qualifier := AGC_Pool & "-" & Validate_Addrs;
+   Qualifier := "ts-" & AGC_Pool;
 
    for Source_Dirs use
-     ("src", "src-common",
-      "src/get_" & AGC_Pool, "src/addr_valid_" & Validate_Addrs);
+     ("src-ts", "src-common",
+      "src-ts/get_" & AGC_Pool);
    for Object_Dir use "obj/" & Qualifier;
    for Library_Dir use "bin/" & Qualifier;
-   for Library_Name use "agc_runtime";
+   for Library_Name use "agc_task_safe_runtime";
 
    package Compiler is
       Mode := external("BUILD_MODE", "release");
@@ -28,4 +23,4 @@ library project AGC_Runtime is
             null;
       end case;
    end Compiler;
-end AGC_Runtime;
+end AGC_Task_Safe_Runtime;
