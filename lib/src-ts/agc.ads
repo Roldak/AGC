@@ -86,13 +86,4 @@ package AGC is
 
    procedure Print_Stats;
 
-private
-
-   procedure Register
-     (Header_Address : System.Address;
-      Object_Address : System.Address;
-      Size           : System.Storage_Elements.Storage_Count;
-      Final          : Finalizer)
-      with Inline;
-
 end AGC;

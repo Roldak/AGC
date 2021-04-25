@@ -79,6 +79,11 @@ package AGC.Vectors is
      with Inline;
    --  Resize the given vector so that it holes N elements
 
+   procedure Swap_And_Remove (Self : in out Vector; I : Positive)
+     with Inline;
+   --  Remove the element at the given index. That index will now hold
+   --  the last element of the vector.
+
    function First_Index (Self : Vector) return Iteration_Index_Type
    is (Index_Type'First)
      with Inline;

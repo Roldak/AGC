@@ -8,6 +8,12 @@ with Ada.Unchecked_Deallocation;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Vectors;
 
+with Ada.Exceptions;
+
+with Ada.Task_Attributes;
+with Ada.Task_Identification; use Ada.Task_Identification;
+with Ada.Task_Termination;
+
 with System; use System;
 with System.Address_Image;
 with System.Storage_Elements; use System.Storage_Elements;
@@ -53,50 +59,211 @@ package body AGC is
    package Alloc_Vectors is new AGC.Vectors (Alloc);
    package Address_Vectors is new AGC.Vectors (Address);
    package Root_Vectors is new AGC.Vectors (Root);
+   package Task_Vectors is new AGC.Vectors (Task_Id);
 
-   Alloc_Set : Alloc_Vectors.Vector;
-   Modif_Set : Address_Vectors.Vector;
-   Reach_Set : Root_Vectors.Vector;
+   Max_Size : constant Storage_Count := 1024 * 1024 * 2;
 
-   Current_Size : Storage_Count := 0;
-   Max_Size     : constant Storage_Count := 1024 * 1024 * 2;
+   protected type Task_State_Record is
+      procedure Init;
+      procedure Finalize;
 
-   function Root_Count return Natural is (Reach_Set.Length);
+      procedure Add_Root (R : Root);
+      procedure Pop_Roots (Count : Natural);
+      function Root_Count return Natural;
+
+      procedure Visit_Roots;
+   private
+      Reach_Set : Root_Vectors.Vector;
+   end Task_State_Record;
+
+   protected body Task_State_Record is
+      procedure Init is
+      begin
+         Reach_Set.Reserve (10);
+      end Init;
+
+      procedure Finalize is
+      begin
+         Reach_Set.Destroy;
+      end Finalize;
+
+      procedure Add_Root (R : Root) is
+      begin
+         Reach_Set.Append (R);
+      end Add_Root;
+
+      procedure Pop_Roots (Count : Natural) is
+      begin
+         Reach_Set.Set_Length (Count);
+      end Pop_Roots;
+
+      function Root_Count return Natural is
+      begin
+         return Reach_Set.Length;
+      end Root_Count;
+
+      procedure Visit_Roots is
+      begin
+         for Root of Reach_Set loop
+            As_Address_Visitor (Root.Visitor).all (Root.Addr);
+         end loop;
+      end Visit_Roots;
+   end Task_State_Record;
+
+   type Task_State_Access is access Task_State_Record;
+
+   procedure Free is new Ada.Unchecked_Deallocation
+     (Task_State_Record, Task_State_Access);
+
+   package Task_State is new Ada.Task_Attributes (Task_State_Access, null);
+
+   protected Global_State is
+      procedure Init;
+      procedure Finalize;
+
+      procedure Register_Task (X : Task_Id);
+      procedure Unregister_Task
+        (Cause : Ada.Task_Termination.Cause_Of_Termination;
+         T     : Ada.Task_Identification.Task_Id;
+         X     : Ada.Exceptions.Exception_Occurrence);
+
+      procedure Register_Alloc
+        (Header_Address : System.Address;
+         Object_Address : System.Address;
+         Size           : System.Storage_Elements.Storage_Count;
+         Final          : Finalizer);
+
+      procedure Collect;
+      procedure Print_Stats;
+   private
+      Task_Set  : Task_Vectors.Vector;
+      Alloc_Set : Alloc_Vectors.Vector;
+      New_Set   : Alloc_Vectors.Vector;
+
+      Current_Size     : Storage_Count := 0;
+      Total_Registered : Natural := 0;
+   end Global_State;
+
+   function Self_State return Task_State_Access is
+      X : Task_State_Access := Task_State.Value;
+   begin
+      if X = null then
+         X := new Task_State_Record;
+         Global_State.Register_Task (Current_Task);
+         Ada.Task_Termination.Set_Specific_Handler
+           (Current_Task, Global_State.Unregister_Task'Access);
+         Task_State.Set_Value (X);
+         X.Init;
+      end if;
+      return X;
+   end Self_State;
+
+   function Root_Count return Natural is
+     (Self_State.Root_Count);
 
    function Push_Root
      (X, Visitor : System.Address) return Empty_Type
    is
    begin
-      Reach_Set.Append ((X, Visitor));
+      Self_State.Add_Root ((X, Visitor));
       return (null record);
    end Push_Root;
 
    procedure Pop_Roots (X : Natural) is
    begin
-      Reach_Set.Set_Length (X);
+      Self_State.Pop_Roots (X);
    end Pop_Roots;
 
-   Total_Registered : Natural := 0;
-   Any_Modified     : Boolean := False;
+   protected body Global_State is
+      procedure Init is
+      begin
+         Alloc_Set.Reserve (10);
+      end Init;
 
-   procedure Register
-     (Header_Address : System.Address;
-      Object_Address : System.Address;
-      Size           : System.Storage_Elements.Storage_Count;
-      Final          : Finalizer)
-   is
-   begin
-      if Current_Size > Max_Size then
-         Collect;
-         Current_Size := 0;
-      end if;
+      procedure Finalize is
+      begin
+         Alloc_Set.Destroy;
+         New_Set.Destroy;
+         for T of Task_Set loop
+            Task_State.Value (T).Finalize;
+            Free (Task_State.Reference (T).all);
+         end loop;
+         Task_Set.Destroy;
+      end Finalize;
 
-      Current_Size := Current_Size + Size;
-      Total_Registered := Total_Registered + 1;
+      procedure Register_Task (X : Task_Id) is
+      begin
+         Task_Set.Append (X);
+      end Register_Task;
 
-      Alloc_Set.Append (Alloc'(Header_Address, Object_Address, Final));
-      As_Alloc_State_Access (Header_Address).all := Unknown;
-   end Register;
+      procedure Unregister_Task
+        (Cause : Ada.Task_Termination.Cause_Of_Termination;
+         T     : Ada.Task_Identification.Task_Id;
+         X     : Ada.Exceptions.Exception_Occurrence)
+      is
+         pragma Unreferenced (Cause, X);
+      begin
+         Task_State.Value (T).Finalize;
+         Free (Task_State.Reference (T).all);
+         for I in 1 .. Task_Set.Length loop
+            if T = Task_Set.Get (I) then
+               Task_Set.Swap_And_Remove (I);
+               exit;
+            end if;
+         end loop;
+      end Unregister_Task;
+
+      procedure Register_Alloc
+        (Header_Address : System.Address;
+         Object_Address : System.Address;
+         Size           : System.Storage_Elements.Storage_Count;
+         Final          : Finalizer)
+      is
+      begin
+         if Current_Size > Max_Size then
+            Collect;
+            Current_Size := 0;
+         end if;
+
+         Current_Size := Current_Size + Size;
+         Total_Registered := Total_Registered + 1;
+
+         Alloc_Set.Append (Alloc'(Header_Address, Object_Address, Final));
+         As_Alloc_State_Access (Header_Address).all := Unknown;
+      end Register_Alloc;
+
+      procedure Collect is
+      begin
+         for T of Task_Set loop
+            Task_State.Value (T).Visit_Roots;
+         end loop;
+
+         for Alloc of Alloc_Set loop
+            declare
+               State : Alloc_State_Access := As_Alloc_State_Access (Alloc.Header);
+            begin
+               if State.all = Reachable then
+                  State.all := Unknown;
+                  New_Set.Append (Alloc);
+               else
+                  if Alloc.Final /= null then
+                     Alloc.Final (Alloc.Object);
+                  end if;
+                  AGC.Storage.Get.AGC_Pool.Collect (Alloc.Header);
+               end if;
+            end;
+         end loop;
+
+         Alloc_Vectors.Move (Alloc_Set, New_Set);
+      end Collect;
+
+      procedure Print_Stats is
+      begin
+         Put_Line ("Still alive : " & Alloc_Set.Length'Image);
+         Put_Line ("Total registered : " & Total_Registered'Image);
+         Put_Line ("Task count : " & Task_Set.Length'Image);
+      end Print_Stats;
+   end Global_State;
 
    package body Access_Type_Operations is
       pragma Suppress (All_Checks);
@@ -125,7 +292,8 @@ package body AGC is
          Size : constant Storage_Count :=
             Acc.all'Size / Storage_Unit + Storage.Extra_Bytes;
       begin
-         Register (Header_Address, Object_Address, Size, Final);
+         Global_State.Register_Alloc
+           (Header_Address, Object_Address, Size, Final);
          return Acc;
       end Register;
 
@@ -266,47 +434,14 @@ package body AGC is
       end loop;
    end Visit_Unconstrained_Array_2_Type;
 
-   procedure Reset_Modified is
-   begin
-      for Alloc of Modif_Set loop
-         As_Alloc_State_Access (Alloc).all := Unknown;
-      end loop;
-      Modif_Set.Clear;
-      Any_Modified := False;
-   end Reset_Modified;
-
-   New_Set : Alloc_Vectors.Vector;
-
    procedure Collect is
    begin
-      for Root of Reach_Set loop
-         As_Address_Visitor (Root.Visitor).all (Root.Addr);
-      end loop;
-
-      for Alloc of Alloc_Set loop
-         declare
-            State : Alloc_State_Access := As_Alloc_State_Access (Alloc.Header);
-         begin
-            if State.all = Reachable then
-               State.all := Unknown;
-               New_Set.Append (Alloc);
-            else
-               if Alloc.Final /= null then
-                  Alloc.Final (Alloc.Object);
-               end if;
-               AGC.Storage.Get.AGC_Pool.Collect (Alloc.Header);
-            end if;
-         end;
-      end loop;
-
-      Alloc_Vectors.Move (Alloc_Set, New_Set);
+      Global_State.Collect;
    end Collect;
 
    procedure Print_Stats is
    begin
-      Put_Line ("Still alive : " & Alloc_Set.Length'Image);
-      Put_Line ("Total registered : " & Total_Registered'Image);
-      Put_Line ("Root count : " & Reach_Set.Length'Image);
+      Global_State.Print_Stats;
    end Print_Stats;
 
    package Data_Finalizers is
@@ -318,16 +453,11 @@ package body AGC is
    package body Data_Finalizers is
       overriding procedure Finalize (X : in out Finalizer) is
       begin
-         Alloc_Set.Destroy;
-         Modif_Set.Destroy;
-         Reach_Set.Destroy;
-         New_Set.Destroy;
+         Global_State.Finalize;
       end Finalize;
    end Data_Finalizers;
 
    Data_Finalizer : Data_Finalizers.Finalizer;
 begin
-   Alloc_Set.Reserve (10);
-   Modif_Set.Reserve (10);
-   Reach_Set.Reserve (10);
+   Global_State.Init;
 end AGC;

@@ -17,6 +17,23 @@ package body AGC.Storage.Malloc_Free is
       return Conv (X);
    end Address_Hash;
 
+   protected body Address_Set is
+      procedure Insert (X : System.Address) is
+      begin
+         Set.Insert (X);
+      end Insert;
+
+      procedure Delete (X : System.Address) is
+      begin
+         Set.Delete (X);
+      end Delete;
+
+      function Contains (X : System.Address) return Boolean is
+      begin
+         return Set.Contains (X);
+      end Contains;
+   end Address_Set;
+
    procedure Collect
      (Self : in out Malloc_Free_Pool; X : System.Address)
    is

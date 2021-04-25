@@ -115,6 +115,16 @@ package body AGC.Vectors is
       Self.Size := N;
    end Set_Length;
 
+   ---------------------
+   -- Swap_And_Remove --
+   ---------------------
+
+   procedure Swap_And_Remove (Self : in out Vector; I : Positive) is
+   begin
+      Self.E.all (I) := Self.E.all (Self.Size);
+      Self.Size := Self.Size - 1;
+   end Swap_And_Remove;
+
    ----------
    -- Move --
    ----------

@@ -1,0 +1,6 @@
+with "agc_task_safe_runtime";
+project Prj is
+   package Compiler is
+      for Switches ("Ada") use ("-g");
+   end Compiler;
+end Prj;
