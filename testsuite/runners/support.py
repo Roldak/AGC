@@ -7,14 +7,14 @@ import sys
 
 
 gpr_template = """
-with "agc_runtime";
+with "{}";
 project Test is
     for Main use ("{}");
 end Test;
 """
 
 @contextmanager
-def agc_build(src_file):
+def agc_build(src_file, runtime="agc_runtime"):
     with tempfile.TemporaryDirectory() as d:
         # Run AGC
         agc_out = subprocess.run(
@@ -28,7 +28,10 @@ def agc_build(src_file):
         # Create GPR project file
         gpr_path = os.path.join(d, "test.gpr")
         with open(gpr_path, "wb") as gpr:
-            gpr_content = gpr_template.format(src_file).encode()
+            gpr_content = gpr_template.format(
+                runtime,
+                src_file
+            ).encode()
             gpr.write(gpr_content)
             gpr.flush()
 
