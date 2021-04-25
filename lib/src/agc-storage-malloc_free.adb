@@ -5,15 +5,18 @@ with Ada.Unchecked_Conversion;
 with AGC.Validate_Addresses;
 
 package body AGC.Storage.Malloc_Free is
-   function Conv is new Ada.Unchecked_Conversion
-     (System.Address, Long_Integer)
-         with Inline;
-
    function Address_Hash
      (X : System.Address) return Ada.Containers.Hash_Type
    is
+      pragma Warnings
+        (Off, "types for unchecked conversion have different sizes");
+      function Conv is new Ada.Unchecked_Conversion
+        (System.Address, Ada.Containers.Hash_Type)
+            with Inline;
+      pragma Warnings
+        (On, "types for unchecked conversion have different sizes");
    begin
-      return Ada.Containers.Hash_Type (Conv (X));
+      return Conv (X);
    end Address_Hash;
 
    procedure Collect
