@@ -40,8 +40,7 @@ AGC adds a garbage collector to your Ada programs.
    
 3. That's it! The built binary will behave as your original program, but will benefit from garbage collection!
 
-*Warning: this is still in prototype phase. A lot of features are missing and a lot of Ada constructs are not supported yet.
-Check out the tests and benchmarks to have an idea of what is currently supported.*
+*Warning: this is still in prototype phase. Don't hesitate to open issues.*
 
 ## Configuration
 
