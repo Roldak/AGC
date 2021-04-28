@@ -312,9 +312,10 @@ is
                   and then not Utils.Is_Named_Expr (Expr)
                then
                   if Utils.Expands_To_Loop (Expr) then
-                     Put_Line
-                       (LAL.Full_Sloc_Image (Expr) & "warning: expression "
-                        & "expanding to loop not yet handled.");
+                     Utils.Output_Diagnostic
+                       (Expr.Parent,
+                        "expression expanding to loop not yet handled",
+                        Utils.Warning);
                   end if;
 
                   if Expr.Parent.Kind in
