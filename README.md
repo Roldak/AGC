@@ -15,8 +15,6 @@ AGC adds a garbage collector to your Ada programs.
    * AGC will try to generate optimized code when using `--optimize`, but will take more time.
    * AGC works incrementally by re-instrumenting only units which have been impacted by a change since the last run.
    
-   Run `agc --help` to find out all the available options.
-   
    *Note: if AGC is invoked on a project (through `-P`), the path given to `--output-dir` is treated as relative to the
    project's object directory, unless it is an absolute path.*
    
@@ -25,8 +23,8 @@ AGC adds a garbage collector to your Ada programs.
    collection routines that will run during your program's execution. First, make sure AGC's `lib/` directory
    containing the `agc_runtime.gpr` project file is included in your `$GPR_PROJECT_PATH`, and then:
    
-   - The simplest way is to use gprbuild's newly added ``--src-subdirs`` and ``--implicit-with`` switches, which were
-     in fact implemented to handle instrumenting tools (such as gnatcoverage). Building your application might then look like:
+   - If you have a recent gprbuild, the simplest way is to use the ``--src-subdirs`` and ``--implicit-with`` switches.
+     Building your application might then look like:
      ```
      gprbuild -P <project_file.gpr> --src-subdirs <instr-dir> --implicit-with=agc_runtime.gpr
      ```
@@ -52,7 +50,7 @@ AGC is currently shipped with two runtimes:
    - For performance reasons, pointers to stack-allocated data may cause the garbage collection to temporarily alter the content of the stack 1 bit in front of that data. This should not be problematic in a taskless application, but this behavior can nonetheless be prevented by compiling the runtime with `-XVALIDATE_ADDRESSES=yes` at the cost of a significant performance penality.
  - `agc_task_safe_runtime.gpr`:
    - Slower but task-safe runtime.
-   - Implementation is stop-the-world. This means that during collection, any task calling into the runtime will be blocked until the collection is done. The locking behavior can be configured to use either OS synchronization (with `-XLOCKING=synchronize`) or retry loops (with `-XWAIT_METHOD=retry_loop`).
+   - Implementation is stop-the-world. This means that during collection, any task calling into the runtime will be blocked until the collection is done. The locking behavior can be configured to use either OS synchronization (with `-XLOCKING=synchronize`) or retry loops (with `-XLOCKING=retry_loop`). *Warning: this runtime is still work-in-progress.*
 
 **Storage pools:**
 
