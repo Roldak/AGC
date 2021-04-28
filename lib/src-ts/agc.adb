@@ -20,17 +20,14 @@ with System.Storage_Elements; use System.Storage_Elements;
 
 with AGC.Storage.Get;
 with AGC.Vectors;
+with AGC.Roots; use AGC.Roots;
+with AGC.Task_States; use AGC.Task_States;
 
 package body AGC is
    type Address_Access is access all Address;
-   type Address_Visitor is access procedure (X : Address);
 
    function As_Address_Access is new Ada.Unchecked_Conversion
      (Address, Address_Access)
-         with Inline;
-
-   function As_Address_Visitor is new Ada.Unchecked_Conversion
-     (Address, Address_Visitor)
          with Inline;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -51,64 +48,11 @@ package body AGC is
       Final  : Finalizer;
    end record;
 
-   type Root is record
-      Addr    : Address;
-      Visitor : Address;
-   end record;
-
    package Alloc_Vectors is new AGC.Vectors (Alloc);
    package Address_Vectors is new AGC.Vectors (Address);
-   package Root_Vectors is new AGC.Vectors (Root);
    package Task_Vectors is new AGC.Vectors (Task_Id);
 
    Max_Size : constant Storage_Count := 1024 * 1024 * 2;
-
-   protected type Task_State_Record is
-      procedure Init;
-      procedure Finalize;
-
-      procedure Add_Root (R : Root);
-      procedure Pop_Roots (Count : Natural);
-      function Root_Count return Natural;
-
-      procedure Visit_Roots;
-   private
-      Reach_Set : Root_Vectors.Vector;
-   end Task_State_Record;
-
-   protected body Task_State_Record is
-      procedure Init is
-      begin
-         Reach_Set.Reserve (10);
-      end Init;
-
-      procedure Finalize is
-      begin
-         Reach_Set.Destroy;
-      end Finalize;
-
-      procedure Add_Root (R : Root) is
-      begin
-         Reach_Set.Append (R);
-      end Add_Root;
-
-      procedure Pop_Roots (Count : Natural) is
-      begin
-         Reach_Set.Set_Length (Count);
-      end Pop_Roots;
-
-      function Root_Count return Natural is
-      begin
-         return Reach_Set.Length;
-      end Root_Count;
-
-      procedure Visit_Roots is
-      begin
-         for Root of Reach_Set loop
-            As_Address_Visitor (Root.Visitor).all (Root.Addr);
-         end loop;
-      end Visit_Roots;
-   end Task_State_Record;
 
    type Task_State_Access is access Task_State_Record;
 
