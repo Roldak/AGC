@@ -4,8 +4,10 @@ with Ada.Containers.Vectors;
 with Ada.Task_Attributes;
 
 with GNATCOLL.VFS;
+with GNATCOLL.Terminal;
 
 with Langkit_Support.Slocs;
+with Langkit_Support.Diagnostics.Output;
 
 with Libadalang.Analysis;
 with Libadalang.Common;
@@ -746,5 +748,31 @@ package body Utils is
    begin
       return +Create (+Full_Path).Base_Name;
    end Base_Name;
+
+   procedure Output_Diagnostic
+     (Node : LAL.Ada_Node'Class;
+      Message : Langkit_Support.Text.Text_Type;
+      Kind : Diagnostic_Kind)
+   is
+      use Langkit_Support.Diagnostics;
+      use Langkit_Support.Diagnostics.Output;
+      use Langkit_Support.Text;
+      use GNATCOLL.Terminal;
+
+      Diag : constant Diagnostic := Create
+        (Sloc_Range => Node.Sloc_Range,
+         Message    => Message);
+
+      Diag_Styles : constant array (Diagnostic_Kind) of Diagnostic_Style :=
+        (Error   => (To_Unbounded_Text ("error"), Red),
+         Warning => (To_Unbounded_Text ("warning"), Yellow),
+         Note    => (To_Unbounded_Text ("note"), Unchanged));
+   begin
+      Print_Diagnostic
+        (Diag,
+         Node.Unit,
+         Base_Name (Node.Unit.Get_Filename),
+         Diag_Styles (Kind));
+   end Output_Diagnostic;
 
 end Utils;

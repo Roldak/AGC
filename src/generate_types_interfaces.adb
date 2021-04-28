@@ -42,10 +42,13 @@ is
             if Session.Is_File_To_Process (T.Unit.Get_Filename) then
                return True;
             elsif Warn then
-               Put_Line
-                 (LAL.Full_Sloc_Image (Typ) & "warning: deriving from non-"
-                  & "instrumented tagged type " & Utils.Get_Type_Name (T));
-               Put_Line (LAL.Full_Sloc_Image (T) & "declared here");
+               Utils.Output_Diagnostic
+                 (Typ.P_Defining_Name,
+                  "deriving from non-instrumented tagged type `"
+                  & Utils.Get_Type_Name (T) & "`",
+                  Utils.Warning);
+               Utils.Output_Diagnostic
+                 (T, "declared here", Utils.Note);
             end if;
          end if;
       end loop;

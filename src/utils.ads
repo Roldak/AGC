@@ -80,6 +80,13 @@ package Utils is
 
    function Base_Name (Full_Path : String) return String;
 
+   type Diagnostic_Kind is (Error, Warning, Note);
+
+   procedure Output_Diagnostic
+     (Node : LAL.Ada_Node'Class;
+      Message : Langkit_Support.Text.Text_Type;
+      Kind : Diagnostic_Kind);
+
    Storage_Pool_Symbol : Langkit_Support.Text.Unbounded_Text_Type :=
       Langkit_Support.Text.To_Unbounded_Text ("Storage_Pool");
 end Utils;
