@@ -17,36 +17,47 @@ package body AGC.Storage.Malloc_Free is
       return Conv (X);
    end Address_Hash;
 
-   protected body Address_Set is
-      procedure Insert (X : System.Address) is
-      begin
-         Set.Insert (X);
-      end Insert;
+   procedure Lock (Self : in out Malloc_Free_Pool) is
+   begin
+      loop
+         exit when Self.In_Use.Compare_And_Swap (False, True);
+      end loop;
+   end Lock;
 
-      procedure Delete (X : System.Address) is
-      begin
-         Set.Delete (X);
-      end Delete;
-
-      function Contains (X : System.Address) return Boolean is
-      begin
-         return Set.Contains (X);
-      end Contains;
-   end Address_Set;
+   procedure Unlock (Self : in out Malloc_Free_Pool) is
+   begin
+      Self.In_Use.Set (False);
+   end Unlock;
 
    procedure Collect
      (Self : in out Malloc_Free_Pool; X : System.Address)
    is
    begin
       Free (X);
-      Self.Allocated.Delete (X);
+      begin
+         Lock (Self);
+         Self.Allocated.Delete (X);
+         Unlock (Self);
+      exception
+         when others =>
+            Unlock (Self);
+            raise;
+      end;
    end Collect;
 
    function Is_Valid_Address
      (Self : in out Malloc_Free_Pool; X : System.Address) return Boolean
    is
+      Result : Boolean;
    begin
-      return Self.Allocated.Contains (X);
+      Lock (Self);
+      Result := Self.Allocated.Contains (X);
+      Unlock (Self);
+      return Result;
+   exception
+      when others =>
+         Unlock (Self);
+         raise;
    end Is_Valid_Address;
 
    procedure Allocate
@@ -59,7 +70,15 @@ package body AGC.Storage.Malloc_Free is
       Allocated   : constant System.Address := Alloc (size_t (Actual_Size));
 	begin
       Addr := Allocated + Extra_Bytes;
-      Self.Allocated.Insert (Allocated);
+      begin
+         Lock (Self);
+         Self.Allocated.Insert (Allocated);
+         Unlock (Self);
+      exception
+         when others =>
+            Unlock (Self);
+            raise;
+      end;
    end Allocate;
 
    procedure Deallocate

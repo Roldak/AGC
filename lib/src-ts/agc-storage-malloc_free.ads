@@ -2,7 +2,8 @@ with System;
 with System.Storage_Pools; use System.Storage_Pools;
 
 with Ada.Containers.Hashed_Sets;
-with GNAT.Semaphores; use GNAT.Semaphores;
+
+with AGC.Atomic; use AGC.Atomic;
 
 package AGC.Storage.Malloc_Free is
    type Malloc_Free_Pool is new AGC_Pool with private;
@@ -22,16 +23,9 @@ private
    package Address_Sets is new Ada.Containers.Hashed_Sets
      (System.Address, Address_Hash, System."=", System."=");
 
-   protected type Address_Set is
-      procedure Insert (X : System.Address);
-      procedure Delete (X : System.Address);
-      function Contains (X : System.Address) return Boolean;
-   private
-      Set : Address_Sets.Set;
-   end Address_Set;
-
    type Malloc_Free_Pool is new AGC_Pool with record
-      Allocated : Address_Set;
+      In_Use    : aliased Atomic_Boolean;
+      Allocated : Address_Sets.Set;
    end record;
 
    overriding procedure Allocate
