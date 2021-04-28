@@ -15,17 +15,13 @@ with System.Storage_Elements; use System.Storage_Elements;
 with AGC.Storage.Get;
 with AGC.Validate_Addresses;
 with AGC.Vectors;
+with AGC.Roots; use AGC.Roots;
 
 package body AGC is
    type Address_Access is access all Address;
-   type Address_Visitor is access procedure (X : Address);
 
    function As_Address_Access is new Ada.Unchecked_Conversion
      (Address, Address_Access)
-         with Inline;
-
-   function As_Address_Visitor is new Ada.Unchecked_Conversion
-     (Address, Address_Visitor)
          with Inline;
 
    procedure Free is new Ada.Unchecked_Deallocation
@@ -46,14 +42,8 @@ package body AGC is
       Final  : Finalizer;
    end record;
 
-   type Root is record
-      Addr    : Address;
-      Visitor : Address;
-   end record;
-
    package Alloc_Vectors is new AGC.Vectors (Alloc);
    package Address_Vectors is new AGC.Vectors (Address);
-   package Root_Vectors is new AGC.Vectors (Root);
 
    Alloc_Set : Alloc_Vectors.Vector;
    Modif_Set : Address_Vectors.Vector;
