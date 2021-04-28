@@ -44,9 +44,23 @@ AGC adds a garbage collector to your Ada programs.
 
 ## Configuration
 
-It is possible to configure the runtime behavior of AGC by choosing which storage pool it will use internally. This can be done either at compile-time by passing the scenario variable `-XAGC_POOL=<POOL>`, or dynamically by first compiling with `-XAGC_POOL=dynamic` and then running your final executable with the environment variable `AGC_POOL` set to the desired pool identifier. Possible values for `AGC_POOL` are:
+**Runtimes:**
+
+AGC is currently shipped with two runtimes:
+ - `agc_runtime.gpr`:
+   - Fast but non task-safe runtime.
+   - For performance reasons, pointers to stack-allocated data may cause the garbage collection to temporarily alter the content of the stack 1 bit in front of that data. This should not be problematic in a taskless application, but this behavior can nonetheless be prevented by compiling the runtime with `-XVALIDATE_ADDRESSES=yes` at the cost of a significant performance penality.
+ - `agc_task_safe_runtime.gpr`:
+   - Slower but task-safe runtime.
+   - Implementation is stop-the-world. This means that during collection, any task calling into the runtime will be blocked until the collection is done. The locking behavior can be configured to use either OS synchronization (with `-XLOCKING=synchronize`) or retry loops (with `-XWAIT_METHOD=retry_loop`).
+
+**Storage pools:**
+
+It is also possible to configure the runtime behavior of AGC by choosing which storage pool it will use internally. This can be done either at compile-time by passing the scenario variable `-XAGC_POOL=<POOL>`, or dynamically by first compiling with `-XAGC_POOL=dynamic` and then running your final executable with the environment variable `AGC_POOL` set to the desired pool identifier. Possible values for `AGC_POOL` are:
 * `malloc_free`: The storage pool is managed by the system using malloc/free.
 * `free_list`: The storage pool is managed by AGC which allocates a big chunk of memory and manages all allocations using a free-list based mechanism.
+
+*Note: only the `malloc_free` pool is currently available for the task-safe runtime.*
 
 ## Performance
 
@@ -57,8 +71,8 @@ To have an idea of the performance, single-run results for the `binary_tree` ben
 * **Raw** (no deallocation):                           `0,18s user 0,09s system 98% cpu 0,269 total`
 * **Manual** (user-managed):                           `0,22s user 0,00s system 99% cpu 0,227 total`
 * **Controlled** (ref-counted using controlled types): `1,04s user 0,00s system 99% cpu 1,044 total`
-* **AGC** with `AGC_POOL=MALLOC_FREE`:                 `0,21s user 0,01s system 94% cpu 0,235 total`
-* **AGC** with `AGC_POOL=FREE_LIST`:                   `0,15s user 0,00s system 99% cpu 0,158 total`
+* **AGC** with `AGC_POOL=malloc_free`:                 `0,21s user 0,01s system 94% cpu 0,235 total`
+* **AGC** with `AGC_POOL=free_list`:                   `0,15s user 0,00s system 99% cpu 0,158 total`
 
 As you can see the AGC version that uses its own free-list based storage pool performs approximately 30% better than the version with manually managed memory, while the malloc/free-based storage pool yields roughly equivalent results. In both cases, performance is much better (more than 6x faster) than a controlled-types based implementation, without having to write any memory-management code.
 
