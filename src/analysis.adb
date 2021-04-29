@@ -52,7 +52,6 @@ package body Analysis is
          begin
             if Called_Decl.Is_Null then
                Self_Allocates := True;
-               return LALCO.Stop;
             elsif Called_Body.Is_Null then
                --  An instantiation with a null body is probably an
                --  instantiation of Unchecked_Deallocation,
@@ -64,7 +63,6 @@ package body Analysis is
                   return LALCO.Into;
                else
                   Self_Allocates := True;
-                  return LALCO.Stop;
                end if;
             else
                Calls.Include
@@ -83,7 +81,6 @@ package body Analysis is
                when LALCO.Ada_Allocator =>
                   if Utils.Is_Managed (Node.As_Allocator.P_Expression_Type) then
                      Self_Allocates := True;
-                     return LALCO.Stop;
                   end if;
 
                when LALCO.Ada_Name =>
@@ -91,11 +88,9 @@ package body Analysis is
                      Called_Spec : LAL.Base_Formal_Param_Holder'Class :=
                         Node.As_Name.P_Called_Subp_Spec;
                   begin
-                     if Called_Spec.Is_Null then
-                        return LALCO.Into;
+                     if not Called_Spec.Is_Null then
+                        return Handle_Call (Called_Spec);
                      end if;
-
-                     return Handle_Call (Called_Spec);
                   end;
 
                when others =>
@@ -108,7 +103,7 @@ package body Analysis is
                  (Analysis_Trace,
                   "Abandonning analysis of " & LAL.Image (Target));
                Self_Allocates := True;
-               return LALCO.Stop;
+               return LALCO.Over;
          end Process_Node;
       begin
          Self_Allocates := False;
