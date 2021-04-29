@@ -30,6 +30,10 @@ package Analysis is
       Subp_Name : Unbounded_Text_Type;
       Summary   : out Summary_Access) is abstract;
 
+   procedure Dump_Existing_Call_Graph
+     (Self : in out Summaries_Holder;
+      Path : String) is abstract;
+
    type Subp_Info is record
       Subp : Libadalang.Analysis.Body_Node;
       Id   : Unbounded_Text_Type;
@@ -112,6 +116,8 @@ private
       overriding procedure Get_Existing_Summary
         (Subp_Name : Unbounded_Text_Type;
          Summary   : out Summary_Access);
+
+      overriding procedure Dump_Existing_Call_Graph (Path : String);
    private
       Map : Local_Summaries.Map;
    end Summaries_Map;

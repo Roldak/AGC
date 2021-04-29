@@ -5,6 +5,7 @@ with Langkit_Support.Hashes;
 
 with Libadalang.Common;
 
+with Dot_Printer;
 with Utils;
 
 package body Analysis is
@@ -202,6 +203,77 @@ package body Analysis is
          end if;
          Summary := Local_Summaries.Element (Cursor);
       end Get_Existing_Summary;
+
+      procedure Dump_Existing_Call_Graph (Path : String) is
+         use Langkit_Support.Text;
+
+         Printer : Dot_Printer.Printer;
+
+         function Split
+           (FQN  : Unbounded_Text_Type;
+            Name : out Unbounded_Text_Type)
+            return Dot_Printer.Cluster_Path_Type
+         is
+            use Ada.Strings.Wide_Wide_Unbounded;
+            use type Dot_Printer.Cluster_Path_Type;
+
+            Dot_Index   : constant Natural := Index (FQN, ".");
+            Blank_Index : constant Natural := Index (FQN, " ");
+         begin
+            if Dot_Index = 0 or Blank_Index = 0 or Dot_Index > Blank_Index then
+               Name := FQN;
+               return Dot_Printer.Empty_Path;
+            else
+               declare
+                  Head : constant Unbounded_Text_Type :=
+                     Unbounded_Slice (FQN, 1, Dot_Index - 1);
+
+                  Tail : constant Unbounded_Text_Type :=
+                     Unbounded_Slice (FQN, Dot_Index + 1, Length (FQN));
+               begin
+                  return (1 => Head) & Split (Tail, Name);
+               end;
+            end if;
+         end Split;
+
+         procedure Process_Summary (C : Local_Summaries.Cursor) is
+            FQN     : constant Unbounded_Text_Type := Local_Summaries.Key (C);
+            Summary : constant Summary_Access := Local_Summaries.Element (C);
+            Id      : constant Ada.Containers.Hash_Type := Hash (FQN);
+
+            Name         : Unbounded_Text_Type;
+            Cluster_Path : constant Dot_Printer.Cluster_Path_Type :=
+               Split (FQN, Name);
+
+            Color : Unbounded_Text_Type;
+
+            Self_Allocates : Boolean;
+            Call_Allocates : Boolean;
+            Calls          : Subp_Sets.Set;
+         begin
+            Summary.Get (Self_Allocates, Calls);
+            Summary.Get_Global_Allocates_Blocking (Call_Allocates);
+
+            if Self_Allocates then
+               Color := To_Unbounded_Text ("red");
+            elsif Call_Allocates then
+               Color := To_Unbounded_Text ("blue");
+            end if;
+
+            Printer.Add_Node
+              (Id      => Id,
+               Name    => Name,
+               Cluster => Cluster_Path,
+               Color   => Color);
+
+            for C of Calls loop
+               Printer.Add_Edge (Id, Hash (C.Id));
+            end loop;
+         end Process_Summary;
+      begin
+         Map.Iterate (Process_Summary'Access);
+         Printer.Save (Path);
+      end Dump_Existing_Call_Graph;
    end Summaries_Map;
 
    function Does_Allocate

@@ -96,6 +96,17 @@ procedure AGC is
       Long   => "--force",
       Help   => "Force (re-)instrumentation of all units");
 
+   package Dump_Call_Graph is new GNATCOLL.Opt_Parse.Parse_Option
+     (Parser      => App.Args.Parser,
+      Long        => "--dump-call-graph",
+      Arg_Type    => XString,
+      Convert     => GNATCOLL.Opt_Parse.Convert,
+      Default_Val => Null_XString,
+      Help        =>
+         "Dump the computed call-graph in a dot file to the given path. "
+       & "This should be used with --optimize otherwise the computed "
+       & "call-graph will probably be empty.");
+
    procedure Put_Line (X : String) is
    begin
       if Quiet.Get then
@@ -186,6 +197,7 @@ procedure AGC is
      (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
    is
       use type Helpers.Job_ID;
+      use type Analysis.Summaries_Access;
 
       First_Context : LAL.Analysis_Context :=
          Jobs (Jobs'First).Analysis_Ctx;
@@ -224,6 +236,16 @@ procedure AGC is
          end if;
       end loop;
 
+      --  dump call graph
+      if Dump_Call_Graph.Get /= "" then
+         if Analysis.Summaries /= null then
+            Put_Line ("Dump computed call-graph");
+            Analysis.Summaries.Dump_Existing_Call_Graph
+              (GNATCOLL.Strings.To_String (Dump_Call_Graph.Get));
+         end if;
+      end if;
+
+      --  terminate
       if Total_Written = 0 then
          Put_Line ("Done: everything up-to-date.");
       else
