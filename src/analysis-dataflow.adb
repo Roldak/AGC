@@ -1,0 +1,263 @@
+with Ada.Containers.Vectors;
+with Ada.Text_IO;
+with Ada.Strings.Unbounded;
+
+with Libadalang.Common;
+
+package body Analysis.Dataflow is
+   package LALCO renames Libadalang.Common;
+
+   package body Lattice is
+      function "=" (X, Y : T) return Boolean is
+        (X <= Y and then Y <= X);
+
+      function "<" (X, Y : T) return Boolean is
+        ((X <= Y) and then not (Y <= X));
+   end Lattice;
+
+   package body Finite_Sets is
+      function Image (X : Sets.Set) return String is
+         use Ada.Strings.Unbounded;
+         use type Ada.Containers.Count_Type;
+
+         R : Unbounded_String;
+         P : Character := '{';
+      begin
+         if X.Length = 0 then
+            return "{}";
+         end if;
+
+         for E of X loop
+            Append (R, P);
+            Append (R, Element_Image (E));
+            P := ',';
+         end loop;
+
+         Append (R, "}");
+         return To_String (R);
+      end Image;
+   end Finite_Sets;
+
+   package body Problem is
+      package Node_Sets is new Ada.Containers.Hashed_Sets
+        (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
+
+      type Node_Handler_Type is access procedure (X : LAL.Ada_Node'Class);
+
+      procedure Next
+        (PC      : in out LAL.Ada_Node;
+         Include : Node_Handler_Type)
+      is
+         Orig : LAL.Ada_Node := PC;
+      begin
+         case PC.Kind is
+            when LALCO.Ada_Declarative_Part =>
+               PC := PC.As_Declarative_Part.F_Decls.As_Ada_Node;
+
+            when LALCO.Ada_Handled_Stmts =>
+               PC := PC.As_Handled_Stmts.F_Stmts.As_Ada_Node;
+
+            when LALCO.Ada_Ada_List =>
+               PC := PC.Child (1);
+
+            when LALCO.Ada_Return_Stmt =>
+               PC := LAL.No_Ada_Node;
+               return;
+
+            when LALCO.Ada_Raise_Stmt =>
+               PC := LAL.No_Ada_Node;
+               return;
+
+            when LALCO.Ada_Goto_Stmt =>
+               PC :=
+                  PC.As_Goto_Stmt.F_Label_Name.P_Referenced_Decl.As_Ada_Node;
+
+            when LALCO.Ada_If_Stmt =>
+               for Alt of PC.As_If_Stmt.F_Alternatives loop
+                  Include (Alt);
+               end loop;
+               Include (PC.As_If_Stmt.F_Else_Stmts);
+               PC := PC.As_If_Stmt.F_Then_Stmts.As_Ada_Node;
+            when LALCO.Ada_Elsif_Stmt_Part =>
+               PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
+
+            when LALCO.Ada_Case_Stmt =>
+               PC := PC.As_Case_Stmt.F_Alternatives.Child (1);
+               for I in 2 .. PC.As_Case_Stmt.F_Alternatives.Children_Count loop
+                  Include (PC.As_Case_Stmt.F_Alternatives.Child (I));
+               end loop;
+            when LALCO.Ada_Case_Stmt_Alternative =>
+               PC := PC.As_Case_Stmt_Alternative.F_Stmts.As_Ada_Node;
+
+            when LALCO.Ada_Loop_Stmt =>
+               PC := PC.As_Loop_Stmt.F_Stmts.As_Ada_Node;
+            when LALCO.Ada_For_Loop_Stmt | LALCO.Ada_While_Loop_Stmt =>
+               Include (PC.As_Base_Loop_Stmt.F_Stmts);
+               PC := PC.Next_Sibling;
+
+            when LALCO.Ada_Named_Stmt =>
+               PC := PC.As_Named_Stmt.F_Stmt.As_Ada_Node;
+
+            when LALCO.Ada_Decl_Block =>
+               PC := PC.As_Decl_Block.F_Decls.As_Ada_Node;
+            when LALCO.Ada_Begin_Block =>
+               PC := PC.As_Begin_Block.F_Stmts.As_Ada_Node;
+
+            when others =>
+               PC := PC.Next_Sibling;
+         end case;
+
+         if PC.Is_Null then
+            if Orig.Kind in LALCO.Ada_Stmt then
+               if Orig.Parent.Parent.Kind in
+                     LALCO.Ada_If_Stmt
+                   | LALCO.Ada_Case_Stmt
+               then
+                  Orig := Orig.Parent;
+               elsif Orig.Parent.Parent.Kind in LALCO.Ada_Elsif_Stmt_Part then
+                  Orig := Orig.Parent.Parent;
+               elsif Orig.Parent.Parent.Kind in LALCO.Ada_Base_Loop_Stmt then
+                  PC := Orig.Parent.Parent;
+               end if;
+            end if;
+         end if;
+
+         while PC.Is_Null loop
+            Orig := Orig.Parent;
+
+            if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+               return;
+            end if;
+
+            PC := Orig.Next_Sibling;
+         end loop;
+      end Next;
+
+      function Transfer
+        (PC        : LAL.Ada_Node;
+         Old_State : States.T)
+         return States.T
+      is
+         New_State : States.T := Old_State;
+      begin
+         case PC.Kind is
+            when LALCO.Ada_Object_Decl =>
+               for D of PC.As_Object_Decl.F_Ids loop
+                  Visit_Assign
+                    (State => New_State,
+                     Dest  => D.As_Name,
+                     Val   => PC.As_Object_Decl.F_Default_Expr);
+               end loop;
+            when LALCO.Ada_Assign_Stmt =>
+               Visit_Assign
+                 (State => New_State,
+                  Dest  => PC.As_Assign_Stmt.F_Dest,
+                  Val   => PC.As_Assign_Stmt.F_Expr);
+            when LALCO.Ada_Call_Stmt =>
+               Visit_Ignore
+                 (State => New_State,
+                  Expr  => PC.As_Call_Stmt.F_Call.As_Expr);
+            when LALCO.Ada_Return_Stmt =>
+               Visit_Return
+                 (State => New_State,
+                  Expr  => PC.As_Return_Stmt.F_Return_Expr);
+            when LALCO.Ada_Expr_Function =>
+               Visit_Return
+                 (State => New_State,
+                  Expr  => PC.As_Expr_Function.F_Expr);
+            when others =>
+               null;
+         end case;
+         return New_State;
+      end Transfer;
+
+      function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution is
+         R  : Solution;
+
+         function Node_State
+           (Node     : LAL.Ada_Node;
+            Inserted : in out Boolean) return State_Maps.Cursor
+         is
+            use State_Maps;
+
+            C : Cursor := R.States.Find (Node);
+         begin
+            Inserted := False;
+            if C = No_Element then
+               R.States.Insert (Node, C, Inserted);
+            end if;
+            return C;
+         end Node_State;
+
+         W  : Node_Sets.Set;
+         PC : LAL.Ada_Node;
+      begin
+         case Subp.Kind is
+            when LALCO.Ada_Subp_Body =>
+               PC := Subp.As_Subp_Body.F_Decls.As_Ada_Node;
+            when LALCO.Ada_Expr_Function =>
+               R.States.Insert
+                 (Subp.As_Ada_Node,
+                  Transfer (Subp.As_Ada_Node, Entry_State));
+               return R;
+            when LALCO.Ada_Null_Subp_Decl =>
+               return R;
+            when others =>
+               raise Program_Error with "Unexpected subprogram kind.";
+         end case;
+
+         W.Include (PC);
+         R.States.Insert (PC, Entry_State);
+         while not W.Is_Empty loop
+            PC := Node_Sets.Element (W.First);
+            loop
+               W.Exclude (PC);
+               declare
+                  Dummy     : Boolean;
+                  PC_State  : State_Maps.Cursor := Node_State (PC, Dummy);
+                  New_State : States.T :=
+                     Transfer (PC, State_Maps.Element (PC_State));
+
+                  function Update (X : LAL.Ada_Node) return Boolean is
+                     use States;
+
+                     Inserted : Boolean;
+                     X_State  : State_Maps.Cursor := Node_State (X, Inserted);
+
+                     Meet_State : States.T :=
+                       (if Inserted
+                        then New_State
+                        else State_Maps.Element (X_State) and New_State);
+                  begin
+                     if Inserted or else
+                        Meet_State /= State_Maps.Element (X_State)
+                     then
+                        R.States.Replace_Element (X_State, Meet_State);
+                        return True;
+                     end if;
+                     return False;
+                  end Update;
+
+                  procedure Include (X : LAL.Ada_Node'Class) is
+                  begin
+                     if Update (X.As_Ada_Node) then
+                        W.Include (X.As_Ada_Node);
+                     end if;
+                  end Include;
+               begin
+                  Next (PC, Include'Unrestricted_Access);
+                  exit when PC.Is_Null or else not Update (PC);
+               end;
+            end loop;
+         end loop;
+         return R;
+      end Fixpoint;
+
+      function Query
+        (S : Solution; Node : LAL.Ada_Node) return States.T
+      is
+      begin
+         return S.States.Element (Node);
+      end Query;
+   end Problem;
+end Analysis.Dataflow;
