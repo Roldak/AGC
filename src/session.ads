@@ -15,10 +15,13 @@ with Post_Actions;
 package Session is
    package LAL renames Libadalang.Analysis;
 
+   type Optimization_Level_Type is (None, Basic, Full);
+
    procedure Init_Session
      (Ctx          : App_Context;
       Out_Dir_File : GNATCOLL.VFS.Virtual_File;
-      File_Names   : String_Vectors.Vector);
+      File_Names   : String_Vectors.Vector;
+      Optim_Level  : Optimization_Level_Type);
 
    function Is_File_To_Process (File_Name : String) return Boolean;
 
@@ -33,6 +36,8 @@ package Session is
    function Get_SHA1 (File : String) return String;
 
    function Must_Reprocess (Unit : LAL.Analysis_unit) return Boolean;
+
+   function Get_Optimization_Level return Optimization_Level_Type;
 
 private
 
@@ -50,6 +55,7 @@ private
       Hash, "=", GNATCOLL.VFS."=");
 
    Files_To_Process : String_Sets.Set;
+   Optimization_Level : Optimization_Level_Type;
 
    protected Unit_Info is
       procedure Compute_Units_Info

@@ -10,6 +10,7 @@ with Langkit_Support.Text;
 with Libadalang.Common;
 with Libadalang.Unit_Files;
 
+with Analysis;
 with Utils;
 
 package body Session is
@@ -18,7 +19,8 @@ package body Session is
    procedure Init_Session
      (Ctx          : App_Context;
       Out_Dir_File : GNATCOLL.VFS.Virtual_File;
-      File_Names   : String_Vectors.Vector)
+      File_Names   : String_Vectors.Vector;
+      Optim_Level  : Optimization_Level_Type)
    is
       use GNATCOLL;
    begin
@@ -38,6 +40,11 @@ package body Session is
 
       Unit_Info.Compute_Units_Info (Ctx, Out_Dir_File);
       Incremental.Compute_Change_Set;
+
+      Optimization_Level := Optim_Level;
+      if Optim_Level /= None then
+         Analysis.Summaries := new Analysis.Summaries_Map;
+      end if;
    end Init_Session;
 
    function Is_File_To_Process (File_Name : String) return Boolean is
@@ -91,6 +98,9 @@ package body Session is
       Incremental.Must_Reprocess (unit, Result);
       return Result;
    end Must_Reprocess;
+
+   function Get_Optimization_Level return Optimization_Level_Type is
+     (Optimization_Level);
 
    protected body Unit_Info is
       procedure Compute_Units_Info

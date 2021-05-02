@@ -10,13 +10,15 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 
 with Analysis;
+with Session;
 with Utils;
 
 procedure Collect_Static
   (Job_Ctx  : Libadalang.Helpers.App_Job_Context;
-   Unit     : Libadalang.Analysis.Analysis_Unit;
-   Optimize : Boolean)
+   Unit     : Libadalang.Analysis.Analysis_Unit)
 is
+   use type Session.Optimization_Level_Type;
+
    package LAL     renames Libadalang.Analysis;
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
@@ -86,7 +88,7 @@ is
       return LALCO.Into;
    end Process_Node;
 begin
-   if not Optimize then
+   if Session.Get_Optimization_Level /= Session.Full then
       return;
    end if;
 

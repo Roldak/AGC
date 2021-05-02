@@ -74,10 +74,12 @@ procedure AGC is
        & "relative to the (sub-)projects' object directories, unless "
        & "this is an absolute path.");
 
-   package Optimize is new GNATCOLL.Opt_Parse.Parse_Flag
-     (Parser  => App.Args.Parser,
-      Long    => "--optimize",
-      Help    => "Turn on optimizations");
+   package Optimize is new GNATCOLL.Opt_Parse.Parse_Enum_Option
+     (Parser      => App.Args.Parser,
+      Long        => "--optimize",
+      Help        => "Turn on optimizations",
+      Arg_Type    => Session.Optimization_Level_Type,
+      Default_Val => Session.None);
 
    package Quiet is new GNATCOLL.Opt_Parse.Parse_Flag
      (Parser => App.Args.Parser,
@@ -137,11 +139,7 @@ procedure AGC is
             VFS.Create (VFS."+" (Strings.To_String (Output_Dir.Get)));
       end if;
 
-      Session.Init_Session (Ctx, Out_Dir_File, Files);
-
-      if Optimize.Get then
-         Analysis.Summaries := new Analysis.Summaries_Map;
-      end if;
+      Session.Init_Session (Ctx, Out_Dir_File, Files, Optimize.Get);
 
       Put_Line ("Instrument");
    end Setup;
@@ -163,7 +161,7 @@ procedure AGC is
          Add_With_Clauses (Job_Ctx, Unit);
          Unsugar_Expr_Functions (Job_Ctx, Unit);
          Handle_Temporaries (Job_Ctx, Unit);
-         Collect_Static (Job_Ctx, Unit, Optimize.Get);
+         Collect_Static (Job_Ctx, Unit);
          Extend_Return_Stmts (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);
