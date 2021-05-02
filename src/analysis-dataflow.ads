@@ -39,6 +39,8 @@ package Analysis.Dataflow is
       function Query_After
         (S : Solution; Node : LAL.Ada_Node) return States.T;
 
+      procedure Dump (S : Solution);
+
    private
       package State_Maps is new Ada.Containers.Hashed_Maps
         (LAL.Ada_Node,

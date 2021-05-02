@@ -377,5 +377,18 @@ package body Analysis.Dataflow is
          Next (PC, Do_Nothing'Unrestricted_Access);
          return S.States.Element (PC);
       end Query_After;
+
+      procedure Dump (S : Solution) is
+         use State_Maps;
+         use Langkit_Support.Text;
+
+         procedure Dump_One (C : Cursor) is
+         begin
+            Put_Line ("State of " & LAL.Image (State_Maps.Key (C)) & " : ");
+            Put_Line ("   " & States.Image (Element (C)));
+         end Dump_One;
+      begin
+         S.States.Iterate (Dump_One'Access);
+      end Dump;
    end Problem;
 end Analysis.Dataflow;
