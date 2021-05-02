@@ -1,5 +1,5 @@
 with Ada.Containers.Vectors;
-with Ada.Text_IO;
+with Ada.Text_IO; use Ada.Text_IO;
 
 with Libadalang.Common;
 with Libadalang.Iterators;
@@ -9,21 +9,48 @@ package body Analysis.Dataflow is
 
    type Node_Handler_Type is access procedure (X : LAL.Ada_Node'Class);
 
-   procedure At_End_Next
-     (PC   : in out LAL.Ada_Node;
-      Orig : in out LAL.Ada_Node)
+   function Right_Most_Element
+     (Orig    : LAL.Ada_Node'Class;
+      Include : Node_Handler_Type)
+      return LAL.Ada_Node
    is
+      PC : LAL.Ada_Node := Orig.As_Ada_Node;
    begin
-      while PC.Is_Null loop
-         Orig := Orig.Parent;
+      loop
+         case PC.Kind is
+            when LALCO.Ada_Declarative_Part =>
+               PC := PC.As_Declarative_Part.F_Decls.As_Ada_Node;
+            when LALCO.Ada_Handled_Stmts =>
+               PC := PC.As_Handled_Stmts.F_Stmts.As_Ada_Node;
+            when LALCO.Ada_Ada_List =>
+               PC := PC.As_Ada_List.Child
+                 (PC.As_Ada_List.Last_Child_Index);
 
-         if Orig.Kind in LALCO.Ada_Base_Subp_Body then
-            return;
-         end if;
+            when LALCO.Ada_Return_Stmt
+                   | LALCO.Ada_Raise_Stmt
+                   | LALCO.Ada_Goto_Stmt =>
+               return LAL.No_Ada_Node;
 
-         PC := Orig.Next_Sibling;
+            when LALCO.Ada_If_Stmt =>
+               for Alt of PC.As_If_Stmt.F_Alternatives loop
+                  Include
+                    (Right_Most_Element (Alt, Include));
+               end loop;
+               Include
+                 (Right_Most_Element (PC.As_If_Stmt.F_Else_Stmts, Include));
+               PC := PC.As_If_Stmt.F_Then_Stmts.As_Ada_Node;
+
+            when LALCO.Ada_Base_Loop_Stmt =>
+               if PC.Kind in LALCO.Ada_Loop_Stmt then
+                  return LAL.No_Ada_Node;
+               end if;
+               return PC;
+
+            when others =>
+               return PC;
+         end case;
       end loop;
-   end At_End_Next;
+   end Right_Most_Element;
 
    procedure Next
      (PC      : in out LAL.Ada_Node;
@@ -103,15 +130,61 @@ package body Analysis.Dataflow is
          end if;
       end if;
 
-      At_End_Next (PC, Orig);
+      while PC.Is_Null loop
+         Orig := Orig.Parent;
+
+         if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+            return;
+         end if;
+
+         PC := Orig.Next_Sibling;
+      end loop;
    end Next;
 
    procedure Prev
      (PC      : in out LAL.Ada_Node;
       Include : Node_Handler_Type)
    is
+      Orig : LAL.Ada_Node := PC;
    begin
-      null;
+      case PC.Kind is
+         when LALCO.Ada_Declarative_Part =>
+            PC := PC.Parent;
+            return;
+         when LALCO.Ada_Ada_List =>
+            PC := PC.Parent;
+            return;
+
+         when LALCO.Ada_Elsif_Stmt_Part =>
+            PC := PC.Parent;
+            return;
+
+         when LALCO.Ada_Base_Loop_Stmt =>
+            Include (Right_Most_Element (PC, Include));
+            PC := PC.Previous_Sibling;
+
+         when others =>
+            PC := PC.Previous_Sibling;
+      end case;
+
+      if PC.Is_Null then
+         if Orig.Kind in LALCO.Ada_Stmt then
+            PC := Orig.Parent;
+            return;
+         end if;
+      end if;
+
+      while PC.Is_Null loop
+         Orig := Orig.Parent;
+
+         if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+            return;
+         end if;
+
+         PC := Orig.Previous_Sibling;
+      end loop;
+
+      PC := Right_Most_Element (PC, Include);
    end Prev;
 
    package body Problem is
@@ -225,8 +298,9 @@ package body Analysis.Dataflow is
                   Foreach_Return_Stmt
                     (Subp, Add_Entry_Point'Unrestricted_Access);
                   Add_Entry_Point
-                    (Subp.As_Subp_Body.F_Stmts.Child
-                       (Subp.As_Subp_Body.F_Stmts.Last_Child_Index));
+                    (Right_Most_Element
+                       (Subp.As_Subp_Body.F_Stmts,
+                        Add_Entry_Point'Unrestricted_Access));
                end if;
             when LALCO.Ada_Expr_Function =>
                R.States.Insert
