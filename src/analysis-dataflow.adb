@@ -298,10 +298,9 @@ package body Analysis.Dataflow is
 
          procedure Do_Nothing (X : LAL.Ada_Node'Class) is null;
 
-         Orig : LAL.Ada_Node := Node;
-         PC   : LAL.Ada_Node := Node.Next_Sibling;
+         PC : LAL.Ada_Node := Node;
       begin
-         At_End_Next (PC, Orig);
+         Next (PC, Do_Nothing'Unrestricted_Access);
          return S.States.Element (PC);
       end Query_After;
    end Problem;
