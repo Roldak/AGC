@@ -378,6 +378,19 @@ package body Analysis.Dataflow is
          return S.States.Element (PC);
       end Query_After;
 
+      function Query_Before
+        (S : Solution; Node : LAL.Ada_Node) return States.T
+      is
+         use State_Maps;
+
+         procedure Do_Nothing (X : LAL.Ada_Node'Class) is null;
+
+         PC : LAL.Ada_Node := Node;
+      begin
+         Prev (PC, Do_Nothing'Unrestricted_Access);
+         return S.States.Element (PC);
+      end Query_Before;
+
       procedure Dump (S : Solution) is
          use State_Maps;
          use Langkit_Support.Text;
