@@ -27,6 +27,7 @@ with Check_Consistency;
 with Add_With_Clauses;
 with Unsugar_Expr_Functions;
 with Handle_Temporaries;
+with Collect_Static;
 with Extend_Return_Stmts;
 with Track_Roots;
 with Generate_Types_Interfaces;
@@ -162,6 +163,7 @@ procedure AGC is
          Add_With_Clauses (Job_Ctx, Unit);
          Unsugar_Expr_Functions (Job_Ctx, Unit);
          Handle_Temporaries (Job_Ctx, Unit);
+         Collect_Static (Job_Ctx, Unit, Optimize.Get);
          Extend_Return_Stmts (Job_Ctx, Unit);
          Track_Roots (Job_Ctx, Unit);
          Generate_Types_Interfaces (Job_Ctx, Unit);

@@ -5,6 +5,7 @@ with Langkit_Support.Hashes;
 
 with Libadalang.Common;
 
+with Analysis.Dataflow;
 with Dot_Printer;
 with Utils;
 
@@ -328,4 +329,120 @@ package body Analysis is
           To_Unbounded_Text
             (Subprogram.P_Unique_Identifying_Name)));
    end Does_Allocate;
+
+   package Node_Sets is new Ada.Containers.Hashed_Sets
+     (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
+
+   function Node_Image (X : LAL.Ada_Node) return String is
+     (Langkit_Support.Text.Image (X.Text));
+
+   package Finite_Node_Sets is new Dataflow.Finite_Sets
+     (Node_Sets, Node_Image);
+
+   generic
+      Target : LAL.Base_Subp_Body;
+   package Ownership_Analysis is
+
+      procedure Remove_Possibly_Aliased
+        (State : in out Node_Sets.Set;
+         Expr  : LAL.Expr);
+
+      procedure Handle_Assignment
+        (State : in out Node_Sets.Set;
+         Dest  : LAL.Name;
+         Val   : LAL.Expr);
+
+      package Ownership_Problem is new Dataflow.Problem
+        (States       => Finite_Node_Sets.Lattice,
+         Entry_State  => Node_Sets.Empty_Set,
+         Visit_Assign => Handle_Assignment,
+         Visit_Ignore => Remove_Possibly_Aliased);
+
+   end Ownership_Analysis;
+
+   package body Ownership_Analysis is
+      use Langkit_Support.Text;
+
+      function Possibly_Aliased
+        (Obj  : LAL.Defining_Name;
+         Expr : LAL.Expr) return Boolean
+      is
+      begin
+         for Ref of Obj.P_Find_Refs (Expr, LAL.No_Ada_Node) loop
+            if LAL.Ref (Ref).Parent.Kind not in LALCO.Ada_Explicit_Deref then
+               return True;
+            end if;
+         end loop;
+         return False;
+      end Possibly_Aliased;
+
+      procedure Remove_Possibly_Aliased
+        (State : in out Node_Sets.Set;
+         Expr  : LAL.Expr)
+      is
+         use Node_Sets;
+
+         C : Cursor := State.First;
+         N : Cursor;
+      begin
+         while C /= No_Element loop
+            N := Next (C);
+            if Possibly_Aliased (Element (C).As_Defining_Name, Expr) then
+               State.Delete (C);
+            end if;
+            C := N;
+         end loop;
+      end Remove_Possibly_Aliased;
+
+      procedure Handle_Assignment
+        (State : in out Node_Sets.Set;
+         Dest  : LAL.Name;
+         Val   : LAL.Expr)
+      is
+         use all type LAL.Ada_Node;
+
+         D : LAL.Defining_Name :=
+           (if Dest.P_Is_Defining
+            then Dest.P_Enclosing_Defining_Name
+            else Dest.P_Referenced_Defining_Name);
+      begin
+         Remove_Possibly_Aliased (State, Val);
+
+         if Utils.Enclosing_Subp_Body (D) /= Target then
+            return;
+         end if;
+
+         case Val.Kind is
+            when LALCO.Ada_Allocator =>
+               State.Include (D.As_Ada_Node);
+            when others =>
+               State.Exclude (D.As_Ada_Node);
+         end case;
+      end Handle_Assignment;
+
+   end Ownership_Analysis;
+
+   function Is_Owner_After
+     (Var   : Libadalang.Analysis.Defining_Name;
+      Place : Libadalang.Analysis.Ada_Node'Class) return Boolean
+   is
+      use all type LAL.Ada_Node;
+
+      Subp : constant LAL.Base_Subp_Body := Utils.Enclosing_Subp_Body (Place);
+
+   begin
+      if Utils.Enclosing_Subp_Body (Var) /= Subp then
+         raise Program_Error with "Conflicting subprograms for query";
+      end if;
+      declare
+         package Subp_Analysis is new Ownership_Analysis (Subp);
+         package Subp_Ownership renames Subp_Analysis.Ownership_Problem;
+
+         Result : constant Subp_Ownership.Solution :=
+            Subp_Ownership.Fixpoint (Subp);
+         State : constant Node_Sets.Set := Result.Query (Place.As_Ada_Node);
+      begin
+         return State.Contains (Var.As_Ada_Node);
+      end;
+   end Is_Owner_After;
 end Analysis;

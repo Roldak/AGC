@@ -75,6 +75,10 @@ package Analysis is
    function Does_Allocate
      (Subprogram : Libadalang.Analysis.Body_Node'Class) return Boolean;
 
+   function Is_Owner_After
+     (Var   : Libadalang.Analysis.Defining_Name;
+      Place : Libadalang.Analysis.Ada_Node'Class) return Boolean;
+
 private
    protected type Local_Summary is new Summary_Holder with
       function Has_Target return Boolean;
