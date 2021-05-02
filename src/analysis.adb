@@ -6,6 +6,7 @@ with Langkit_Support.Hashes;
 with Libadalang.Common;
 
 with Analysis.Dataflow;
+with Analysis.Lattices.Finite_Node_Sets;
 with Dot_Printer;
 with Utils;
 
@@ -330,18 +331,12 @@ package body Analysis is
             (Subprogram.P_Unique_Identifying_Name)));
    end Does_Allocate;
 
-   package Node_Sets is new Ada.Containers.Hashed_Sets
-     (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
-
-   function Node_Image (X : LAL.Ada_Node) return String is
-     (Langkit_Support.Text.Image (X.Text));
-
-   package Finite_Node_Sets is new Dataflow.Finite_Sets
-     (Node_Sets, Node_Image);
+   package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
 
    generic
       Target : LAL.Base_Subp_Body;
    package Ownership_Analysis is
+      use Analysis.Lattices;
 
       procedure Remove_Possibly_Aliased
         (State : in out Node_Sets.Set;

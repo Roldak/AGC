@@ -1,6 +1,5 @@
 with Ada.Containers.Vectors;
 with Ada.Text_IO;
-with Ada.Strings.Unbounded;
 
 with Libadalang.Common;
 with Libadalang.Iterators;
@@ -8,147 +7,116 @@ with Libadalang.Iterators;
 package body Analysis.Dataflow is
    package LALCO renames Libadalang.Common;
 
-   package body Lattice is
-      function "=" (X, Y : T) return Boolean is
-        (X <= Y and then Y <= X);
+   type Node_Handler_Type is access procedure (X : LAL.Ada_Node'Class);
 
-      function "<" (X, Y : T) return Boolean is
-        ((X <= Y) and then not (Y <= X));
-   end Lattice;
+   procedure At_End_Next
+     (PC   : in out LAL.Ada_Node;
+      Orig : in out LAL.Ada_Node)
+   is
+   begin
+      while PC.Is_Null loop
+         Orig := Orig.Parent;
 
-   package body Finite_Sets is
-      function Image (X : Sets.Set) return String is
-         use Ada.Strings.Unbounded;
-         use type Ada.Containers.Count_Type;
-
-         R : Unbounded_String;
-         P : Character := '{';
-      begin
-         if X.Length = 0 then
-            return "{}";
+         if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+            return;
          end if;
 
-         for E of X loop
-            Append (R, P);
-            Append (R, Element_Image (E));
-            P := ',';
-         end loop;
+         PC := Orig.Next_Sibling;
+      end loop;
+   end At_End_Next;
 
-         Append (R, "}");
-         return To_String (R);
-      end Image;
-   end Finite_Sets;
+   procedure Next
+     (PC      : in out LAL.Ada_Node;
+      Include : Node_Handler_Type)
+   is
+      Orig : LAL.Ada_Node := PC;
+   begin
+      case PC.Kind is
+         when LALCO.Ada_Declarative_Part =>
+            PC := PC.As_Declarative_Part.F_Decls.As_Ada_Node;
+
+         when LALCO.Ada_Handled_Stmts =>
+            PC := PC.As_Handled_Stmts.F_Stmts.As_Ada_Node;
+
+         when LALCO.Ada_Ada_List =>
+            PC := PC.Child (1);
+
+         when LALCO.Ada_Return_Stmt =>
+            PC := LAL.No_Ada_Node;
+            return;
+
+         when LALCO.Ada_Raise_Stmt =>
+            PC := LAL.No_Ada_Node;
+            return;
+
+         when LALCO.Ada_Goto_Stmt =>
+            PC :=
+               PC.As_Goto_Stmt.F_Label_Name.P_Referenced_Decl.As_Ada_Node;
+
+         when LALCO.Ada_If_Stmt =>
+            for Alt of PC.As_If_Stmt.F_Alternatives loop
+               Include (Alt);
+            end loop;
+            Include (PC.As_If_Stmt.F_Else_Stmts);
+            PC := PC.As_If_Stmt.F_Then_Stmts.As_Ada_Node;
+         when LALCO.Ada_Elsif_Stmt_Part =>
+            PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
+
+         when LALCO.Ada_Case_Stmt =>
+            PC := PC.As_Case_Stmt.F_Alternatives.Child (1);
+            for I in 2 .. PC.As_Case_Stmt.F_Alternatives.Children_Count loop
+               Include (PC.As_Case_Stmt.F_Alternatives.Child (I));
+            end loop;
+         when LALCO.Ada_Case_Stmt_Alternative =>
+            PC := PC.As_Case_Stmt_Alternative.F_Stmts.As_Ada_Node;
+
+         when LALCO.Ada_Loop_Stmt =>
+            PC := PC.As_Loop_Stmt.F_Stmts.As_Ada_Node;
+         when LALCO.Ada_For_Loop_Stmt | LALCO.Ada_While_Loop_Stmt =>
+            Include (PC.As_Base_Loop_Stmt.F_Stmts);
+            PC := PC.Next_Sibling;
+
+         when LALCO.Ada_Named_Stmt =>
+            PC := PC.As_Named_Stmt.F_Stmt.As_Ada_Node;
+
+         when LALCO.Ada_Decl_Block =>
+            PC := PC.As_Decl_Block.F_Decls.As_Ada_Node;
+         when LALCO.Ada_Begin_Block =>
+            PC := PC.As_Begin_Block.F_Stmts.As_Ada_Node;
+
+         when others =>
+            PC := PC.Next_Sibling;
+      end case;
+
+      if PC.Is_Null then
+         if Orig.Kind in LALCO.Ada_Stmt then
+            if Orig.Parent.Parent.Kind in
+                  LALCO.Ada_If_Stmt
+                | LALCO.Ada_Case_Stmt
+            then
+               Orig := Orig.Parent;
+            elsif Orig.Parent.Parent.Kind in LALCO.Ada_Elsif_Stmt_Part then
+               Orig := Orig.Parent.Parent;
+            elsif Orig.Parent.Parent.Kind in LALCO.Ada_Base_Loop_Stmt then
+               PC := Orig.Parent.Parent;
+            end if;
+         end if;
+      end if;
+
+      At_End_Next (PC, Orig);
+   end Next;
+
+   procedure Prev
+     (PC      : in out LAL.Ada_Node;
+      Include : Node_Handler_Type)
+   is
+   begin
+      null;
+   end Prev;
 
    package body Problem is
       package Node_Sets is new Ada.Containers.Hashed_Sets
         (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
-
-      type Node_Handler_Type is access procedure (X : LAL.Ada_Node'Class);
-
-      procedure At_End_Next
-        (PC   : in out LAL.Ada_Node;
-         Orig : in out LAL.Ada_Node)
-      is
-      begin
-         while PC.Is_Null loop
-            Orig := Orig.Parent;
-
-            if Orig.Kind in LALCO.Ada_Base_Subp_Body then
-               return;
-            end if;
-
-            PC := Orig.Next_Sibling;
-         end loop;
-      end At_End_Next;
-
-      procedure Next
-        (PC      : in out LAL.Ada_Node;
-         Include : Node_Handler_Type)
-      is
-         Orig : LAL.Ada_Node := PC;
-      begin
-         case PC.Kind is
-            when LALCO.Ada_Declarative_Part =>
-               PC := PC.As_Declarative_Part.F_Decls.As_Ada_Node;
-
-            when LALCO.Ada_Handled_Stmts =>
-               PC := PC.As_Handled_Stmts.F_Stmts.As_Ada_Node;
-
-            when LALCO.Ada_Ada_List =>
-               PC := PC.Child (1);
-
-            when LALCO.Ada_Return_Stmt =>
-               PC := LAL.No_Ada_Node;
-               return;
-
-            when LALCO.Ada_Raise_Stmt =>
-               PC := LAL.No_Ada_Node;
-               return;
-
-            when LALCO.Ada_Goto_Stmt =>
-               PC :=
-                  PC.As_Goto_Stmt.F_Label_Name.P_Referenced_Decl.As_Ada_Node;
-
-            when LALCO.Ada_If_Stmt =>
-               for Alt of PC.As_If_Stmt.F_Alternatives loop
-                  Include (Alt);
-               end loop;
-               Include (PC.As_If_Stmt.F_Else_Stmts);
-               PC := PC.As_If_Stmt.F_Then_Stmts.As_Ada_Node;
-            when LALCO.Ada_Elsif_Stmt_Part =>
-               PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
-
-            when LALCO.Ada_Case_Stmt =>
-               PC := PC.As_Case_Stmt.F_Alternatives.Child (1);
-               for I in 2 .. PC.As_Case_Stmt.F_Alternatives.Children_Count loop
-                  Include (PC.As_Case_Stmt.F_Alternatives.Child (I));
-               end loop;
-            when LALCO.Ada_Case_Stmt_Alternative =>
-               PC := PC.As_Case_Stmt_Alternative.F_Stmts.As_Ada_Node;
-
-            when LALCO.Ada_Loop_Stmt =>
-               PC := PC.As_Loop_Stmt.F_Stmts.As_Ada_Node;
-            when LALCO.Ada_For_Loop_Stmt | LALCO.Ada_While_Loop_Stmt =>
-               Include (PC.As_Base_Loop_Stmt.F_Stmts);
-               PC := PC.Next_Sibling;
-
-            when LALCO.Ada_Named_Stmt =>
-               PC := PC.As_Named_Stmt.F_Stmt.As_Ada_Node;
-
-            when LALCO.Ada_Decl_Block =>
-               PC := PC.As_Decl_Block.F_Decls.As_Ada_Node;
-            when LALCO.Ada_Begin_Block =>
-               PC := PC.As_Begin_Block.F_Stmts.As_Ada_Node;
-
-            when others =>
-               PC := PC.Next_Sibling;
-         end case;
-
-         if PC.Is_Null then
-            if Orig.Kind in LALCO.Ada_Stmt then
-               if Orig.Parent.Parent.Kind in
-                     LALCO.Ada_If_Stmt
-                   | LALCO.Ada_Case_Stmt
-               then
-                  Orig := Orig.Parent;
-               elsif Orig.Parent.Parent.Kind in LALCO.Ada_Elsif_Stmt_Part then
-                  Orig := Orig.Parent.Parent;
-               elsif Orig.Parent.Parent.Kind in LALCO.Ada_Base_Loop_Stmt then
-                  PC := Orig.Parent.Parent;
-               end if;
-            end if;
-         end if;
-
-         At_End_Next (PC, Orig);
-      end Next;
-
-      procedure Prev
-        (PC      : in out LAL.Ada_Node;
-         Include : Node_Handler_Type)
-      is
-      begin
-         null;
-      end Prev;
 
       function Transfer
         (PC        : LAL.Ada_Node;
