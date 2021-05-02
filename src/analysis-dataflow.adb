@@ -44,6 +44,22 @@ package body Analysis.Dataflow is
 
       type Node_Handler_Type is access procedure (X : LAL.Ada_Node'Class);
 
+      procedure At_End_Next
+        (PC   : in out LAL.Ada_Node;
+         Orig : in out LAL.Ada_Node)
+      is
+      begin
+         while PC.Is_Null loop
+            Orig := Orig.Parent;
+
+            if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+               return;
+            end if;
+
+            PC := Orig.Next_Sibling;
+         end loop;
+      end At_End_Next;
+
       procedure Next
         (PC      : in out LAL.Ada_Node;
          Include : Node_Handler_Type)
@@ -122,15 +138,7 @@ package body Analysis.Dataflow is
             end if;
          end if;
 
-         while PC.Is_Null loop
-            Orig := Orig.Parent;
-
-            if Orig.Kind in LALCO.Ada_Base_Subp_Body then
-               return;
-            end if;
-
-            PC := Orig.Next_Sibling;
-         end loop;
+         At_End_Next (PC, Orig);
       end Next;
 
       function Transfer
@@ -253,11 +261,25 @@ package body Analysis.Dataflow is
          return R;
       end Fixpoint;
 
-      function Query
+      function Query_At
         (S : Solution; Node : LAL.Ada_Node) return States.T
       is
       begin
          return S.States.Element (Node);
-      end Query;
+      end Query_At;
+
+      function Query_After
+        (S : Solution; Node : LAL.Ada_Node) return States.T
+      is
+         use State_Maps;
+
+         procedure Do_Nothing (X : LAL.Ada_Node'Class) is null;
+
+         Orig : LAL.Ada_Node := Node;
+         PC   : LAL.Ada_Node := Node.Next_Sibling;
+      begin
+         At_End_Next (PC, Orig);
+         return S.States.Element (PC);
+      end Query_After;
    end Problem;
 end Analysis.Dataflow;

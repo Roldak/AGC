@@ -44,7 +44,10 @@ package Analysis.Dataflow is
 
       function Fixpoint (Subp  : LAL.Base_Subp_Body) return Solution;
 
-      function Query
+      function Query_At
+        (S : Solution; Node : LAL.Ada_Node) return States.T;
+
+      function Query_After
         (S : Solution; Node : LAL.Ada_Node) return States.T;
 
    private

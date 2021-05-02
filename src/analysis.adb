@@ -440,7 +440,8 @@ package body Analysis is
 
          Result : constant Subp_Ownership.Solution :=
             Subp_Ownership.Fixpoint (Subp);
-         State : constant Node_Sets.Set := Result.Query (Place.As_Ada_Node);
+         State : constant Node_Sets.Set :=
+            Result.Query_After (Place.As_Ada_Node);
       begin
          return State.Contains (Var.As_Ada_Node);
       end;
