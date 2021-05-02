@@ -22,10 +22,12 @@ package Analysis.Dataflow is
         (Sets.Set, Sets.Union, Sets.Intersection, Sets.Is_Subset, Image);
    end Finite_Sets;
 
+   type Confluence_Type is (May, Must);
+
    generic
       with package States is new Lattice (<>);
 
-      Entry_State : States.T;
+      Confluence : Confluence_Type;
 
       with procedure Visit_Assign
         (State : in out States.T;
@@ -39,6 +41,8 @@ package Analysis.Dataflow is
       with procedure Visit_Return
         (State : in out States.T;
          Expr  : LAL.Expr) is null;
+
+      Entry_State : States.T;
    package Problem is
       type Solution is tagged private;
 

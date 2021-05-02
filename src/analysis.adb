@@ -354,9 +354,10 @@ package body Analysis is
 
       package Ownership_Problem is new Dataflow.Problem
         (States       => Finite_Node_Sets.Lattice,
-         Entry_State  => Node_Sets.Empty_Set,
+         Confluence   => Dataflow.Must,
          Visit_Assign => Handle_Assignment,
-         Visit_Ignore => Remove_Possibly_Aliased);
+         Visit_Ignore => Remove_Possibly_Aliased,
+         Entry_State  => Node_Sets.Empty_Set);
 
    end Ownership_Analysis;
 
@@ -429,7 +430,6 @@ package body Analysis is
       use all type LAL.Ada_Node;
 
       Subp : constant LAL.Base_Subp_Body := Utils.Enclosing_Subp_Body (Place);
-
    begin
       if Utils.Enclosing_Subp_Body (Var) /= Subp then
          raise Program_Error with "Conflicting subprograms for query";

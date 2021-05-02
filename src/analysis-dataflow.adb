@@ -197,6 +197,12 @@ package body Analysis.Dataflow is
             return C;
          end Node_State;
 
+         function Op (X, Y : States.T) return States.T is
+            use States;
+         begin
+            return (if Confluence in May then X or Y else X and Y);
+         end Op;
+
          W  : Node_Sets.Set;
          PC : LAL.Ada_Node;
       begin
@@ -227,7 +233,7 @@ package body Analysis.Dataflow is
                      Transfer (PC, State_Maps.Element (PC_State));
 
                   function Update (X : LAL.Ada_Node) return Boolean is
-                     use States;
+                     use type States.T;
 
                      Inserted : Boolean;
                      X_State  : State_Maps.Cursor := Node_State (X, Inserted);
@@ -235,7 +241,7 @@ package body Analysis.Dataflow is
                      Meet_State : States.T :=
                        (if Inserted
                         then New_State
-                        else State_Maps.Element (X_State) and New_State);
+                        else Op (State_Maps.Element (X_State), New_State));
                   begin
                      if Inserted or else
                         Meet_State /= State_Maps.Element (X_State)
