@@ -3,6 +3,7 @@ with Ada.Text_IO;
 with Ada.Strings.Unbounded;
 
 with Libadalang.Common;
+with Libadalang.Iterators;
 
 package body Analysis.Dataflow is
    package LALCO renames Libadalang.Common;
@@ -141,6 +142,14 @@ package body Analysis.Dataflow is
          At_End_Next (PC, Orig);
       end Next;
 
+      procedure Prev
+        (PC      : in out LAL.Ada_Node;
+         Include : Node_Handler_Type)
+      is
+      begin
+         null;
+      end Prev;
+
       function Transfer
         (PC        : LAL.Ada_Node;
          Old_State : States.T)
@@ -179,6 +188,21 @@ package body Analysis.Dataflow is
          return New_State;
       end Transfer;
 
+      procedure Foreach_Return_Stmt
+        (Subp : LAL.Base_Subp_Body;
+         Handle : Node_Handler_Type)
+      is
+         use Libadalang.Iterators;
+
+         Iter : Traverse_Iterator'Class :=
+            Find (Subp, Kind_Is (LALCO.Ada_Return_Stmt));
+         Node : LAL.Ada_Node;
+      begin
+         while Iter.Next (Node) loop
+            Handle (Node);
+         end loop;
+      end Foreach_Return_Stmt;
+
       function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution is
          R  : Solution;
 
@@ -203,12 +227,39 @@ package body Analysis.Dataflow is
             return (if Confluence in May then X or Y else X and Y);
          end Op;
 
+         procedure Flow_Next
+           (PC      : in out LAL.Ada_Node;
+            Include : Node_Handler_Type)
+         is
+         begin
+            if Flow in Forward then
+               Next (PC, Include);
+            else
+               Prev (PC, Include);
+            end if;
+         end Flow_Next;
+
          W  : Node_Sets.Set;
+
+         procedure Add_Entry_Point (X : LAL.Ada_Node'Class) is
+         begin
+            W.Include (X.As_Ada_Node);
+            R.States.Insert (X.As_Ada_Node, Entry_State);
+         end Add_Entry_Point;
+
          PC : LAL.Ada_Node;
       begin
          case Subp.Kind is
             when LALCO.Ada_Subp_Body =>
-               PC := Subp.As_Subp_Body.F_Decls.As_Ada_Node;
+               if Flow in Forward then
+                  Add_Entry_Point (Subp.As_Subp_Body.F_Decls);
+               else
+                  Foreach_Return_Stmt
+                    (Subp, Add_Entry_Point'Unrestricted_Access);
+                  Add_Entry_Point
+                    (Subp.As_Subp_Body.F_Stmts.Child
+                       (Subp.As_Subp_Body.F_Stmts.Last_Child_Index));
+               end if;
             when LALCO.Ada_Expr_Function =>
                R.States.Insert
                  (Subp.As_Ada_Node,
@@ -220,8 +271,6 @@ package body Analysis.Dataflow is
                raise Program_Error with "Unexpected subprogram kind.";
          end case;
 
-         W.Include (PC);
-         R.States.Insert (PC, Entry_State);
          while not W.Is_Empty loop
             PC := Node_Sets.Element (W.First);
             loop
@@ -259,7 +308,7 @@ package body Analysis.Dataflow is
                      end if;
                   end Include;
                begin
-                  Next (PC, Include'Unrestricted_Access);
+                  Flow_Next (PC, Include'Unrestricted_Access);
                   exit when PC.Is_Null or else not Update (PC);
                end;
             end loop;

@@ -23,11 +23,13 @@ package Analysis.Dataflow is
    end Finite_Sets;
 
    type Confluence_Type is (May, Must);
+   type Direction_Type is (Forward, Backwards);
 
    generic
       with package States is new Lattice (<>);
 
       Confluence : Confluence_Type;
+      Flow       : Direction_Type;
 
       with procedure Visit_Assign
         (State : in out States.T;

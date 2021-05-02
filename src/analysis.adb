@@ -355,6 +355,7 @@ package body Analysis is
       package Ownership_Problem is new Dataflow.Problem
         (States       => Finite_Node_Sets.Lattice,
          Confluence   => Dataflow.Must,
+         Flow         => Dataflow.Forward,
          Visit_Assign => Handle_Assignment,
          Visit_Ignore => Remove_Possibly_Aliased,
          Entry_State  => Node_Sets.Empty_Set);
