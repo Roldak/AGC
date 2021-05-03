@@ -75,7 +75,7 @@ package Analysis is
    function Does_Allocate
      (Subprogram : Libadalang.Analysis.Body_Node'Class) return Boolean;
 
-   function Is_Owner_After
+   function Is_Owner_At
      (Var   : Libadalang.Analysis.Defining_Name;
       Place : Libadalang.Analysis.Ada_Node'Class) return Boolean;
 

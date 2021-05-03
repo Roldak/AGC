@@ -419,7 +419,7 @@ package body Analysis is
 
    end Ownership_Analysis;
 
-   function Is_Owner_After
+   function Is_Owner_At
      (Var   : Libadalang.Analysis.Defining_Name;
       Place : Libadalang.Analysis.Ada_Node'Class) return Boolean
    is
@@ -436,16 +436,8 @@ package body Analysis is
 
          Result : constant Subp_Ownership.Solution :=
             Subp_Ownership.Fixpoint (Subp);
-
-         Acc : Boolean := True;
-
-         procedure Contains_Var (X : LAL.Ada_Node; S : Node_Sets.Set) is
-         begin
-            Acc := Acc and then S.Contains (Var.As_Ada_Node);
-         end Contains_Var;
       begin
-         Result.Query_After (Place, Contains_Var'Access);
-         return Acc;
+         return Result.Query_At (Place.As_Ada_Node).Contains (Var.As_Ada_Node);
       end;
-   end Is_Owner_After;
+   end Is_Owner_At;
 end Analysis;

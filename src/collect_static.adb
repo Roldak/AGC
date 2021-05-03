@@ -62,7 +62,7 @@ is
       Index : Positive;
    begin
       if not Best_Location.Is_Null
-         and then Analysis.Is_Owner_After (Var, Location)
+         and then Analysis.Is_Owner_At (Var, Location)
       then
          Start_Rewriting;
 
@@ -143,17 +143,21 @@ is
       procedure Detect_Cause_Of_Death
         (N : LAL.Ada_Node; S : Node_Sets.Set)
       is
+         Total : Node_Sets.Set;
+
          procedure Compare_To (M : LAL.Ada_Node; R : Node_Sets.Set) is
             use Finite_Node_Sets.Lattice;
          begin
             if not Leq (R, S) then
-               for Var of Node_Sets.Difference (R, S) loop
-                  Kill (N, Var.As_Defining_Name);
-               end loop;
+               Total := Total.Union (R.Difference (S));
             end if;
          end Compare_To;
       begin
          Result.Query_Before (N, Compare_To'Access);
+
+         for Var of Total loop
+            Kill (N, Var.As_Defining_Name);
+         end loop;
       end Detect_Cause_Of_Death;
    begin
       Result.Iterate (Detect_Cause_Of_Death'Access);
