@@ -36,11 +36,19 @@ package Analysis.Dataflow is
       function Query_At
         (S : Solution; Node : LAL.Ada_Node) return States.T;
 
-      function Query_After
-        (S : Solution; Node : LAL.Ada_Node) return States.T;
+      procedure Query_After
+        (S       : Solution;
+         Node    : LAL.Ada_Node'Class;
+         Process : access procedure (N : LAL.Ada_Node; V : States.T));
 
-      function Query_Before
-        (S : Solution; Node : LAL.Ada_Node) return States.T;
+      procedure Query_Before
+        (S       : Solution;
+         Node    : LAL.Ada_Node'Class;
+         Process : access procedure (N : LAL.Ada_Node; V : States.T));
+
+      procedure Iterate
+        (S : Solution;
+         F : access procedure (N : LAL.Ada_Node; V : States.T));
 
       procedure Dump (S : Solution);
 

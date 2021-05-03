@@ -7,6 +7,7 @@ with Langkit_Support.Text;
 with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Helpers;
+with Libadalang.Iterators;
 with Libadalang.Rewriting;
 
 with Analysis;
@@ -22,6 +23,7 @@ is
    use type Session.Optimization_Level_Type;
 
    package LAL     renames Libadalang.Analysis;
+   package LALI    renames Libadalang.Iterators;
    package LALCO   renames Libadalang.Common;
    package LALRW   renames Libadalang.Rewriting;
 
@@ -29,52 +31,55 @@ is
 
    --  Rewriting handle is created lazily in this phase because many units
    --  won't need to be rewritten.
-   Internal_RH : LALRW.Rewriting_Handle := LALRW.No_Rewriting_Handle;
+   RH : LALRW.Rewriting_Handle := LALRW.No_Rewriting_Handle;
 
-   function RH return LALRW.Rewriting_Handle is
+   procedure Start_Rewriting is
       use type LALRW.Rewriting_Handle;
    begin
-      if Internal_RH = LALRW.No_Rewriting_Handle then
-         Internal_RH := LALRW.Start_Rewriting (Unit.Context);
+      if RH = LALRW.No_Rewriting_Handle then
+         RH := LALRW.Start_Rewriting (Unit.Context);
       end if;
-      return Internal_RH;
-   end RH;
+   end Start_Rewriting;
 
    function Apply_Rewritings_If_Relevant return Boolean is
       use type LALRW.Rewriting_Handle;
    begin
-      if Internal_RH /= LALRW.No_Rewriting_Handle then
-         return LALRW.Apply (Internal_RH).Success;
+      if RH /= LALRW.No_Rewriting_Handle then
+         return LALRW.Apply (RH).Success;
       end if;
       return True;
    end Apply_Rewritings_If_Relevant;
 
-   procedure Handle_Handled_Stmts (Node : LAL.Handled_Stmts) is
-      Decl_Part : LAL.Ada_Node := Node.Previous_Sibling;
-      Last_Stmt : LAL.Ada_Node :=
-         Node.F_Stmts.Child (Node.F_Stmts.Last_Child_Index);
-   begin
-      if Decl_Part.Is_Null then
-         return;
-      elsif Decl_Part.Kind not in LALCO.Ada_Declarative_Part then
-         return;
-      end if;
+   procedure Kill (Location : LAL.Ada_Node; Var : LAL.Defining_Name) is
+      use type LAL.Ada_Node;
+      use LALI;
 
-      for Decl of Decl_Part.As_Declarative_Part.F_Decls loop
-         if Decl.Kind in LALCO.Ada_Object_Decl then
-            for D of Decl.As_Object_Decl.F_Ids loop
-               if Analysis.Is_Owner_After (D.As_Defining_Name, Last_Stmt) then
-                  LALRW.Insert_Child
-                    (LALRW.Handle (Node.F_Stmts),
-                     Utils.Child_Index (LALRW.Handle (Last_Stmt)) + 1,
-                     LALRW.Create_From_Template
-                       (RH, "AGC.Free (" & D.Text & ");",
-                        (1 .. 0 => <>), LALCO.Stmt_Rule));
-               end if;
-            end loop;
+      Best_Location : LAL.Ada_Node :=
+        (if Location.Parent.Kind in LALCO.Ada_Stmt_List
+         then Location.Parent
+         else Find_First (Location, Kind_Is (LALCO.Ada_Stmt_List)));
+
+      Index : Positive;
+   begin
+      if not Best_Location.Is_Null
+         and then Analysis.Is_Owner_After (Var, Location)
+      then
+         Start_Rewriting;
+
+         if Best_Location = Location.Parent then
+            Index := Utils.Child_Index (LALRW.Handle (Location)) + 1;
+         else
+            Index := 1;
          end if;
-      end loop;
-   end Handle_Handled_Stmts;
+
+         LALRW.Insert_Child
+           (LALRW.Handle (Best_Location),
+            Index,
+            LALRW.Create_From_Template
+              (RH, "AGC.Free (" & Var.Text & ");",
+               (1 .. 0 => <>), LALCO.Stmt_Rule));
+      end if;
+   end Kill;
 
    procedure Handle_Subp_Body (Subp : LAL.Base_Subp_Body) is
       use Analysis.Lattices;
@@ -134,8 +139,24 @@ is
 
       Result : Liveness_Problem.Solution :=
          Liveness_Problem.Fixpoint (Subp);
+
+      procedure Detect_Cause_Of_Death
+        (N : LAL.Ada_Node; S : Node_Sets.Set)
+      is
+         procedure Compare_To (M : LAL.Ada_Node; R : Node_Sets.Set) is
+            use Finite_Node_Sets.Lattice;
+         begin
+            if not Leq (R, S) then
+               for Var of Node_Sets.Difference (R, S) loop
+                  Kill (N, Var.As_Defining_Name);
+               end loop;
+            end if;
+         end Compare_To;
+      begin
+         Result.Query_Before (N, Compare_To'Access);
+      end Detect_Cause_Of_Death;
    begin
-      Result.Dump;
+      Result.Iterate (Detect_Cause_Of_Death'Access);
    end Handle_Subp_Body;
 
    function Process_Node
@@ -145,8 +166,6 @@ is
       case Node.Kind is
          when LALCO.Ada_Base_Subp_Body =>
             Handle_Subp_Body (Node.As_Base_Subp_Body);
-         when LALCO.Ada_Handled_Stmts =>
-            Handle_Handled_Stmts (Node.As_Handled_Stmts);
          when others =>
             null;
       end case;

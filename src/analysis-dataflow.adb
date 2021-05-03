@@ -365,31 +365,57 @@ package body Analysis.Dataflow is
          return S.States.Element (Node);
       end Query_At;
 
-      function Query_After
-        (S : Solution; Node : LAL.Ada_Node) return States.T
+      procedure Query_After
+        (S       : Solution;
+         Node    : LAL.Ada_Node'Class;
+         Process : access procedure (N : LAL.Ada_Node; V : States.T))
       is
          use State_Maps;
 
-         procedure Do_Nothing (X : LAL.Ada_Node'Class) is null;
+         procedure Callback (X : LAL.Ada_Node'Class) is
+         begin
+            Process (X.As_Ada_Node, S.States.Element (X.As_Ada_Node));
+         end Callback;
 
-         PC : LAL.Ada_Node := Node;
+         PC : LAL.Ada_Node := Node.As_Ada_Node;
       begin
-         Next (PC, Do_Nothing'Unrestricted_Access);
-         return S.States.Element (PC);
+         Next (PC, Callback'Unrestricted_Access);
+         if not PC.Is_Null then
+            Callback (PC);
+         end if;
       end Query_After;
 
-      function Query_Before
-        (S : Solution; Node : LAL.Ada_Node) return States.T
+      procedure Query_Before
+        (S       : Solution;
+         Node    : LAL.Ada_Node'Class;
+         Process : access procedure (N : LAL.Ada_Node; V : States.T))
       is
          use State_Maps;
 
-         procedure Do_Nothing (X : LAL.Ada_Node'Class) is null;
+         procedure Callback (X : LAL.Ada_Node'Class) is
+         begin
+            Process (X.As_Ada_Node, S.States.Element (X.As_Ada_Node));
+         end Callback;
 
-         PC : LAL.Ada_Node := Node;
+         PC : LAL.Ada_Node := Node.As_Ada_Node;
       begin
-         Prev (PC, Do_Nothing'Unrestricted_Access);
-         return S.States.Element (PC);
+         Prev (PC, Callback'Unrestricted_Access);
+         if not PC.Is_Null then
+            Callback (PC);
+         end if;
       end Query_Before;
+
+      procedure Iterate
+        (S : Solution;
+         F : access procedure (N : LAL.Ada_Node; V : States.T))
+      is
+         procedure F_Adapter (C : State_Maps.Cursor) is
+         begin
+            F (State_Maps.Key (C), State_Maps.Element (C));
+         end F_Adapter;
+      begin
+         S.States.Iterate (F_Adapter'Access);
+      end Iterate;
 
       procedure Dump (S : Solution) is
          use State_Maps;

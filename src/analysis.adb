@@ -436,10 +436,16 @@ package body Analysis is
 
          Result : constant Subp_Ownership.Solution :=
             Subp_Ownership.Fixpoint (Subp);
-         State : constant Node_Sets.Set :=
-            Result.Query_After (Place.As_Ada_Node);
+
+         Acc : Boolean := True;
+
+         procedure Contains_Var (X : LAL.Ada_Node; S : Node_Sets.Set) is
+         begin
+            Acc := Acc and then S.Contains (Var.As_Ada_Node);
+         end Contains_Var;
       begin
-         return State.Contains (Var.As_Ada_Node);
+         Result.Query_After (Place, Contains_Var'Access);
+         return Acc;
       end;
    end Is_Owner_After;
 end Analysis;

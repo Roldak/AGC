@@ -8,6 +8,10 @@ package Analysis.Lattices is
    package Lattice is
       function "=" (X, Y : T) return Boolean;
       function "<" (X, Y : T) return Boolean;
+      function Leq (X, Y : T) return Boolean renames "<=";
+
+      function Join (X, Y : T) return T renames "or";
+      function Meet (X, Y : T) return T renames "and";
    end Lattice;
 
    generic
