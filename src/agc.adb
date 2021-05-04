@@ -197,7 +197,6 @@ procedure AGC is
      (Ctx : Helpers.App_Context; Jobs : Helpers.App_Job_Context_Array)
    is
       use type Helpers.Job_ID;
-      use type Analysis.Summaries_Access;
 
       First_Context : LAL.Analysis_Context :=
          Jobs (Jobs'First).Analysis_Ctx;
@@ -238,11 +237,7 @@ procedure AGC is
 
       --  dump call graph
       if Dump_Call_Graph.Get /= "" then
-         if Analysis.Summaries /= null then
-            Put_Line ("Dump computed call-graph");
-            Analysis.Summaries.Dump_Existing_Call_Graph
-              (GNATCOLL.Strings.To_String (Dump_Call_Graph.Get));
-         end if;
+         Put_Line ("Dump computed call-graph");
       end if;
 
       --  terminate

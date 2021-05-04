@@ -11,325 +11,7 @@ with Dot_Printer;
 with Utils;
 
 package body Analysis is
-   package LAL renames Libadalang.Analysis;
-   package LALCO renames Libadalang.Common;
-
    use type LAL.Analysis_Context;
-
-   function Hash (X : Subp_Info) return Ada.Containers.Hash_Type is
-   begin
-      return LAL.Hash (X.Subp.As_Ada_Node);
-   end Hash;
-
-   function Hash (X : Key) return Ada.Containers.Hash_Type
-   is
-   begin
-      return Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash (X);
-   end Hash;
-
-   protected body Local_Summary is
-      function Has_Target return Boolean is (not Target.Is_Null);
-
-      procedure Set_Target (X : Libadalang.Analysis.Basic_Decl) is
-      begin
-         Target := X;
-      end Set_Target;
-
-      procedure Compute_Summary is
-         function Handle_Call
-           (Spec : LAL.Base_Formal_Param_Holder'Class)
-            return LALCO.Visit_Status
-         is
-            Is_Subp_Access : Boolean :=
-               Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def;
-
-            Called_Decl : LAL.Basic_Decl :=
-              (if Is_Subp_Access
-               then LAL.No_Basic_Decl
-               else Spec.Parent.As_Basic_Decl);
-
-            Called_Body : LAL.Body_Node :=
-              (if Is_Subp_Access
-               then LAL.No_Body_Node
-               else Utils.Get_Body (Called_Decl));
-         begin
-            if Called_Decl.Is_Null then
-               Self_Allocates := True;
-            elsif Called_Body.Is_Null then
-               --  An instantiation with a null body is probably an
-               --  instantiation of Unchecked_Deallocation,
-               --  Unchecked_Conversion, etc.
-               if Called_Decl.Kind
-                     in LALCO.Ada_Enum_Literal_Decl
-                      | LALCO.Ada_Generic_Subp_Internal
-               then
-                  return LALCO.Into;
-               else
-                  Self_Allocates := True;
-               end if;
-            else
-               Calls.Include
-                 ((Called_Body,
-                   To_Unbounded_Text
-                     (Called_Body.P_Unique_Identifying_Name)));
-            end if;
-            return LALCO.Into;
-         end Handle_Call;
-
-         function Process_Node
-           (Node : LAL.Ada_Node'Class) return LALCO.Visit_Status
-         is
-         begin
-            case Node.Kind is
-               when LALCO.Ada_Allocator =>
-                  if Utils.Is_Managed (Node.As_Allocator.P_Expression_Type) then
-                     Self_Allocates := True;
-                  end if;
-
-               when LALCO.Ada_Name =>
-                  declare
-                     Called_Spec : LAL.Base_Formal_Param_Holder'Class :=
-                        Node.As_Name.P_Called_Subp_Spec;
-                  begin
-                     if not Called_Spec.Is_Null then
-                        return Handle_Call (Called_Spec);
-                     end if;
-                  end;
-
-               when others =>
-                  null;
-            end case;
-            return LALCO.Into;
-         exception
-            when LALCO.Property_Error | LALCO.Precondition_Failure =>
-               Trace
-                 (Analysis_Trace,
-                  "Abandonning analysis of " & LAL.Image (Target));
-               Self_Allocates := True;
-               return LALCO.Over;
-         end Process_Node;
-      begin
-         Self_Allocates := False;
-         Target.Traverse (Process_Node'Access);
-      end Compute_Summary;
-
-      procedure Get
-        (Does_Allocate : out Boolean;
-         Called_Subps  : out Subp_Sets.Set)
-      is
-      begin
-         if not Is_Computed then
-            Trace
-              (Analysis_Trace,
-               "Computing summary for " & LAL.Image (Target));
-            Compute_Summary;
-            Trace
-              (Analysis_Trace,
-               "Result for " & LAL.Image (Target)
-               & " : " & Self_Allocates'Image);
-            Is_Computed := True;
-         else
-            Trace (Analysis_Trace, "Reusing summary");
-         end if;
-
-         Does_Allocate := Self_Allocates;
-         Called_Subps  := Calls;
-      end Get;
-
-      entry Get_Blocking
-        (Does_Allocate : out Boolean;
-         Called_Subps  : out Subp_Sets.Set)
-         when Is_Computed
-      is
-      begin
-         Trace (Analysis_Trace, "Reusing summary (potentially waited)");
-         Does_Allocate := Self_Allocates;
-         Called_Subps  := Calls;
-      end Get_Blocking;
-
-      procedure Set_Global_Allocates (Value : Boolean) is
-      begin
-         Global_Allocates := (if Value then True else False);
-      end Set_Global_Allocates;
-
-      procedure Get_Global_Allocates (Value : out Tristate) is
-      begin
-         Value := Global_Allocates;
-      end Get_Global_Allocates;
-
-      entry Get_Global_Allocates_Blocking
-        (Value : out Boolean)
-         when Global_Allocates /= Unknown
-      is
-      begin
-         Value := Global_Allocates = True;
-      end Get_Global_Allocates_Blocking;
-   end Local_Summary;
-
-   protected body Summaries_Map is
-      procedure Get_Summary
-        (Subprogram : LAL.Basic_Decl'Class;
-         Summary    : out Summary_Access)
-      is
-         use type Local_Summaries.Cursor;
-
-         K : Key := To_Unbounded_Text (Subprogram.P_Unique_Identifying_Name);
-
-         Inserted : Boolean;
-         Cursor   : Local_Summaries.Cursor := Map.Find (K);
-      begin
-         if Cursor = Local_Summaries.No_Element then
-            Map.Insert (K, new Local_Summary, Cursor, Inserted);
-         else
-            Trace
-              (Analysis_Trace,
-               "Summary for " & LAL.Image (Subprogram) & " already requested");
-         end if;
-         Summary := Local_Summaries.Element (Cursor);
-         if not Local_Summary (Summary.all).Has_Target then
-            Local_Summary (Summary.all).Set_Target (Subprogram.As_Basic_Decl);
-         end if;
-      end Get_Summary;
-
-      procedure Get_Existing_Summary
-        (Subp_Name : Unbounded_Text_Type;
-         Summary   : out Summary_Access)
-      is
-         use type Local_Summaries.Cursor;
-
-         Inserted : Boolean;
-         Cursor   : Local_Summaries.Cursor := Map.Find (Subp_Name);
-      begin
-         if Cursor = Local_Summaries.No_Element then
-            Map.Insert (Subp_Name, new Local_Summary, Cursor, Inserted);
-         end if;
-         Summary := Local_Summaries.Element (Cursor);
-      end Get_Existing_Summary;
-
-      procedure Dump_Existing_Call_Graph (Path : String) is
-         use Langkit_Support.Text;
-
-         Printer : Dot_Printer.Printer;
-
-         function Split
-           (FQN  : Unbounded_Text_Type;
-            Name : out Unbounded_Text_Type)
-            return Dot_Printer.Cluster_Path_Type
-         is
-            use Ada.Strings.Wide_Wide_Unbounded;
-            use type Dot_Printer.Cluster_Path_Type;
-
-            Dot_Index   : constant Natural := Index (FQN, ".");
-            Blank_Index : constant Natural := Index (FQN, " ");
-         begin
-            if Dot_Index = 0 or Blank_Index = 0 or Dot_Index > Blank_Index then
-               Name := FQN;
-               return Dot_Printer.Empty_Path;
-            else
-               declare
-                  Head : constant Unbounded_Text_Type :=
-                     Unbounded_Slice (FQN, 1, Dot_Index - 1);
-
-                  Tail : constant Unbounded_Text_Type :=
-                     Unbounded_Slice (FQN, Dot_Index + 1, Length (FQN));
-               begin
-                  return (1 => Head) & Split (Tail, Name);
-               end;
-            end if;
-         end Split;
-
-         procedure Process_Summary (C : Local_Summaries.Cursor) is
-            FQN     : constant Unbounded_Text_Type := Local_Summaries.Key (C);
-            Summary : constant Summary_Access := Local_Summaries.Element (C);
-            Id      : constant Ada.Containers.Hash_Type := Hash (FQN);
-
-            Name         : Unbounded_Text_Type;
-            Cluster_Path : constant Dot_Printer.Cluster_Path_Type :=
-               Split (FQN, Name);
-
-            Color : Unbounded_Text_Type;
-
-            Self_Allocates : Boolean;
-            Call_Allocates : Boolean;
-            Calls          : Subp_Sets.Set;
-         begin
-            Summary.Get (Self_Allocates, Calls);
-            Summary.Get_Global_Allocates_Blocking (Call_Allocates);
-
-            if Self_Allocates then
-               Color := To_Unbounded_Text ("red");
-            elsif Call_Allocates then
-               Color := To_Unbounded_Text ("blue");
-            end if;
-
-            Printer.Add_Node
-              (Id      => Id,
-               Name    => Name,
-               Cluster => Cluster_Path,
-               Color   => Color);
-
-            for C of Calls loop
-               Printer.Add_Edge (Id, Hash (C.Id));
-            end loop;
-         end Process_Summary;
-      begin
-         Map.Iterate (Process_Summary'Access);
-         Printer.Save (Path);
-      end Dump_Existing_Call_Graph;
-   end Summaries_Map;
-
-   function Does_Allocate
-     (Subprogram : Libadalang.Analysis.Body_Node'Class) return Boolean
-   is
-      Visited : Subp_Sets.Set;
-      Ctx : LAL.Analysis_Context := Subprogram.Unit.Context;
-
-      function Recurse (Info : Subp_Info) return Boolean is
-         Summary          : Summary_Access;
-         Self_Allocates   : Boolean;
-         Global_Allocates : Tristate;
-         Called_Subps     : Subp_Sets.Set;
-      begin
-         if Info.Subp.Unit.Context /= Ctx then
-            Summaries.Get_Existing_Summary (Info.Id, Summary);
-            Summary.Get_Global_Allocates_Blocking (Self_Allocates);
-            return Self_Allocates;
-         end if;
-
-         Summaries.Get_Summary (Info.Subp, Summary);
-         Summary.Get_Global_Allocates (Global_Allocates);
-
-         if Global_Allocates /= Unknown then
-            return Global_Allocates = True;
-         end if;
-
-         Summary.Get (Self_Allocates, Called_Subps);
-
-         if Self_Allocates then
-            Summary.Set_Global_Allocates (True);
-            return True;
-         end if;
-
-         Visited.Insert (Info);
-
-         for Called_Info of Called_Subps loop
-            if not Visited.Contains (Called_Info) then
-               if Recurse (Called_Info) then
-                  Summary.Set_Global_Allocates (True);
-                  return True;
-               end if;
-            end if;
-         end loop;
-
-         Summary.Set_Global_Allocates (False);
-         return False;
-      end Recurse;
-   begin
-      return Recurse
-        ((Subprogram.As_Body_Node,
-          To_Unbounded_Text
-            (Subprogram.P_Unique_Identifying_Name)));
-   end Does_Allocate;
 
    package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
 
@@ -440,4 +122,117 @@ package body Analysis is
          return Result.Query_At (Place.As_Ada_Node).Contains (Var.As_Ada_Node);
       end;
    end Is_Owner_At;
+
+   package body Shared_Analysis is
+
+      function Get_Or_Compute
+        (Subp : LAL.Base_Subp_Body) return Context_Solution
+      is
+         Key : constant Key_Type :=
+            To_Unbounded_Text (Subp.P_Unique_Identifying_Name);
+
+         Ctx : constant LAL.Analysis_Context := Subp.Unit.Context;
+
+         Result       : Context_Solution;
+         Summary      : Summary_Access;
+         Must_Compute : Boolean;
+      begin
+         Holder.Get_Access_To_Summary (Key, Ctx, Summary, Must_Compute);
+
+         if Must_Compute then
+            --  Summary was created for us, analyze the subprogram
+            Result := Analyze (Subp);
+            Summary.Set (Result);
+         elsif Summary.Get_Computer = Ctx then
+            --  Summary already exists, and we are assigned to compute it.
+            --  This means recursion, so return the default value.
+            return Default (Subp);
+         elsif Summary.Get_Computer /= LAL.No_Analysis_Context then
+            --  Summary already exists and we are not the assignee. Duplicate
+            --  the analysis in order to avoid a dead-lock in case of
+            --  mutual recursion.
+            --  TODO: Find a better solution.
+            Result := Analyze (Subp);
+            Summary.Set (Result);
+         else
+            --  Summary already exists and there is not assignee, which means
+            --  it is ready to be retrieve and used.
+            Summary.Get (Result);
+         end if;
+         return Result;
+      end Get_Or_Compute;
+
+      function Get_Or_Return
+        (Subp_Name   : Unbounded_Text_Type;
+         Result      : out Context_Solution) return Boolean
+      is
+         Summary : Summary_Access :=
+            Holder.Get_Access_To_Existing_Summary (Subp_Name);
+      begin
+         if Summary = null then
+            return False;
+         end if;
+         Summary.Get (Result);
+         return True;
+      end Get_Or_Return;
+
+      protected body Summary_Type is
+         procedure Seize (Ctx : LAL.Analysis_Context) is
+         begin
+            Computer := Ctx;
+         end Seize;
+
+         procedure Set (R : Context_Solution) is
+         begin
+            Result   := R;
+            Computer := LAL.No_Analysis_Context;
+         end Set;
+
+         entry Get (R : out Context_Solution)
+            when Computer = LAL.No_Analysis_Context
+         is
+         begin
+            R := Result;
+         end Get;
+
+         function Get_Computer return LAL.Analysis_Context is
+         begin
+            return Computer;
+         end Get_Computer;
+      end Summary_Type;
+
+      protected body Holder is
+         function Get_Access_To_Existing_Summary
+           (Subp : Key_Type) return Summary_Access
+         is
+            use type Cache_Maps.Cursor;
+
+            Cursor : Cache_Maps.Cursor := Cache.Find (Subp);
+         begin
+            if Cursor = Cache_Maps.No_Element then
+               return null;
+            end if;
+            return Cache_Maps.Element (Cursor);
+         end Get_Access_To_Existing_Summary;
+
+         procedure Get_Access_To_Summary
+           (Subp         : Key_Type;
+            Ctx          : LAL.Analysis_Context;
+            Summary      : out Summary_Access;
+            Must_Compute : out Boolean)
+         is
+            Cursor : Cache_Maps.Cursor;
+         begin
+            Cache.Insert (Subp, Cursor, Must_Compute);
+            if Must_Compute then
+               Summary := new Summary_Type;
+               Summary.Seize (Ctx);
+               Cache.Replace_Element (Cursor, Summary);
+            else
+               Summary := Cache_Maps.Element (Cursor);
+            end if;
+         end Get_Access_To_Summary;
+      end Holder;
+
+   end Shared_Analysis;
 end Analysis;

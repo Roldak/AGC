@@ -2,127 +2,81 @@ with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 
 with Ada.Strings.Wide_Wide_Unbounded;
+with Ada.Strings.Wide_Wide_Unbounded.Wide_Wide_Hash;
+with Ada.Task_Identification; use Ada.Task_Identification;
 
 with Langkit_Support.Text; use Langkit_Support.Text;
 with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 
 with Libadalang.Analysis;
+with Libadalang.Common;
 
 with GNATCOLL.Traces; use GNATCOLL.Traces;
 
 package Analysis is
 
+   package LAL renames Libadalang.Analysis;
+   package LALCO renames Libadalang.Common;
+
    Analysis_Trace : constant Trace_Handle := Create ("AGC.ANALYSIS");
-
-   type Summaries_Holder is synchronized interface;
-   type Summaries_Access is access Summaries_Holder'Class;
-
-   type Summary_Holder   is synchronized interface;
-   type Summary_Access   is access Summary_Holder'Class;
-
-   procedure Get_Summary
-     (Self       : in out Summaries_Holder;
-      Subprogram : Libadalang.Analysis.Basic_Decl'Class;
-      Summary    : out Summary_Access) is abstract;
-
-   procedure Get_Existing_Summary
-     (Self      : in out Summaries_Holder;
-      Subp_Name : Unbounded_Text_Type;
-      Summary   : out Summary_Access) is abstract;
-
-   procedure Dump_Existing_Call_Graph
-     (Self : in out Summaries_Holder;
-      Path : String) is abstract;
-
-   type Subp_Info is record
-      Subp : Libadalang.Analysis.Body_Node;
-      Id   : Unbounded_Text_Type;
-   end record;
-
-   function Hash (X : Subp_Info) return Ada.Containers.Hash_Type;
-
-   package Subp_Sets is new Ada.Containers.Hashed_Sets
-     (Subp_Info, Hash, "=", "=");
-
-   procedure Get
-     (Self          : in out Summary_Holder;
-      Does_Allocate : out Boolean;
-      Called_Subps  : out Subp_Sets.Set) is abstract;
-
-   procedure Get_Blocking
-     (Self          : in out Summary_Holder;
-      Does_Allocate : out Boolean;
-      Called_Subps  : out Subp_Sets.Set) is abstract;
-
-   type Tristate is (Unknown, False, True);
-
-   procedure Set_Global_Allocates
-     (Self  : in out Summary_Holder;
-      Value : Boolean) is abstract;
-
-   procedure Get_Global_Allocates
-     (Self  : in out Summary_Holder;
-      Value : out Tristate) is abstract;
-
-   procedure Get_Global_Allocates_Blocking
-     (Self  : in out Summary_Holder;
-      Value : out Boolean) is abstract;
-
-   type Summaries_Map is synchronized new Summaries_Holder with private;
-
-   Summaries : Summaries_Access;
-
-   function Does_Allocate
-     (Subprogram : Libadalang.Analysis.Body_Node'Class) return Boolean;
 
    function Is_Owner_At
      (Var   : Libadalang.Analysis.Defining_Name;
       Place : Libadalang.Analysis.Ada_Node'Class) return Boolean;
 
-private
-   protected type Local_Summary is new Summary_Holder with
-      function Has_Target return Boolean;
-      procedure Set_Target (X : Libadalang.Analysis.Basic_Decl);
+   generic
+      type Context_Solution is private;
+      with function Analyze
+        (Subp : LAL.Base_Subp_Body) return Context_Solution;
+      with function Default
+        (Subp : LAL.Base_Subp_Body) return Context_Solution;
+      with function "=" (A, B : Context_Solution) return Boolean is <>;
 
-      overriding procedure Get
-        (Does_Allocate : out Boolean;
-         Called_Subps  : out Subp_Sets.Set);
+      type Universal_Solution is private;
+      with function Convert (S : Context_Solution) return Universal_Solution;
+      with function "=" (A, B : Universal_Solution) return Boolean is <>;
+   package Shared_Analysis is
 
-      overriding entry Get_Blocking
-        (Does_Allocate : out Boolean;
-         Called_Subps  : out Subp_Sets.Set);
+      function Get_Or_Compute
+        (Subp : LAL.Base_Subp_Body) return Context_Solution;
 
-      overriding procedure Set_Global_Allocates (Value : Boolean);
-      overriding procedure Get_Global_Allocates (Value : out Tristate);
-      overriding entry     Get_Global_Allocates_Blocking
-        (Value : out Boolean);
+      function Get_Or_Return
+        (Subp_Name   : Unbounded_Text_Type;
+         Result      : out Context_Solution) return Boolean;
+
    private
-      Target         : Libadalang.Analysis.Basic_Decl;
-      Is_Computed    : Boolean := False;
-      Self_Allocates : Boolean;
-      Calls          : Subp_Sets.Set;
 
-      Global_Allocates : Tristate := Unknown;
-   end Local_Summary;
+      subtype Key_Type is Unbounded_Text_Type;
+      use Ada.Strings.Wide_Wide_Unbounded;
 
-   subtype Key is Unbounded_Text_Type;
+      protected type Summary_Type is
+         procedure Seize (Ctx : LAL.Analysis_Context);
 
-   function Hash (X : Key) return Ada.Containers.Hash_Type;
+         procedure Set (R : Context_Solution);
+         entry Get (R : out Context_Solution);
 
-   package Local_Summaries is new Ada.Containers.Hashed_Maps
-     (Key, Summary_Access, Hash, Ada.Strings.Wide_Wide_Unbounded."=", "=");
+         function Get_Computer return LAL.Analysis_Context;
+      private
+         Result   : Context_Solution;
+         Computer : LAL.Analysis_Context := LAL.No_Analysis_Context;
+      end Summary_Type;
 
-   protected type Summaries_Map is new Summaries_Holder with
-      overriding procedure Get_Summary
-        (Subprogram : Libadalang.Analysis.Basic_Decl'Class;
-         Summary    : out Summary_Access);
+      type Summary_Access is access Summary_Type;
 
-      overriding procedure Get_Existing_Summary
-        (Subp_Name : Unbounded_Text_Type;
-         Summary   : out Summary_Access);
+      package Cache_Maps is new Ada.Containers.Hashed_Maps
+        (Key_Type, Summary_Access, Wide_Wide_Hash, "=");
 
-      overriding procedure Dump_Existing_Call_Graph (Path : String);
-   private
-      Map : Local_Summaries.Map;
-   end Summaries_Map;
+      protected Holder is
+         function Get_Access_To_Existing_Summary
+           (Subp : Key_Type) return Summary_Access;
+
+         procedure Get_Access_To_Summary
+           (Subp         : Key_Type;
+            Ctx          : LAL.Analysis_Context;
+            Summary      : out Summary_Access;
+            Must_Compute : out Boolean);
+      private
+         Cache : Cache_Maps.Map;
+      end Holder;
+   end Shared_Analysis;
 end Analysis;

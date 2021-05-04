@@ -42,9 +42,6 @@ package body Session is
       Incremental.Compute_Change_Set;
 
       Optimization_Level := Optim_Level;
-      if Optim_Level /= None then
-         Analysis.Summaries := new Analysis.Summaries_Map;
-      end if;
    end Init_Session;
 
    function Is_File_To_Process (File_Name : String) return Boolean is

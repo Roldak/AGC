@@ -13,7 +13,7 @@ with Libadalang.Analysis;
 with Libadalang.Common;
 with Libadalang.Iterators;
 
-with Analysis;
+with Analysis.Allocations;
 with Post_Actions;
 with Session;
 
@@ -371,8 +371,6 @@ package body Utils is
    end Is_Actual_Expr;
 
    function Is_Named_Expr (Expr : LAL.Expr'Class) return Boolean is
-      use type Analysis.Summaries_Access;
-
       function Handle_Call (Name : LAL.Name) return Boolean is
          Called_Spec : LAL.Base_Formal_Param_Holder :=
             Name.P_Called_Subp_Spec;
@@ -383,7 +381,7 @@ package body Utils is
             return True;
          elsif Called_Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def then
             return False;
-         elsif Analysis.Summaries = null then
+         elsif Session.Get_Optimization_Level in Session.None then
             return False;
          end if;
 
@@ -392,7 +390,8 @@ package body Utils is
          if Subp_Body.Is_Null then
             return False;
          else
-            return not Analysis.Does_Allocate (Subp_Body);
+            return not Analysis.Allocations.Share.Get_Or_Compute
+              (Subp_Body.As_Base_Subp_Body);
          end if;
       end Handle_Call;
    begin
