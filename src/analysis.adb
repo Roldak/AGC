@@ -179,6 +179,26 @@ package body Analysis is
          return Result;
       end Get_Universal_Solution;
 
+      function Get_Universal_Solution
+        (Subp_Name : Unbounded_Text_Type;
+         Result    : out Universal_Solution) return Boolean
+      is
+      begin
+         if Universal_Solutions_Holder.Contains (Subp_Name) then
+            Universal_Solutions_Holder.Get (Subp_Name, Result);
+            return True;
+         end if;
+         return False;
+      end Get_Universal_Solution;
+
+      procedure Iterate_Universal_Solutions
+        (Process : access procedure (Subp   : Unbounded_Text_Type;
+                                     Result : Universal_Solution))
+      is
+      begin
+         Universal_Solutions_Holder.Iterate (Process);
+      end Iterate_Universal_Solutions;
+
       protected body Universal_Solutions_Holder is
          function Contains (Subp : Universal_Key_Type) return Boolean is
          begin
@@ -197,8 +217,10 @@ package body Analysis is
            (Subp     : Universal_Key_Type;
             Solution : Universal_Solution)
          is
+            Dummy_Cursor : Universal_Cache_Maps.Cursor;
+            Dummy_Bool   : Boolean;
          begin
-            Cache.Insert (Subp, Solution);
+            Cache.Insert (Subp, Solution, Dummy_Cursor, Dummy_Bool);
          end Insert;
 
          procedure Include
@@ -208,6 +230,20 @@ package body Analysis is
          begin
             Cache.Include (Subp, Solution);
          end Include;
+
+         procedure Iterate
+           (Process : access procedure (Subp   : Universal_Key_Type;
+                                        Result : Universal_Solution))
+         is
+            procedure Unwrap (C : Universal_Cache_Maps.Cursor) is
+            begin
+               Process
+                 (Universal_Cache_Maps.Key (C),
+                  Universal_Cache_Maps.Element (C));
+            end Unwrap;
+         begin
+            Cache.Iterate (Unwrap'Access);
+         end Iterate;
       end Universal_Solutions_Holder;
 
    end Shared_Analysis;

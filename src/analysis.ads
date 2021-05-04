@@ -49,6 +49,14 @@ package Analysis is
       function Get_Universal_Solution
         (Subp : LAL.Body_Node) return Universal_Solution;
 
+      function Get_Universal_Solution
+        (Subp_Name : Unbounded_Text_Type;
+         Result    : out Universal_Solution) return Boolean;
+
+      procedure Iterate_Universal_Solutions
+        (Process : access procedure (Subp   : Unbounded_Text_Type;
+                                     Result : Universal_Solution));
+
    private
 
       --  Context solution holder
@@ -69,15 +77,22 @@ package Analysis is
 
       protected Universal_Solutions_Holder is
          function Contains (Subp : Universal_Key_Type) return Boolean;
+
          procedure Get
            (Subp     : Universal_Key_Type;
             Solution : out Universal_Solution);
+
          procedure Insert
            (Subp     : Universal_Key_Type;
             Solution : Universal_Solution);
+
          procedure Include
            (Subp     : Universal_Key_Type;
             Solution : Universal_Solution);
+
+         procedure Iterate
+           (Process : access procedure (Subp   : Universal_Key_Type;
+                                        Result : Universal_Solution));
       private
          Cache : Universal_Cache_Maps.Map;
       end Universal_Solutions_Holder;

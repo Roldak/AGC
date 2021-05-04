@@ -18,7 +18,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
-with Analysis;
+with Analysis.Call_Graph.Dump;
 with Post_Actions;
 with Session;
 with Utils;
@@ -238,6 +238,8 @@ procedure AGC is
       --  dump call graph
       if Dump_Call_Graph.Get /= "" then
          Put_Line ("Dump computed call-graph");
+         Analysis.Call_Graph.Dump
+           (GNATCOLL.Strings.To_String (Dump_Call_Graph.Get));
       end if;
 
       --  terminate
