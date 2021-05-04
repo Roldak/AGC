@@ -1,7 +1,7 @@
 package Analysis.Allocations is
-   function Analyze (Subp : LAL.Base_Subp_Body) return Boolean;
+   function Analyze (Subp : LAL.Body_Node) return Boolean;
 
-   function Default (Subp : LAL.Base_Subp_Body) return Boolean is
+   function Default (Subp : LAL.Body_Node) return Boolean is
      (False);
 
    function Identity (X : Boolean) return Boolean is (X);

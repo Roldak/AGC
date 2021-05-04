@@ -237,8 +237,9 @@ is
    begin
       if Session.Get_Optimization_Level not in Session.None
          and then not Enclosing_Subp.Is_Null
-         and then not Analysis.Allocations.Share.Get_Or_Compute
-                        (Enclosing_Subp)
+         and then not
+            Analysis.Allocations.Share.Get_Universal_Solution
+              (Enclosing_Subp.As_Body_Node)
       then
          return;
       end if;

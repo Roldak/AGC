@@ -1,3 +1,5 @@
+with Ada.Containers;
+
 with Langkit_Support.Text;
 
 with Libadalang.Analysis;
@@ -79,6 +81,9 @@ package Utils is
      (X : LAL.Unbounded_Text_Type_Array) return Langkit_Support.Text.Text_Type;
 
    function Base_Name (Full_Path : String) return String;
+
+   function Cached_Node_Hash
+     (N : LAL.Ada_Node) return Ada.Containers.Hash_Type;
 
    type Diagnostic_Kind is (Error, Warning, Note);
 

@@ -13,8 +13,8 @@ package Analysis.Call_Graph is
       Known_Calls       : Subp_Sets.Set;
    end record;
 
-   function Analyze (Subp : LAL.Base_Subp_Body) return Context_Solution;
-   function Default (Subp : LAL.Base_Subp_Body) return Context_Solution is
+   function Analyze (Subp : LAL.Body_Node) return Context_Solution;
+   function Default (Subp : LAL.Body_Node) return Context_Solution is
      ((Has_Unknown_Calls => False,
        Known_Calls       => Subp_Sets.Empty_Set));
 

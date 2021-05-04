@@ -28,16 +28,6 @@ package body Utils is
       return Session.Is_File_To_Process (LAL.Get_Filename (BD.Unit));
    end Defined_In_Session;
 
-   function Cached_Node_Hash
-     (X : LAL.Ada_Node) return Ada.Containers.Hash_Type
-   is
-   begin
-      return LAL.Hash (X);
-   exception
-      when LALCO.Stale_Reference_Error =>
-         return Ada.Containers.Hash_Type (0);
-   end Cached_Node_Hash;
-
    package Node_Bool_Maps is new Ada.Containers.Hashed_Maps
      (LAL.Ada_Node, Boolean, Cached_Node_Hash, LAL."=", "=");
 
@@ -390,8 +380,8 @@ package body Utils is
          if Subp_Body.Is_Null then
             return False;
          else
-            return not Analysis.Allocations.Share.Get_Or_Compute
-              (Subp_Body.As_Base_Subp_Body);
+            return not Analysis.Allocations.Share.Get_Universal_Solution
+              (Subp_Body);
          end if;
       end Handle_Call;
    begin
@@ -747,6 +737,16 @@ package body Utils is
    begin
       return +Create (+Full_Path).Base_Name;
    end Base_Name;
+
+   function Cached_Node_Hash
+     (N : LAL.Ada_Node) return Ada.Containers.Hash_Type
+   is
+   begin
+      return LAL.Hash (N);
+   exception
+      when LALCO.Stale_Reference_Error =>
+         return Ada.Containers.Hash_Type (0);
+   end Cached_Node_Hash;
 
    procedure Output_Diagnostic
      (Node : LAL.Ada_Node'Class;

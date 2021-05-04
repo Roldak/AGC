@@ -7,7 +7,6 @@ with Libadalang.Common;
 
 with Analysis.Dataflow;
 with Analysis.Lattices.Finite_Node_Sets;
-with Dot_Printer;
 with Utils;
 
 package body Analysis is
@@ -125,114 +124,91 @@ package body Analysis is
 
    package body Shared_Analysis is
 
-      function Get_Or_Compute
-        (Subp : LAL.Base_Subp_Body) return Context_Solution
+      function Get_Context_Solution
+        (Subp : LAL.Body_Node) return Context_Solution
       is
-         Key : constant Key_Type :=
+         use type Context_Cache_Maps.Cursor;
+
+         Map_Ref : constant Context_Solutions_Holder.Attribute_Handle :=
+            Context_Solutions_Holder.Reference;
+
+         Cursor   : Context_Cache_Maps.Cursor;
+         Inserted : Boolean;
+      begin
+         Map_Ref.Insert (Subp.As_Ada_Node, Cursor, Inserted);
+         if Inserted then
+            declare
+               Placeholder : Context_Solution := Default (Subp);
+               Key         : Unbounded_Text_Type := To_Unbounded_Text
+                 (Subp.P_Unique_Identifying_Name);
+            begin
+               Map_Ref.Replace_Element (Cursor, Default (Subp));
+
+               Universal_Solutions_Holder.Insert (Key, Convert (Placeholder));
+
+               declare
+                  Result : Context_Solution := Analyze (Subp);
+               begin
+                  Map_Ref.Replace_Element (Cursor, Result);
+                  Universal_Solutions_Holder.Include (Key, Convert (Result));
+                  return Result;
+               end;
+            end;
+         else
+            return Context_Cache_Maps.Element (Cursor);
+         end if;
+      end Get_Context_Solution;
+
+      function Get_Universal_Solution
+        (Subp : LAL.Body_Node) return Universal_Solution
+      is
+         Key : constant Universal_Key_Type :=
             To_Unbounded_Text (Subp.P_Unique_Identifying_Name);
 
-         Ctx : constant LAL.Analysis_Context := Subp.Unit.Context;
-
-         Result       : Context_Solution;
-         Summary      : Summary_Access;
-         Must_Compute : Boolean;
+         Result : Universal_Solution;
       begin
-         Holder.Get_Access_To_Summary (Key, Ctx, Summary, Must_Compute);
-
-         if Must_Compute then
-            --  Summary was created for us, analyze the subprogram
-            Result := Analyze (Subp);
-            Summary.Set (Result);
-         elsif Summary.Get_Computer = Ctx then
-            --  Summary already exists, and we are assigned to compute it.
-            --  This means recursion, so return the default value.
-            return Default (Subp);
-         elsif Summary.Get_Computer /= LAL.No_Analysis_Context then
-            --  Summary already exists and we are not the assignee. Duplicate
-            --  the analysis in order to avoid a dead-lock in case of
-            --  mutual recursion.
-            --  TODO: Find a better solution.
-            Result := Analyze (Subp);
-            Summary.Set (Result);
+         if Universal_Solutions_Holder.Contains (Key) then
+            Universal_Solutions_Holder.Get (Key, Result);
          else
-            --  Summary already exists and there is not assignee, which means
-            --  it is ready to be retrieve and used.
-            Summary.Get (Result);
+            declare
+               Context_Result : Context_Solution := Get_Context_Solution (Subp);
+            begin
+               Universal_Solutions_Holder.Get (Key, Result);
+            end;
          end if;
          return Result;
-      end Get_Or_Compute;
+      end Get_Universal_Solution;
 
-      function Get_Or_Return
-        (Subp_Name   : Unbounded_Text_Type;
-         Result      : out Context_Solution) return Boolean
-      is
-         Summary : Summary_Access :=
-            Holder.Get_Access_To_Existing_Summary (Subp_Name);
-      begin
-         if Summary = null then
-            return False;
-         end if;
-         Summary.Get (Result);
-         return True;
-      end Get_Or_Return;
-
-      protected body Summary_Type is
-         procedure Seize (Ctx : LAL.Analysis_Context) is
+      protected body Universal_Solutions_Holder is
+         function Contains (Subp : Universal_Key_Type) return Boolean is
          begin
-            Computer := Ctx;
-         end Seize;
+            return Cache.Contains (Subp);
+         end Contains;
 
-         procedure Set (R : Context_Solution) is
-         begin
-            Result   := R;
-            Computer := LAL.No_Analysis_Context;
-         end Set;
-
-         entry Get (R : out Context_Solution)
-            when Computer = LAL.No_Analysis_Context
+         procedure Get
+           (Subp     : Universal_Key_Type;
+            Solution : out Universal_Solution)
          is
          begin
-            R := Result;
+            Solution := Cache.Element (Subp);
          end Get;
 
-         function Get_Computer return LAL.Analysis_Context is
-         begin
-            return Computer;
-         end Get_Computer;
-      end Summary_Type;
-
-      protected body Holder is
-         function Get_Access_To_Existing_Summary
-           (Subp : Key_Type) return Summary_Access
+         procedure Insert
+           (Subp     : Universal_Key_Type;
+            Solution : Universal_Solution)
          is
-            use type Cache_Maps.Cursor;
-
-            Cursor : Cache_Maps.Cursor := Cache.Find (Subp);
          begin
-            if Cursor = Cache_Maps.No_Element then
-               return null;
-            end if;
-            return Cache_Maps.Element (Cursor);
-         end Get_Access_To_Existing_Summary;
+            Cache.Insert (Subp, Solution);
+         end Insert;
 
-         procedure Get_Access_To_Summary
-           (Subp         : Key_Type;
-            Ctx          : LAL.Analysis_Context;
-            Summary      : out Summary_Access;
-            Must_Compute : out Boolean)
+         procedure Include
+           (Subp     : Universal_Key_Type;
+            Solution : Universal_Solution)
          is
-            Cursor : Cache_Maps.Cursor;
          begin
-            Cache.Insert (Subp, Cursor, Must_Compute);
-            if Must_Compute then
-               Summary := new Summary_Type;
-               Summary.Seize (Ctx);
-               Cache.Replace_Element (Cursor, Summary);
-            else
-               Summary := Cache_Maps.Element (Cursor);
-            end if;
-         end Get_Access_To_Summary;
-      end Holder;
+            Cache.Include (Subp, Solution);
+         end Include;
+      end Universal_Solutions_Holder;
 
    end Shared_Analysis;
 end Analysis;

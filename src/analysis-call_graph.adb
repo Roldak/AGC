@@ -2,7 +2,7 @@ with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 with Utils;
 
 package body Analysis.Call_Graph is
-   function Analyze (Subp : LAL.Base_Subp_Body) return Context_Solution is
+   function Analyze (Subp : LAL.Body_Node) return Context_Solution is
       Result : Context_Solution;
 
       function Handle_Call
@@ -82,7 +82,7 @@ package body Analysis.Call_Graph is
       for Call of X.Known_Calls loop
          Result.Known_Calls.Include
            (To_Unbounded_Text
-              (Call.As_Base_Subp_Body.P_Unique_Identifying_Name));
+              (Call.As_Body_Node.P_Unique_Identifying_Name));
       end loop;
       return Result;
    end To_Universal;

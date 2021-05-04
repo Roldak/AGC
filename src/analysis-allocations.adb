@@ -6,7 +6,7 @@ with Utils;
 package body Analysis.Allocations is
    use type Unbounded_Text_Type;
 
-   function Analyze (Subp : LAL.Base_Subp_Body) return Boolean is
+   function Analyze (Subp : LAL.Body_Node) return Boolean is
       Result : Boolean := False;
 
       function Process_Node
@@ -39,14 +39,16 @@ package body Analysis.Allocations is
       end if;
       declare
          Call_Summary : Call_Graph.Context_Solution :=
-            Call_Graph.Share.Get_Or_Compute (Subp);
+            Call_Graph.Share.Get_Context_Solution (Subp);
       begin
          if Call_Summary.Has_Unknown_Calls then
             return True;
          end if;
 
          for Call of Call_Summary.Known_Calls loop
-            if Allocations.Share.Get_Or_Compute (Call.As_Base_Subp_Body) then
+            if Allocations.Share.Get_Universal_Solution
+                 (Call.As_Body_Node)
+            then
                return True;
             end if;
          end loop;
