@@ -16,7 +16,7 @@ with Libadalang.Unparsing;
 with Node_Counters;
 with Utils;
 
-procedure Handle_Temporaries
+procedure Pass.Handle_Temporaries
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
@@ -354,4 +354,4 @@ begin
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "handle_temporaries: could not apply rewritings";
    end if;
-end Handle_Temporaries;
+end Pass.Handle_Temporaries;

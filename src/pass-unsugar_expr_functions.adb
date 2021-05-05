@@ -14,7 +14,7 @@ with Libadalang.Unparsing;
 with Node_Counters;
 with Utils;
 
-procedure Unsugar_Expr_Functions
+procedure Pass.Unsugar_Expr_Functions
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit    : Libadalang.Analysis.Analysis_Unit)
 is
@@ -70,4 +70,4 @@ begin
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "extend_return_stmts: could not apply rewritings";
    end if;
-end Unsugar_Expr_Functions;
+end Pass.Unsugar_Expr_Functions;

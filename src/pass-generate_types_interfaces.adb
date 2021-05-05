@@ -17,7 +17,7 @@ with Node_Counters;
 with Utils;
 with Session;
 
-procedure Generate_Types_Interfaces
+procedure Pass.Generate_Types_Interfaces
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
@@ -668,4 +668,4 @@ begin
       raise Program_Error
          with "generate_types_interfaces: could not apply rewritings";
    end if;
-end Generate_Types_Interfaces;
+end Pass.Generate_Types_Interfaces;

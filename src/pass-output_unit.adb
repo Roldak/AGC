@@ -15,7 +15,7 @@ with Libadalang.Unparsing;
 with Session;
 with Utils;
 
-procedure Output_Unit
+procedure Pass.Output_Unit
   (Unit      : Libadalang.Analysis.Analysis_Unit;
    With_SHA1 : Boolean)
 is
@@ -48,4 +48,4 @@ begin
          VFS.Close (New_Unit);
       end;
    end if;
-end Output_Unit;
+end Pass.Output_Unit;

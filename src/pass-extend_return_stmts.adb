@@ -14,7 +14,7 @@ with Libadalang.Unparsing;
 with Node_Counters;
 with Utils;
 
-procedure Extend_Return_Stmts
+procedure Pass.Extend_Return_Stmts
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
@@ -64,4 +64,4 @@ begin
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "extend_return_stmts: could not apply rewritings";
    end if;
-end Extend_Return_Stmts;
+end Pass.Extend_Return_Stmts;

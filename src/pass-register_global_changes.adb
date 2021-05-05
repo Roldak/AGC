@@ -12,7 +12,7 @@ with Libadalang.Common;
 with Libadalang.Helpers;
 with Libadalang.Unparsing;
 
-procedure Register_Global_Changes
+procedure Pass.Register_Global_Changes
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit    : Libadalang.Analysis.Analysis_Unit)
 is
@@ -318,4 +318,4 @@ is
    end Process_Node;
 begin
    Unit.Root.Traverse (Process_Node'Access);
-end Register_Global_Changes;
+end Pass.Register_Global_Changes;

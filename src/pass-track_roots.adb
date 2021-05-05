@@ -15,7 +15,7 @@ with Node_Counters;
 with Utils;
 with Session;
 
-procedure Track_Roots
+procedure Pass.Track_Roots
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
@@ -421,4 +421,4 @@ begin
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "track_roots: could not apply rewritings";
    end if;
-end Track_Roots;
+end Pass.Track_Roots;

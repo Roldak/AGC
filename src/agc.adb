@@ -18,21 +18,23 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
-with Analysis.Call_Graph.Dump;
-with Post_Actions;
 with Session;
 with Utils;
 
-with Check_Consistency;
-with Add_With_Clauses;
-with Unsugar_Expr_Functions;
-with Handle_Temporaries;
-with Collect_Static;
-with Extend_Return_Stmts;
-with Track_Roots;
-with Generate_Types_Interfaces;
-with Register_Global_Changes;
-with Output_Unit;
+with Analysis.Call_Graph.Dump;
+
+with Pass.Check_Consistency;
+with Pass.Add_With_Clauses;
+with Pass.Unsugar_Expr_Functions;
+with Pass.Handle_Temporaries;
+with Pass.Collect_Static;
+with Pass.Extend_Return_Stmts;
+with Pass.Track_Roots;
+with Pass.Generate_Types_Interfaces;
+with Pass.Register_Global_Changes;
+with Pass.Output_Unit;
+
+with Post_Actions;
 
 procedure AGC is
    package Slocs   renames Langkit_Support.Slocs;
@@ -158,14 +160,14 @@ procedure AGC is
       if Unit.Has_Diagnostics then
          Put_Line ("Invalid ada unit " & Unit.Get_Filename);
       else
-         Add_With_Clauses (Job_Ctx, Unit);
-         Unsugar_Expr_Functions (Job_Ctx, Unit);
-         Handle_Temporaries (Job_Ctx, Unit);
-         Collect_Static (Job_Ctx, Unit);
-         Extend_Return_Stmts (Job_Ctx, Unit);
-         Track_Roots (Job_Ctx, Unit);
-         Generate_Types_Interfaces (Job_Ctx, Unit);
-         Register_Global_Changes (Job_Ctx, Unit);
+         Pass.Add_With_Clauses (Job_Ctx, Unit);
+         Pass.Unsugar_Expr_Functions (Job_Ctx, Unit);
+         Pass.Handle_Temporaries (Job_Ctx, Unit);
+         Pass.Collect_Static (Job_Ctx, Unit);
+         Pass.Extend_Return_Stmts (Job_Ctx, Unit);
+         Pass.Track_Roots (Job_Ctx, Unit);
+         Pass.Generate_Types_Interfaces (Job_Ctx, Unit);
+         Pass.Register_Global_Changes (Job_Ctx, Unit);
       end if;
    end Process_Unit;
 
@@ -215,7 +217,7 @@ procedure AGC is
 
       Put_Line ("Check consistency");
 
-      if not Check_Consistency (Ctx, First_Context, All_Units) then
+      if not Pass.Check_Consistency (Ctx, First_Context, All_Units) then
          return;
       end if;
 
@@ -230,7 +232,7 @@ procedure AGC is
       --  output units
       for Unit of All_Units loop
          if Force.Get or else Session.Must_Reprocess (Unit) then
-            Output_Unit (Unit => Unit, With_SHA1 => not No_Hash.Get);
+            Pass.Output_Unit (Unit => Unit, With_SHA1 => not No_Hash.Get);
             Total_Written := Total_Written + 1;
          end if;
       end loop;

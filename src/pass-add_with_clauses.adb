@@ -9,7 +9,7 @@ with Libadalang.Helpers;
 with Libadalang.Rewriting;
 with Libadalang.Unparsing;
 
-procedure Add_With_Clauses
+procedure Pass.Add_With_Clauses
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
@@ -46,4 +46,4 @@ begin
    if not LALRW.Apply (RH).Success then
       raise Program_Error with "add_with_clause: could not apply rewritings";
    end if;
-end Add_With_Clauses;
+end Pass.Add_With_Clauses;

@@ -17,7 +17,7 @@ with Analysis.Ownership;
 with Session;
 with Utils;
 
-procedure Collect_Static
+procedure Pass.Collect_Static
   (Job_Ctx  : Libadalang.Helpers.App_Job_Context;
    Unit     : Libadalang.Analysis.Analysis_Unit)
 is
@@ -194,4 +194,4 @@ begin
    if not Apply_Rewritings_If_Relevant then
       raise Program_Error with "collect_static: could not apply rewritings";
    end if;
-end Collect_Static;
+end Pass.Collect_Static;

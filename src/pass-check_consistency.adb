@@ -10,7 +10,7 @@ with GNATCOLL.Projects; use GNATCOLL;
 with Session;
 with Utils;
 
-function Check_Consistency
+function Pass.Check_Consistency
   (App_Ctx                : Helpers.App_Context;
    Ctx                    : Analysis.Analysis_Context;
    Processed_Units_Vector : Helpers.Unit_Vectors.Vector)
@@ -77,4 +77,4 @@ begin
    end loop;
 
    return Result;
-end Check_Consistency;
+end Pass.Check_Consistency;
