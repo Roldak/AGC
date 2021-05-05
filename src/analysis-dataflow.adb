@@ -322,9 +322,7 @@ package body Analysis.Dataflow is
                   Foreach_Return_Stmt
                     (Subp, Add_Entry_Point'Unrestricted_Access);
                   Add_Entry_Point
-                    (Right_Most_Element
-                       (Subp.As_Subp_Body.F_Stmts,
-                        Add_Entry_Point'Unrestricted_Access));
+                    (Subp.As_Subp_Body.F_End_Name);
                end if;
             when LALCO.Ada_Expr_Function =>
                R.States.Insert
