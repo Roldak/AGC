@@ -65,6 +65,41 @@ package body Analysis is
          return Result;
       end Get_Universal_Solution;
 
+      procedure Process_Any_Solution
+        (Subp            : LAL.Body_Node;
+         Try_Universal   : access function (Result : Universal_Solution)
+                                            return Boolean;
+         Process_Context : access procedure (Result : Context_Solution))
+      is
+         use type Context_Cache_Maps.Cursor;
+
+         Map_Ref : constant Context_Solutions_Holder.Attribute_Handle :=
+            Context_Solutions_Holder.Reference;
+
+         Cursor : Context_Cache_Maps.Cursor := Map_Ref.Find (Subp.As_Ada_Node);
+      begin
+         if Cursor = Context_Cache_Maps.No_Element then
+            declare
+               Key : constant Universal_Key_Type :=
+                  To_Unbounded_Text (Subp.P_Unique_Identifying_Name);
+            begin
+               if Universal_Solutions_Holder.Contains (Key) then
+                  declare
+                     Result : Universal_Solution;
+                  begin
+                     Universal_Solutions_Holder.Get (Key, Result);
+                     if Try_Universal (Result) then
+                        return;
+                     end if;
+                  end;
+               end if;
+               Process_Context (Get_Context_Solution (Subp));
+            end;
+         else
+            Process_Context (Context_Cache_Maps.Element (Cursor));
+         end if;
+      end Process_Any_Solution;
+
       function Get_Universal_Solution
         (Subp_Name : Unbounded_Text_Type;
          Result    : out Universal_Solution) return Boolean

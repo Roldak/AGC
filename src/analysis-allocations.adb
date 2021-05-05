@@ -32,28 +32,45 @@ package body Analysis.Allocations is
             Result := True;
             return LALCO.Stop;
       end Process_Node;
-   begin
-      Subp.Traverse (Process_Node'Access);
-      if Result then
-         return True;
-      end if;
-      declare
-         Call_Summary : Call_Graph.Context_Solution :=
-            Call_Graph.Share.Get_Context_Solution (Subp);
+
+      procedure Handle_Context_Solution
+        (R : Call_Graph.Context_Solution)
+      is
       begin
-         if Call_Summary.Has_Unknown_Calls then
-            return True;
+         if R.Has_Unknown_Calls then
+            Result := True;
+            return;
          end if;
 
-         for Call of Call_Summary.Known_Calls loop
+         for Call of R.Known_Calls loop
             if Allocations.Share.Get_Universal_Solution
                  (Call.As_Body_Node)
             then
-               return True;
+               Result := True;
+               return;
             end if;
          end loop;
+      end Handle_Context_Solution;
 
-         return False;
-      end;
+      function Try_Universal_Solution
+        (R : Call_Graph.Universal_Solution) return Boolean
+      is
+      begin
+         if R.Has_Unknown_Calls then
+            Result := True;
+            return True;
+         else
+            return False;
+         end if;
+      end Try_Universal_Solution;
+   begin
+      Subp.Traverse (Process_Node'Access);
+      if not Result then
+         Call_Graph.Share.Process_Any_Solution
+           (Subp,
+            Try_Universal_Solution'Access,
+            Handle_Context_Solution'Access);
+      end if;
+      return Result;
    end Analyze;
 end Analysis.Allocations;

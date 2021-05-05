@@ -45,6 +45,12 @@ package Analysis is
       function Get_Universal_Solution
         (Subp : LAL.Body_Node) return Universal_Solution;
 
+      procedure Process_Any_Solution
+        (Subp            : LAL.Body_Node;
+         Try_Universal   : access function (Result : Universal_Solution)
+                                            return Boolean;
+         Process_Context : access procedure (Result : Context_Solution));
+
       function Get_Universal_Solution
         (Subp_Name : Unbounded_Text_Type;
          Result    : out Universal_Solution) return Boolean;
