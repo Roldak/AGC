@@ -68,9 +68,11 @@ is
 
       Index : Positive;
 
-      Is_Owner : Boolean :=
-         Analysis.Ownership.Share.Get_Context_Solution (Subp.As_Body_Node)
-         .Query_At (Location.As_Ada_Node).Contains (Var.As_Ada_Node);
+      Ownership_Solution : constant Analysis.Ownership.Problem.Solution :=
+         Analysis.Ownership.Share.Get_Context_Solution (Subp.As_Body_Node);
+
+      Is_Owner : constant Boolean := Ownership_Solution.Query_At
+         (Location.As_Ada_Node).Contains (Var.As_Ada_Node);
    begin
       if not Best_Location.Is_Null and then Is_Owner then
          Start_Rewriting;
