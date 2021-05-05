@@ -22,10 +22,6 @@ package Analysis is
 
    Analysis_Trace : constant Trace_Handle := Create ("AGC.ANALYSIS");
 
-   function Is_Owner_At
-     (Var   : Libadalang.Analysis.Defining_Name;
-      Place : Libadalang.Analysis.Ada_Node'Class) return Boolean;
-
    generic
       type Context_Solution is private;
 

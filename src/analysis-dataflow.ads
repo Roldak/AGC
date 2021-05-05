@@ -16,15 +16,18 @@ package Analysis.Dataflow is
 
       with procedure Visit_Assign
         (State : in out States.T;
+         Ctx   : LAL.Base_Subp_Body;
          Dest  : LAL.Name;
          Val   : LAL.Expr) is null;
 
       with procedure Visit_Ignore
         (State : in out States.T;
+         Ctx   : LAL.Base_Subp_Body;
          Expr  : LAL.Expr) is null;
 
       with procedure Visit_Return
         (State : in out States.T;
+         Ctx   : LAL.Base_Subp_Body;
          Expr  : LAL.Expr) is null;
 
       Entry_State : States.T;

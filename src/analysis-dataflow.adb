@@ -192,7 +192,8 @@ package body Analysis.Dataflow is
         (LAL.Ada_Node, LAL.Hash, LAL."=", LAL."=");
 
       function Transfer
-        (PC        : LAL.Ada_Node;
+        (Ctx       : LAL.Base_Subp_Body;
+         PC        : LAL.Ada_Node;
          Old_State : States.T)
          return States.T
       is
@@ -203,25 +204,30 @@ package body Analysis.Dataflow is
                for D of PC.As_Object_Decl.F_Ids loop
                   Visit_Assign
                     (State => New_State,
+                     Ctx   => Ctx,
                      Dest  => D.As_Name,
                      Val   => PC.As_Object_Decl.F_Default_Expr);
                end loop;
             when LALCO.Ada_Assign_Stmt =>
                Visit_Assign
                  (State => New_State,
+                  Ctx   => Ctx,
                   Dest  => PC.As_Assign_Stmt.F_Dest,
                   Val   => PC.As_Assign_Stmt.F_Expr);
             when LALCO.Ada_Call_Stmt =>
                Visit_Ignore
                  (State => New_State,
+                  Ctx   => Ctx,
                   Expr  => PC.As_Call_Stmt.F_Call.As_Expr);
             when LALCO.Ada_Return_Stmt =>
                Visit_Return
                  (State => New_State,
+                  Ctx   => Ctx,
                   Expr  => PC.As_Return_Stmt.F_Return_Expr);
             when LALCO.Ada_Expr_Function =>
                Visit_Return
                  (State => New_State,
+                  Ctx   => Ctx,
                   Expr  => PC.As_Expr_Function.F_Expr);
             when others =>
                null;
@@ -305,7 +311,7 @@ package body Analysis.Dataflow is
             when LALCO.Ada_Expr_Function =>
                R.States.Insert
                  (Subp.As_Ada_Node,
-                  Transfer (Subp.As_Ada_Node, Entry_State));
+                  Transfer (Subp, Subp.As_Ada_Node, Entry_State));
                return R;
             when LALCO.Ada_Null_Subp_Decl =>
                return R;
@@ -321,7 +327,7 @@ package body Analysis.Dataflow is
                   Dummy     : Boolean;
                   PC_State  : State_Maps.Cursor := Node_State (PC, Dummy);
                   New_State : States.T :=
-                     Transfer (PC, State_Maps.Element (PC_State));
+                     Transfer (Subp, PC, State_Maps.Element (PC_State));
 
                   function Update (X : LAL.Ada_Node) return Boolean is
                      use type States.T;
