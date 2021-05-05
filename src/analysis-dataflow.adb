@@ -28,7 +28,8 @@ package body Analysis.Dataflow is
 
             when LALCO.Ada_Return_Stmt
                    | LALCO.Ada_Raise_Stmt
-                   | LALCO.Ada_Goto_Stmt =>
+                   | LALCO.Ada_Goto_Stmt
+                   | LALCO.Ada_Loop_Stmt =>
                return LAL.No_Ada_Node;
 
             when LALCO.Ada_If_Stmt =>
@@ -46,10 +47,7 @@ package body Analysis.Dataflow is
                   PC := PC.As_If_Stmt.F_Else_Stmts.As_Ada_Node;
                end if;
 
-            when LALCO.Ada_Base_Loop_Stmt =>
-               if PC.Kind in LALCO.Ada_Loop_Stmt then
-                  return LAL.No_Ada_Node;
-               end if;
+            when LALCO.Ada_For_Loop_Stmt | LALCO.Ada_While_Loop_Stmt =>
                return PC;
 
             when others =>
@@ -172,7 +170,8 @@ package body Analysis.Dataflow is
             return;
 
          when LALCO.Ada_Base_Loop_Stmt =>
-            Include (Right_Most_Element (PC, Include));
+            Include
+              (Right_Most_Element (PC.As_Base_Loop_Stmt.F_Stmts, Include));
             PC := PC.Previous_Sibling;
 
          when others =>
