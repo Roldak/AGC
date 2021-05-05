@@ -1,5 +1,4 @@
 with Ada.Text_IO; use Ada.Text_IO;
-with Ada.Wide_Wide_Text_IO; use Ada.Wide_Wide_Text_IO;
 with Analysis.Call_Graph;
 with Utils;
 
@@ -55,9 +54,12 @@ package body Analysis.Allocations is
       function Try_Universal_Solution
         (R : Call_Graph.Universal_Solution) return Boolean
       is
+         use type Ada.Containers.Count_Type;
       begin
          if R.Has_Unknown_Calls then
             Result := True;
+            return True;
+         elsif R.Known_Calls.Length = 0 then
             return True;
          else
             return False;
