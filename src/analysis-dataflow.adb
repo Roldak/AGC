@@ -213,6 +213,10 @@ package body Analysis.Dataflow is
       begin
          case PC.Kind is
             when LALCO.Ada_Object_Decl =>
+               if PC.As_Object_Decl.F_Default_Expr.Is_Null then
+                  return New_State;
+               end if;
+
                for D of PC.As_Object_Decl.F_Ids loop
                   Visit_Assign
                     (State => New_State,
