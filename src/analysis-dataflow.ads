@@ -55,6 +55,8 @@ package Analysis.Dataflow is
 
       procedure Dump (S : Solution);
 
+      procedure Output_Graph (S : Solution; Path : String);
+
    private
       package State_Maps is new Ada.Containers.Hashed_Maps
         (LAL.Ada_Node,

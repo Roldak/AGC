@@ -1,8 +1,11 @@
 with Ada.Containers.Vectors;
+with Ada.Strings.Hash;
 with Ada.Text_IO; use Ada.Text_IO;
 
 with Libadalang.Common;
 with Libadalang.Iterators;
+
+with Dot_Printer;
 
 package body Analysis.Dataflow is
    package LALCO renames Libadalang.Common;
@@ -265,6 +268,24 @@ package body Analysis.Dataflow is
          end loop;
       end Foreach_Return_Stmt;
 
+      function Join (X, Y : States.T) return States.T is
+         use States;
+      begin
+         return (if Confluence in May then X or Y else X and Y);
+      end Join;
+
+      procedure Flow_Next
+        (PC      : in out LAL.Ada_Node;
+         Include : Node_Handler_Type)
+      is
+      begin
+         if Flow in Forward then
+            Next (PC, Include);
+         else
+            Prev (PC, Include);
+         end if;
+      end Flow_Next;
+
       function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution is
          R  : Solution;
 
@@ -282,24 +303,6 @@ package body Analysis.Dataflow is
             end if;
             return C;
          end Node_State;
-
-         function Op (X, Y : States.T) return States.T is
-            use States;
-         begin
-            return (if Confluence in May then X or Y else X and Y);
-         end Op;
-
-         procedure Flow_Next
-           (PC      : in out LAL.Ada_Node;
-            Include : Node_Handler_Type)
-         is
-         begin
-            if Flow in Forward then
-               Next (PC, Include);
-            else
-               Prev (PC, Include);
-            end if;
-         end Flow_Next;
 
          W  : Node_Sets.Set;
 
@@ -353,7 +356,7 @@ package body Analysis.Dataflow is
                      Meet_State : States.T :=
                        (if Inserted
                         then New_State
-                        else Op (State_Maps.Element (X_State), New_State));
+                        else Join (State_Maps.Element (X_State), New_State));
                   begin
                      if Inserted or else
                         Meet_State /= State_Maps.Element (X_State)
@@ -450,5 +453,59 @@ package body Analysis.Dataflow is
       begin
          S.States.Iterate (Dump_One'Access);
       end Dump;
+
+      procedure Output_Graph (S : Solution; Path : String) is
+         use Langkit_Support.Text;
+
+         Printer : Dot_Printer.Printer;
+
+         function Hash
+           (X : LAL.Ada_Node'Class) return Ada.Containers.Hash_Type
+         is
+            use type Ada.Containers.Hash_Type;
+         begin
+            if X.Is_Null then
+               return 0;
+            else
+               return LAL.Hash (X) + Ada.Strings.Hash (LAL.Image (X));
+            end if;
+         end Hash;
+
+         function Name
+           (X : LAL.Ada_Node'Class;
+            S : States.T) return Unbounded_Text_Type
+         is
+            State_Img : Text_Type := To_Text (States.Image (S));
+         begin
+            if X.Kind in LALCO.Ada_Simple_Stmt | LALCO.Ada_Object_Decl then
+               return To_Unbounded_Text (LAL.Text (X) & "\n\n" & State_Img);
+            else
+               return To_Unbounded_Text (State_Img);
+            end if;
+         end Name;
+
+         procedure Write_Node (C : State_Maps.Cursor) is
+            Orig  : constant LAL.Ada_Node := State_Maps.Key (C);
+            State : constant States.T := State_Maps.Element (C);
+
+            procedure Add_Edge (N : LAL.Ada_Node'Class) is
+            begin
+               Printer.Add_Edge  (Hash (Orig), Hash (N));
+            end Add_Edge;
+
+            Node : LAL.Ada_Node := Orig;
+         begin
+            Printer.Add_Node
+              (Hash (Orig),
+               Name (Orig, State),
+               Dot_Printer.Empty_Path);
+
+            Flow_Next (Node, Add_Edge'Unrestricted_Access);
+            Add_Edge (Node);
+         end Write_Node;
+      begin
+         S.States.Iterate (Write_Node'Access);
+         Printer.Save (Path);
+      end Output_Graph;
    end Problem;
 end Analysis.Dataflow;
