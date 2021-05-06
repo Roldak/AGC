@@ -6,6 +6,11 @@ package Analysis.Ownership is
 
    use Analysis.Lattices;
 
+   procedure Include_Parameter
+     (State : in out Node_Sets.Set;
+      Ctx   : LAL.Base_Subp_Body;
+      Param : LAL.Param_Spec);
+
    procedure Remove_Possibly_Aliased
      (State : in out Node_Sets.Set;
       Ctx   : LAL.Base_Subp_Body;
@@ -18,12 +23,13 @@ package Analysis.Ownership is
       Val   : LAL.Expr);
 
    package Problem is new Dataflow.Problem
-     (States       => Finite_Node_Sets.Lattice,
-      Confluence   => Dataflow.Must,
-      Flow         => Dataflow.Forward,
-      Visit_Assign => Handle_Assignment,
-      Visit_Ignore => Remove_Possibly_Aliased,
-      Entry_State  => Node_Sets.Empty_Set);
+     (States          => Finite_Node_Sets.Lattice,
+      Confluence      => Dataflow.Must,
+      Flow            => Dataflow.Forward,
+      Visit_Parameter => Include_Parameter,
+      Visit_Assign    => Handle_Assignment,
+      Visit_Ignore    => Remove_Possibly_Aliased,
+      Entry_State     => Node_Sets.Empty_Set);
 
    function Analyze (X : LAL.Body_Node) return Problem.Solution;
    function Default (X : LAL.Body_Node) return Problem.Solution;

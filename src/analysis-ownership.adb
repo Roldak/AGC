@@ -14,6 +14,21 @@ package body Analysis.Ownership is
       return R;
    end Default;
 
+   procedure Include_Parameter
+     (State : in out Node_Sets.Set;
+      Ctx   : LAL.Base_Subp_Body;
+      Param : LAL.Param_Spec)
+   is
+   begin
+      if not Utils.Is_Managed (Param.P_Formal_Type) then
+         return;
+      end if;
+
+      for Id of Param.F_Ids loop
+         State.Include (Id.As_Ada_Node);
+      end loop;
+   end Include_Parameter;
+
    function Possibly_Aliased
      (Obj  : LAL.Defining_Name;
       Expr : LAL.Expr) return Boolean
