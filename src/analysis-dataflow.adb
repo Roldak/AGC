@@ -50,6 +50,9 @@ package body Analysis.Dataflow is
                   PC := PC.As_If_Stmt.F_Else_Stmts.As_Ada_Node;
                end if;
 
+            when LALCO.Ada_Elsif_Stmt_Part =>
+               PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
+
             when LALCO.Ada_For_Loop_Stmt | LALCO.Ada_While_Loop_Stmt =>
                return PC;
 
@@ -169,7 +172,7 @@ package body Analysis.Dataflow is
             return;
 
          when LALCO.Ada_Elsif_Stmt_Part =>
-            PC := PC.Parent;
+            PC := PC.Parent.Parent;
             return;
 
          when LALCO.Ada_Base_Loop_Stmt =>
