@@ -21,8 +21,6 @@ procedure Pass.Collect_Static
   (Job_Ctx  : Libadalang.Helpers.App_Job_Context;
    Unit     : Libadalang.Analysis.Analysis_Unit)
 is
-   use type Session.Optimization_Level_Type;
-
    package LAL     renames Libadalang.Analysis;
    package LALI    renames Libadalang.Iterators;
    package LALCO   renames Libadalang.Common;
@@ -206,7 +204,7 @@ is
       return LALCO.Into;
    end Process_Node;
 begin
-   if Session.Get_Optimization_Level /= Session.Full then
+   if Session.Get_Optimization_Level not in Session.Full then
       return;
    end if;
 
