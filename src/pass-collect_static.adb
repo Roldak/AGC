@@ -53,45 +53,6 @@ is
       return True;
    end Apply_Rewritings_If_Relevant;
 
-   procedure Kill
-     (Subp     : LAL.Base_Subp_Body;
-      Location : LAL.Ada_Node;
-      Var      : LAL.Defining_Name)
-   is
-      use type LAL.Ada_Node;
-      use LALI;
-
-      Best_Location : LAL.Ada_Node :=
-        (if Location.Parent.Kind in LALCO.Ada_Stmt_List
-         then Location.Parent
-         else Find_First (Location, Kind_Is (LALCO.Ada_Stmt_List)));
-
-      Index : Positive;
-
-      Ownership_Solution : constant Analysis.Ownership.Problem.Solution :=
-         Analysis.Ownership.Share.Get_Context_Solution (Subp.As_Body_Node);
-
-      Is_Owner : constant Boolean := Ownership_Solution.Query_At
-         (Location.As_Ada_Node).Contains (Var.As_Ada_Node);
-   begin
-      if not Best_Location.Is_Null and then Is_Owner then
-         Start_Rewriting;
-
-         if Best_Location = Location.Parent then
-            Index := Utils.Child_Index (LALRW.Handle (Location)) + 1;
-         else
-            Index := 1;
-         end if;
-
-         LALRW.Insert_Child
-           (LALRW.Handle (Best_Location),
-            Index,
-            LALRW.Create_From_Template
-              (RH, "AGC.Free (" & Var.Text & ");",
-               (1 .. 0 => <>), LALCO.Stmt_Rule));
-      end if;
-   end Kill;
-
    procedure Add_All_References
      (State : in out Node_Sets.Set;
       Ctx   : LAL.Base_Subp_Body;
@@ -146,11 +107,66 @@ is
       Visit_Ignore => Add_All_References,
       Entry_State  => Node_Sets.Empty_Set);
 
+   procedure Insert_Node_Between
+     (From : LAL.Ada_Node;
+      To   : LAL.Ada_Node;
+      Stmt : LALRW.Node_Rewriting_Handle)
+   is
+      use type LAL.Ada_Node;
+
+      procedure Insert_At
+        (List  : LALRW.Node_Rewriting_Handle;
+         Index : Positive)
+      is
+      begin
+         LALRW.Insert_Child (List, Index, Stmt);
+      end Insert_At;
+
+      procedure Unexpected is
+      begin
+         raise Program_Error with "Could not insert free statement";
+      end Unexpected;
+   begin
+      case From.Kind is
+         when LALCO.Ada_Simple_Stmt =>
+            Insert_At
+              (LALRW.Handle (From.Parent),
+               Utils.Child_Index (LALRW.Handle (From)) + 1);
+         when LALCO.Ada_If_Stmt =>
+            if From = To.Parent then
+               Insert_At (LALRW.Handle (To), 1);
+            elsif From.As_If_Stmt.F_Else_Stmts.Children_Count = 0 then
+               Insert_At (LALRW.Handle (From.As_If_Stmt.F_Else_Stmts), 1);
+            else
+               Unexpected;
+            end if;
+         when others =>
+            Unexpected;
+      end case;
+   end Insert_Node_Between;
+
+   procedure Generate_Free_Between
+     (From : LAL.Ada_Node;
+      To   : LAL.Ada_Node;
+      Var  : LAL.Defining_Name)
+   is
+      Stmt : LALRW.Node_Rewriting_Handle;
+   begin
+      Start_Rewriting;
+      Stmt := LALRW.Create_From_Template
+        (RH, "AGC.Free (" & Var.Text & ");",
+         (1 .. 0 => <>), LALCO.Stmt_Rule);
+      Insert_Node_Between (From, To, Stmt);
+   end Generate_Free_Between;
+
    procedure Handle_Subp_Body (Subp : LAL.Base_Subp_Body) is
-      Result : Liveness_Problem.Solution :=
+      Liveness_Result  : constant Liveness_Problem.Solution :=
          Liveness_Problem.Fixpoint (Subp);
 
-      procedure Detect_Cause_Of_Death
+      Ownership_Result : constant Analysis.Ownership.Problem.Solution :=
+         Analysis.Ownership.Share.Get_Context_Solution (Subp.As_Body_Node);
+
+      procedure Detect_Death
         (N : LAL.Ada_Node; S : Node_Sets.Set)
       is
          use Analysis.Lattices;
@@ -159,20 +175,22 @@ is
 
          procedure Compare_To (M : LAL.Ada_Node; R : Node_Sets.Set) is
             use Finite_Node_Sets.Lattice;
+
+            Owners : constant Node_Sets.Set := Ownership_Result.Query_At (M);
          begin
             if not Leq (R, S) then
-               Total := Total.Union (R.Difference (S));
+               for Var of R.Difference (S) loop
+                  if Owners.Contains (Var) then
+                     Generate_Free_Between (M, N, Var.As_Defining_Name);
+                  end if;
+               end loop;
             end if;
          end Compare_To;
       begin
-         Result.Query_Before (N, Compare_To'Access);
-
-         for Var of Total loop
-            Kill (Subp, N, Var.As_Defining_Name);
-         end loop;
-      end Detect_Cause_Of_Death;
+         Liveness_Result.Query_Before (N, Compare_To'Access);
+      end Detect_Death;
    begin
-      Result.Iterate (Detect_Cause_Of_Death'Access);
+      Liveness_Result.Iterate (Detect_Death'Access);
    end Handle_Subp_Body;
 
    function Process_Node
