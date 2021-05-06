@@ -14,6 +14,11 @@ package Analysis.Dataflow is
       Confluence : Confluence_Type;
       Flow       : Direction_Type;
 
+      with procedure Visit_Parameter
+        (State : in out States.T;
+         Ctx   : LAL.Base_Subp_Body;
+         Param : LAL.Param_Spec) is null;
+
       with procedure Visit_Assign
         (State : in out States.T;
          Ctx   : LAL.Base_Subp_Body;

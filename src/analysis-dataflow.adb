@@ -214,9 +214,30 @@ package body Analysis.Dataflow is
          Old_State : States.T)
          return States.T
       is
+         use all type LAL.Ada_Node;
+
          New_State : States.T := Old_State;
       begin
          case PC.Kind is
+            when LALCO.Ada_Base_Subp_Spec =>
+               if PC /= Ctx.F_Subp_Spec then
+                  raise Program_Error with "Should not happen";
+               end if;
+
+               for Param of PC.As_Base_Subp_Spec.P_Params loop
+                  Visit_Parameter (New_State, Ctx, Param);
+               end loop;
+
+            when LALCO.Ada_Expr_Function =>
+               if PC /= Ctx then
+                  return New_State;
+               end if;
+
+               Visit_Return
+                 (State => New_State,
+                  Ctx   => Ctx,
+                  Expr  => PC.As_Expr_Function.F_Expr);
+
             when LALCO.Ada_Object_Decl =>
                if PC.As_Object_Decl.F_Default_Expr.Is_Null then
                   return New_State;
@@ -229,27 +250,25 @@ package body Analysis.Dataflow is
                      Dest  => D.As_Name,
                      Val   => PC.As_Object_Decl.F_Default_Expr);
                end loop;
+
             when LALCO.Ada_Assign_Stmt =>
                Visit_Assign
                  (State => New_State,
                   Ctx   => Ctx,
                   Dest  => PC.As_Assign_Stmt.F_Dest,
                   Val   => PC.As_Assign_Stmt.F_Expr);
+
             when LALCO.Ada_Call_Stmt =>
                Visit_Ignore
                  (State => New_State,
                   Ctx   => Ctx,
                   Expr  => PC.As_Call_Stmt.F_Call.As_Expr);
+
             when LALCO.Ada_Return_Stmt =>
                Visit_Return
                  (State => New_State,
                   Ctx   => Ctx,
                   Expr  => PC.As_Return_Stmt.F_Return_Expr);
-            when LALCO.Ada_Expr_Function =>
-               Visit_Return
-                 (State => New_State,
-                  Ctx   => Ctx,
-                  Expr  => PC.As_Expr_Function.F_Expr);
             when others =>
                null;
          end case;
@@ -292,6 +311,14 @@ package body Analysis.Dataflow is
       function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution is
          R  : Solution;
 
+         function With_Params (S : States.T) return States.T is
+           (Transfer (Subp, Subp.As_Base_Subp_Body.F_Subp_Spec.As_Ada_Node, S));
+
+         Actual_Entry_State : States.T :=
+           (if Flow in Forward
+            then With_Params (Entry_State)
+            else Entry_State);
+
          function Node_State
            (Node     : LAL.Ada_Node;
             Inserted : in out Boolean) return State_Maps.Cursor
@@ -312,7 +339,7 @@ package body Analysis.Dataflow is
          procedure Add_Entry_Point (X : LAL.Ada_Node'Class) is
          begin
             W.Include (X.As_Ada_Node);
-            R.States.Insert (X.As_Ada_Node, Entry_State);
+            R.States.Insert (X.As_Ada_Node, Actual_Entry_State);
          end Add_Entry_Point;
 
          PC : LAL.Ada_Node;
@@ -330,7 +357,7 @@ package body Analysis.Dataflow is
             when LALCO.Ada_Expr_Function =>
                R.States.Insert
                  (Subp.As_Ada_Node,
-                  Transfer (Subp, Subp.As_Ada_Node, Entry_State));
+                  Transfer (Subp, Subp.As_Ada_Node, Actual_Entry_State));
                return R;
             when LALCO.Ada_Null_Subp_Decl =>
                return R;
@@ -381,6 +408,7 @@ package body Analysis.Dataflow is
                end;
             end loop;
          end loop;
+
          return R;
       end Fixpoint;
 
