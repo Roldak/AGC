@@ -271,11 +271,11 @@ package body Analysis.Dataflow is
          end loop;
       end Foreach_Return_Stmt;
 
-      function Join (X, Y : States.T) return States.T is
+      function Meet (X, Y : States.T) return States.T is
          use States;
       begin
          return (if Confluence in May then X or Y else X and Y);
-      end Join;
+      end Meet;
 
       procedure Flow_Next
         (PC      : in out LAL.Ada_Node;
@@ -357,7 +357,7 @@ package body Analysis.Dataflow is
                      Meet_State : States.T :=
                        (if Inserted
                         then New_State
-                        else Join (State_Maps.Element (X_State), New_State));
+                        else Meet (State_Maps.Element (X_State), New_State));
                   begin
                      if Inserted or else
                         Meet_State /= State_Maps.Element (X_State)
@@ -375,6 +375,7 @@ package body Analysis.Dataflow is
                      end if;
                   end Include;
                begin
+                  R.States.Replace_Element (PC_State, New_State);
                   Flow_Next (PC, Include'Unrestricted_Access);
                   exit when PC.Is_Null or else not Update (PC);
                end;
