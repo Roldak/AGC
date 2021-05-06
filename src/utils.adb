@@ -145,14 +145,15 @@ package body Utils is
    begin
       if not Session.Is_File_To_Process (LAL.Get_Filename (Typ.Unit)) then
          return False;
-      end if;
-      if not LAL.Exists (Sp) then
+      elsif not Typ.P_Is_Access_Type then
+         return False;
+      elsif not LAL.Exists (Sp) then
          return True;
-      end if;
-      if LAL.Text (LAL.Value (Sp)) = "AGC.Storage.Get.Pool" then
+      elsif LAL.Text (LAL.Value (Sp)) = "AGC.Storage.Get.Pool" then
          return True;
+      else
+         return False;
       end if;
-      return False;
    end Is_Managed;
 
    function Is_Alias (Decl : LAL.Object_Decl'Class) return Boolean is
