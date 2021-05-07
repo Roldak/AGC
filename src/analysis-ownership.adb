@@ -67,16 +67,16 @@ package body Analysis.Ownership is
                Callee_Solution.Query_End_States
                  (Contains_Param'Access);
                return not Is_Still_Owner;
-            exception
-               when LALCO.Property_Error | LALCO.Precondition_Failure =>
-                  Trace
-                    (Analysis_Trace,
-                     "Abandonning Is_Aliasing_Reference of " & LAL.Image (Id));
-                  return True;
             end;
          when others =>
             return True;
       end case;
+   exception
+      when LALCO.Property_Error | LALCO.Precondition_Failure =>
+         Trace
+           (Analysis_Trace,
+            "Abandonning Is_Aliasing_Reference of " & LAL.Image (Id));
+         return True;
    end Is_Aliasing_Reference;
 
    function Is_Aliased_In
