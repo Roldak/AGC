@@ -12,6 +12,15 @@ package body Analysis.Dataflow is
 
    type Node_Handler_Type is access procedure (X : LAL.Ada_Node'Class);
 
+   function Enclosed_Parent (X : LAL.Ada_Node) return LAL.Ada_Node is
+      R : LAL.Ada_Node := X.Parent;
+   begin
+      if R.Kind in LALCO.Ada_Base_Subp_Body then
+         return LAL.No_Ada_Node;
+      end if;
+      return R;
+   end Enclosed_Parent;
+
    function Right_Most_Element
      (Orig    : LAL.Ada_Node'Class;
       Include : Node_Handler_Type)
@@ -147,9 +156,9 @@ package body Analysis.Dataflow is
       end if;
 
       while PC.Is_Null loop
-         Orig := Orig.Parent;
+         Orig := Enclosed_Parent (Orig);
 
-         if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+         if Orig.Is_Null then
             return;
          end if;
 
@@ -165,10 +174,10 @@ package body Analysis.Dataflow is
    begin
       case PC.Kind is
          when LALCO.Ada_Declarative_Part =>
-            PC := PC.Parent;
+            PC := Enclosed_Parent (PC);
             return;
          when LALCO.Ada_Ada_List =>
-            PC := PC.Parent;
+            PC := Enclosed_Parent (PC);
             return;
 
          when LALCO.Ada_Elsif_Stmt_Part =>
@@ -192,9 +201,9 @@ package body Analysis.Dataflow is
       end if;
 
       while PC.Is_Null loop
-         Orig := Orig.Parent;
+         Orig := Enclosed_Parent (Orig);
 
-         if Orig.Kind in LALCO.Ada_Base_Subp_Body then
+         if Orig.Is_Null then
             return;
          end if;
 
