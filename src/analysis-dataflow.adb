@@ -35,8 +35,12 @@ package body Analysis.Dataflow is
             when LALCO.Ada_Handled_Stmts =>
                PC := PC.As_Handled_Stmts.F_Stmts.As_Ada_Node;
             when LALCO.Ada_Ada_List =>
-               PC := PC.As_Ada_List.Child
-                 (PC.As_Ada_List.Last_Child_Index);
+               if PC.As_Ada_List.Children_Count = 0 then
+                  return PC;
+               else
+                  PC := PC.As_Ada_List.Child
+                    (PC.As_Ada_List.Last_Child_Index);
+               end if;
 
             when LALCO.Ada_Return_Stmt
                    | LALCO.Ada_Raise_Stmt
