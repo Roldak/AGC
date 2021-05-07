@@ -29,18 +29,68 @@ package body Analysis.Ownership is
       end loop;
    end Include_Parameter;
 
-   function Possibly_Aliased
+   function Is_Aliasing_Reference (Id : LAL.Base_Id'Class) return Boolean is
+   begin
+      case Id.Parent.Kind is
+         when LALCO.Ada_Explicit_Deref =>
+            return False;
+         when LALCO.Ada_Param_Assoc =>
+            declare
+               Param_Assoc : constant LAL.Param_Assoc :=
+                  Id.Parent.As_Param_Assoc;
+
+               Param_Name  : constant LAL.Defining_Name :=
+                  Param_Assoc.P_Get_Params (1);
+
+               Param_Spec  : constant LAL.Param_Spec :=
+                  Param_Name.P_Basic_Decl.As_Param_Spec;
+
+               Called_Decl : constant LAL.Basic_Decl :=
+                  Param_Spec.P_Semantic_Parent.As_Basic_Decl;
+
+               Called_Body : constant LAL.Body_Node :=
+                  Utils.Get_Body (Called_Decl);
+
+               Callee_Solution : constant Problem.Solution :=
+                  Ownership.Share.Get_Context_Solution
+                    (Called_Body);
+
+               Is_Still_Owner : Boolean := True;
+
+               procedure Contains_Param (X : LAL.Ada_Node; S : Node_Sets.Set) is
+               begin
+                  if not S.Contains (Param_Name.As_Ada_Node) then
+                     Is_Still_Owner := False;
+                  end if;
+               end Contains_Param;
+            begin
+               Callee_Solution.Query_End_States
+                 (Contains_Param'Access);
+               return not Is_Still_Owner;
+            exception
+               when LALCO.Property_Error | LALCO.Precondition_Failure =>
+                  Trace
+                    (Analysis_Trace,
+                     "Abandonning Is_Aliasing_Reference of " & LAL.Image (Id));
+                  return True;
+            end;
+         when others =>
+            return True;
+      end case;
+   end Is_Aliasing_Reference;
+
+   function Is_Aliased_In
      (Obj  : LAL.Defining_Name;
       Expr : LAL.Expr) return Boolean
    is
    begin
       for Ref of Obj.P_Find_Refs (Expr, LAL.No_Ada_Node) loop
-         if LAL.Ref (Ref).Parent.Kind not in LALCO.Ada_Explicit_Deref then
+         if Is_Aliasing_Reference (LAL.Ref (Ref)) then
             return True;
          end if;
       end loop;
       return False;
-   end Possibly_Aliased;
+   end Is_Aliased_In;
 
    procedure Remove_Possibly_Aliased
      (State : in out Node_Sets.Set;
@@ -54,7 +104,7 @@ package body Analysis.Ownership is
    begin
       while C /= No_Element loop
          N := Next (C);
-         if Possibly_Aliased (Element (C).As_Defining_Name, Expr) then
+         if Is_Aliased_In (Element (C).As_Defining_Name, Expr) then
             State.Delete (C);
          end if;
          C := N;
