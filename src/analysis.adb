@@ -10,6 +10,31 @@ package body Analysis is
 
    package body Shared_Analysis is
 
+      function Do_Analyze (Subp : LAL.Body_Node) return Context_Solution is
+      begin
+         case Subp.Kind is
+            when LALCO.Ada_Subp_Renaming_Decl =>
+               declare
+                  Renamed_Decl : LAL.Basic_Decl :=
+                    Subp.As_Subp_Renaming_Decl
+                    .F_Renames.F_Renamed_Object.P_Referenced_Decl;
+
+                  Renamed_Body : LAL.Body_Node :=
+                    (if Renamed_Decl.Is_Null
+                     then LAL.No_Body_Node
+                     else Utils.Get_Body (Renamed_Decl));
+               begin
+                  if Renamed_Body.Is_Null then
+                     return Default (Subp);
+                  else
+                     return Get_Context_Solution (Renamed_Body);
+                  end if;
+               end;
+            when others =>
+               return Analyze (Subp);
+         end case;
+      end Do_Analyze;
+
       function Get_Context_Solution
         (Subp : LAL.Body_Node) return Context_Solution
       is
@@ -33,7 +58,7 @@ package body Analysis is
                Universal_Solutions_Holder.Insert (Key, Convert (Placeholder));
 
                declare
-                  Result : Context_Solution := Analyze (Subp);
+                  Result : Context_Solution := Do_Analyze (Subp);
                begin
                   Map_Ref.Replace_Element (Cursor, Result);
                   Universal_Solutions_Holder.Include (Key, Convert (Result));
