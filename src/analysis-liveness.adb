@@ -27,8 +27,8 @@ package body Analysis.Liveness is
             when LALCO.Ada_Identifier =>
                Ref := X.As_Name.P_Referenced_Defining_Name;
                if not Ref.Is_Null then
-                  if Utils.Enclosing_Subp_Body (Ref) = Ctx then
-                     State.Include (Ref.As_Ada_Node);
+                  if Utils.Defined_In_Subp (Ctx, Ref) then
+                     State.Include (Ref.P_Canonical_Part.As_Ada_Node);
                   end if;
                end if;
             when others =>
@@ -49,14 +49,14 @@ package body Analysis.Liveness is
       Dest  : LAL.Name;
       Val   : LAL.Expr)
    is
-      D : LAL.Defining_Name :=
+      D : constant LAL.Defining_Name :=
         (if Dest.P_Is_Defining
          then Dest.P_Enclosing_Defining_Name
-         else Dest.P_Referenced_Defining_Name);
+         else Dest.P_Referenced_Defining_Name.P_Canonical_Part);
    begin
       Add_All_References (State, Ctx, Val);
 
-      if Utils.Enclosing_Subp_Body (D) = Ctx then
+      if Utils.Defined_In_Subp (Ctx, D) then
          State.Exclude (D.As_Ada_Node);
       end if;
    end Handle_Assignment;

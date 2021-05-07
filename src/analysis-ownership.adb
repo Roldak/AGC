@@ -25,7 +25,7 @@ package body Analysis.Ownership is
       end if;
 
       for Id of Param.F_Ids loop
-         State.Include (Id.As_Ada_Node);
+         State.Include (Id.P_Canonical_Part.As_Ada_Node);
       end loop;
    end Include_Parameter;
 
@@ -119,14 +119,14 @@ package body Analysis.Ownership is
    is
       use all type LAL.Ada_Node;
 
-      D : LAL.Defining_Name :=
+      D : constant LAL.Defining_Name :=
         (if Dest.P_Is_Defining
          then Dest.P_Enclosing_Defining_Name
-         else Dest.P_Referenced_Defining_Name);
+         else Dest.P_Referenced_Defining_Name.P_Canonical_Part);
    begin
       Remove_Possibly_Aliased (State, Ctx, Val);
 
-      if Utils.Enclosing_Subp_Body (D) /= Ctx then
+      if not Utils.Defined_In_Subp (Ctx, D) then
          return;
       end if;
 

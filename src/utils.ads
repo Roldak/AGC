@@ -25,6 +25,10 @@ package Utils is
    function Enclosing_Subp_Body
      (N : LAL.Ada_Node'Class) return LAL.Base_Subp_Body;
 
+   function Defined_In_Subp
+     (Subp : LAL.Body_Node'Class;
+      Def  : LAL.Defining_Name) return Boolean;
+
    function Imported_Units
      (Unit        : LAL.Analysis_Unit;
       All_Visible : Boolean := False) return LAL.Analysis_Unit_Array;

@@ -221,6 +221,31 @@ package body Utils is
       end if;
    end Enclosing_Subp_Body;
 
+   function Defined_In_Subp
+     (Subp : LAL.Body_Node'Class;
+      Def  : LAL.Defining_name) return Boolean
+   is
+      use all type LAL.Ada_Node;
+
+      Enclosing : LAL.Base_Subp_Body := Enclosing_Subp_Body (Def);
+   begin
+      if Enclosing.Is_Null then
+         return False;
+      elsif Enclosing = Subp then
+         return True;
+      else
+         declare
+            Next : LAL.Defining_Name := Def.P_Next_Part;
+         begin
+            if Next.Is_Null then
+               return False;
+            else
+               return Defined_In_Subp (Subp, Next);
+            end if;
+         end;
+      end if;
+   end Defined_In_Subp;
+
    function Imported_Units
      (Unit        : LAL.Analysis_Unit;
       All_Visible : Boolean := False) return LAL.Analysis_Unit_Array
