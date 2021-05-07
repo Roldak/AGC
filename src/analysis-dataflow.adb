@@ -198,6 +198,9 @@ package body Analysis.Dataflow is
          if Orig.Kind in LALCO.Ada_Stmt then
             PC := Orig.Parent;
             return;
+         elsif Orig.Parent.Parent.Kind in LALCO.Ada_Declarative_Part then
+            PC := Orig.Parent;
+            return;
          end if;
       end if;
 
