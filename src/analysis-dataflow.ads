@@ -71,6 +71,7 @@ package Analysis.Dataflow is
          States."=");
 
       type Solution is tagged record
+         Ctx    : LAL.Body_Node := LAL.No_Body_Node;
          States : State_Maps.Map;
       end record;
    end Problem;

@@ -309,7 +309,7 @@ package body Analysis.Dataflow is
       end Flow_Next;
 
       function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution is
-         R  : Solution;
+         R : Solution := (Ctx => Subp.As_Body_Node, others => <>);
 
          function With_Params (S : States.T) return States.T is
            (Transfer (Subp, Subp.As_Base_Subp_Body.F_Subp_Spec.As_Ada_Node, S));
