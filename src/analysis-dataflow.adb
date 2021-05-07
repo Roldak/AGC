@@ -55,13 +55,9 @@ package body Analysis.Dataflow is
                end loop;
 
                Include
-                 (Right_Most_Element (PC.As_If_Stmt.F_Then_Stmts, Include));
+                 (Right_Most_Element (PC.As_If_Stmt.F_Else_Stmts, Include));
 
-               if PC.As_If_Stmt.F_Else_Stmts.Children_Count = 0 then
-                  return PC;
-               else
-                  PC := PC.As_If_Stmt.F_Else_Stmts.As_Ada_Node;
-               end if;
+               PC := PC.As_If_Stmt.F_Then_Stmts.As_Ada_Node;
 
             when LALCO.Ada_Elsif_Stmt_Part =>
                PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
@@ -108,13 +104,10 @@ package body Analysis.Dataflow is
                Include (Alt);
             end loop;
 
-            Include (PC.As_If_Stmt.F_Then_Stmts);
+            Include (PC.As_If_Stmt.F_Else_Stmts);
 
-            if PC.As_If_Stmt.F_Else_Stmts.Children_Count = 0 then
-               PC := PC.Next_Sibling;
-            else
-               PC := PC.As_If_Stmt.F_Else_Stmts.As_Ada_Node;
-            end if;
+            PC := PC.As_If_Stmt.F_Then_Stmts.As_Ada_Node;
+
          when LALCO.Ada_Elsif_Stmt_Part =>
             PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
 

@@ -76,8 +76,6 @@ is
          when LALCO.Ada_If_Stmt =>
             if From = To.Parent then
                Insert_At (LALRW.Handle (To), 1);
-            elsif From.As_If_Stmt.F_Else_Stmts.Children_Count = 0 then
-               Insert_At (LALRW.Handle (From.As_If_Stmt.F_Else_Stmts), 1);
             else
                Unexpected;
             end if;
