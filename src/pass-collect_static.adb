@@ -10,6 +10,7 @@ with Libadalang.Helpers;
 with Libadalang.Iterators;
 with Libadalang.Rewriting;
 
+with Analysis.Dataflow;
 with Analysis.Lattices.Finite_Node_Sets;
 with Analysis.Ownership;
 with Analysis.Liveness;
@@ -63,6 +64,31 @@ is
          LALRW.Insert_Child (List, Index, Stmt);
       end Insert_At;
 
+      procedure Insert_After_Return
+        (Original : LAL.Return_Stmt)
+      is
+         Subp : constant LAL.Base_Subp_Body :=
+            Utils.Enclosing_Subp_Body (Original);
+
+         Ret_Type : constant LAL.Type_Expr := Subp.F_Subp_Spec.F_Subp_Returns;
+         Ret_Expr : constant LAL.Expr := Original.F_Return_Expr;
+
+         Stmt_List : constant LALRW.Node_Rewriting_Handle :=
+            LALRW.Create_Node (RH, LALCO.Ada_Stmt_List);
+      begin
+         Insert_At (Stmt_List, 1);
+
+         LALRW.Replace
+           (LALRW.Handle (Original),
+            LALRW.Create_From_Template
+              (RH,
+               "return AGC_Ret : {} := {} do {} end return;",
+               (1 => LALRW.Clone (LALRW.Handle (Ret_Type)),
+                2 => LALRW.Clone (LALRW.Handle (Ret_Expr)),
+                3 => Stmt_List),
+               LALCO.Ext_Return_Stmt_Rule));
+      end Insert_After_Return;
+
       procedure Unexpected is
       begin
          raise Program_Error with "Could not insert free statement";
@@ -70,9 +96,13 @@ is
    begin
       case From.Kind is
          when LALCO.Ada_Simple_Stmt | LALCO.Ada_Case_Stmt =>
-            Insert_At
-              (LALRW.Handle (From.Parent),
-               Utils.Child_Index (LALRW.Handle (From)) + 1);
+            if From.Kind in LALCO.Ada_Return_Stmt then
+               Insert_After_Return (From.As_Return_Stmt);
+            else
+               Insert_At
+                 (LALRW.Handle (From.Parent),
+                  Utils.Child_Index (LALRW.Handle (From)) + 1);
+            end if;
          when LALCO.Ada_If_Stmt =>
             if From = To.Parent then
                Insert_At (LALRW.Handle (To), 1);
@@ -108,35 +138,46 @@ is
       Ownership_Result : constant Analysis.Ownership.Problem.Solution :=
          Analysis.Ownership.Share.Get_Context_Solution (Subp.As_Body_Node);
 
+      procedure Compare_Between
+        (M : LAL.Ada_Node; R : Node_Sets.Set;
+         N : LAL.Ada_Node; S : Node_Sets.Set)
+      is
+         use Analysis.Lattices;
+         use Finite_Node_Sets.Lattice;
+
+         Owners : constant Node_Sets.Set := Ownership_Result.Query_At (M);
+
+         procedure Kill (Var : LAL.Defining_Name) is
+         begin
+            if not Is_Parameter (Var) then
+               if Owners.Contains (Var.As_Ada_Node) then
+                  Generate_Free_Between (M, N, Var.As_Defining_Name);
+               end if;
+            end if;
+         end Kill;
+      begin
+         if not Leq (R, S) then
+            for Var of R.Difference (S) loop
+               Kill (Var.As_Defining_Name);
+            end loop;
+         end if;
+      end Compare_Between;
+
       procedure Detect_Death
         (N : LAL.Ada_Node; S : Node_Sets.Set)
       is
-         use Analysis.Lattices;
-
-         Total : Node_Sets.Set;
-
          procedure Compare_To (M : LAL.Ada_Node; R : Node_Sets.Set) is
-            use Finite_Node_Sets.Lattice;
-
-            Owners : constant Node_Sets.Set := Ownership_Result.Query_At (M);
-
-            procedure Kill (Var : LAL.Defining_Name) is
-            begin
-               if not Is_Parameter (Var) then
-                  if Owners.Contains (Var.As_Ada_Node) then
-                     Generate_Free_Between (M, N, Var.As_Defining_Name);
-                  end if;
-               end if;
-            end Kill;
          begin
-            if not Leq (R, S) then
-               for Var of R.Difference (S) loop
-                  Kill (Var.As_Defining_Name);
-               end loop;
-            end if;
+            Compare_Between (M, R, N, S);
          end Compare_To;
       begin
-         Liveness_Result.Query_Before (N, Compare_To'Access);
+         if N.Kind in LALCO.Ada_Return_Stmt then
+            Compare_Between
+              (N, S,
+               LAL.No_Ada_Node, Node_Sets.Empty_Set);
+         else
+            Liveness_Result.Query_Before (N, Compare_To'Access);
+         end if;
       end Detect_Death;
    begin
       Liveness_Result.Iterate (Detect_Death'Access);
