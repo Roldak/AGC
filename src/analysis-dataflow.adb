@@ -293,13 +293,16 @@ package body Analysis.Dataflow is
          Handle : Node_Handler_Type)
       is
          use Libadalang.Iterators;
+         use all type LAL.Ada_Node;
 
          Iter : Traverse_Iterator'Class :=
             Find (Subp, Kind_Is (LALCO.Ada_Return_Stmt));
          Node : LAL.Ada_Node;
       begin
          while Iter.Next (Node) loop
-            Handle (Node);
+            if Utils.Enclosing_Subp_Body (Node) = Subp then
+               Handle (Node);
+            end if;
          end loop;
       end Foreach_Return_Stmt;
 
