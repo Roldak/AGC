@@ -406,8 +406,10 @@ package body Analysis.Dataflow is
 
                   procedure Include (X : LAL.Ada_Node'Class) is
                   begin
-                     if Update (X.As_Ada_Node) then
-                        W.Include (X.As_Ada_Node);
+                     if not X.Is_Null then
+                        if Update (X.As_Ada_Node) then
+                           W.Include (X.As_Ada_Node);
+                        end if;
                      end if;
                   end Include;
                begin
@@ -437,7 +439,9 @@ package body Analysis.Dataflow is
 
          procedure Callback (X : LAL.Ada_Node'Class) is
          begin
-            Process (X.As_Ada_Node, S.States.Element (X.As_Ada_Node));
+            if not X.Is_Null then
+               Process (X.As_Ada_Node, S.States.Element (X.As_Ada_Node));
+            end if;
          end Callback;
 
          PC : LAL.Ada_Node := Node.As_Ada_Node;
@@ -457,7 +461,9 @@ package body Analysis.Dataflow is
 
          procedure Callback (X : LAL.Ada_Node'Class) is
          begin
-            Process (X.As_Ada_Node, S.States.Element (X.As_Ada_Node));
+            if not X.Is_Null then
+               Process (X.As_Ada_Node, S.States.Element (X.As_Ada_Node));
+            end if;
          end Callback;
 
          PC : LAL.Ada_Node := Node.As_Ada_Node;
@@ -563,7 +569,9 @@ package body Analysis.Dataflow is
 
             procedure Add_Edge (N : LAL.Ada_Node'Class) is
             begin
-               Printer.Add_Edge  (Hash (Orig), Hash (N));
+               if not N.Is_Null then
+                  Printer.Add_Edge  (Hash (Orig), Hash (N));
+               end if;
             end Add_Edge;
 
             Node : LAL.Ada_Node := Orig;
