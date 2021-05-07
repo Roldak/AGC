@@ -119,10 +119,10 @@ package body Analysis.Dataflow is
             PC := PC.As_Elsif_Stmt_Part.F_Stmts.As_Ada_Node;
 
          when LALCO.Ada_Case_Stmt =>
-            PC := PC.As_Case_Stmt.F_Alternatives.Child (1);
             for I in 2 .. PC.As_Case_Stmt.F_Alternatives.Children_Count loop
                Include (PC.As_Case_Stmt.F_Alternatives.Child (I));
             end loop;
+            PC := PC.As_Case_Stmt.F_Alternatives.Child (1);
          when LALCO.Ada_Case_Stmt_Alternative =>
             PC := PC.As_Case_Stmt_Alternative.F_Stmts.As_Ada_Node;
 
@@ -185,6 +185,10 @@ package body Analysis.Dataflow is
             return;
 
          when LALCO.Ada_Elsif_Stmt_Part =>
+            PC := PC.Parent.Parent;
+            return;
+
+         when LALCO.Ada_Case_Stmt_Alternative =>
             PC := PC.Parent.Parent;
             return;
 
