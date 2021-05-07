@@ -23,6 +23,7 @@ package Analysis.Liveness is
       Flow         => Dataflow.Backwards,
       Visit_Assign => Handle_Assignment,
       Visit_Ignore => Add_All_References,
+      Visit_Return => Add_All_References,
       Entry_State  => Node_Sets.Empty_Set);
 
    function Analyze (X : LAL.Body_Node) return Problem.Solution;
