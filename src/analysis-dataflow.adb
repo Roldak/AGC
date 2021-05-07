@@ -459,6 +459,40 @@ package body Analysis.Dataflow is
          end if;
       end Query_Before;
 
+      procedure Query_End_States
+        (S       : Solution;
+         Process : access procedure (N : LAL.Ada_Node; V : States.T))
+      is
+         procedure Process_Node (N : LAL.Ada_Node'Class) is
+            use type State_Maps.Cursor;
+
+            Cursor : constant State_Maps.Cursor :=
+               S.States.Find (N.As_Ada_Node);
+         begin
+            if Cursor /= State_Maps.No_Element then
+               Process (N.As_Ada_Node, State_Maps.Element (Cursor));
+            end if;
+         end Process_Node;
+      begin
+         case S.Ctx.Kind is
+            when LALCO.Ada_Subp_Body =>
+               if Flow in Forward then
+                  Foreach_Return_Stmt
+                    (S.Ctx.As_Base_Subp_Body, Process_Node'Unrestricted_Access);
+                  Process_Node
+                    (S.Ctx.As_Subp_Body.F_End_Name);
+               else
+                  Process_Node (S.Ctx.As_Subp_Body.F_Decls);
+               end if;
+            when LALCO.Ada_Expr_Function =>
+               Process_Node (S.Ctx);
+            when LALCO.Ada_Null_Subp_Decl =>
+               return;
+            when others =>
+               raise Program_Error with "Unexpected subprogram kind.";
+         end case;
+      end Query_End_States;
+
       procedure Iterate
         (S : Solution;
          F : access procedure (N : LAL.Ada_Node; V : States.T))

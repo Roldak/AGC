@@ -54,6 +54,10 @@ package Analysis.Dataflow is
          Node    : LAL.Ada_Node'Class;
          Process : access procedure (N : LAL.Ada_Node; V : States.T));
 
+      procedure Query_End_States
+        (S       : Solution;
+         Process : access procedure (N : LAL.Ada_Node; V : States.T));
+
       procedure Iterate
         (S : Solution;
          F : access procedure (N : LAL.Ada_Node; V : States.T));
