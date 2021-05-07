@@ -69,7 +69,7 @@ is
       end Unexpected;
    begin
       case From.Kind is
-         when LALCO.Ada_Simple_Stmt =>
+         when LALCO.Ada_Simple_Stmt | LALCO.Ada_Case_Stmt =>
             Insert_At
               (LALRW.Handle (From.Parent),
                Utils.Child_Index (LALRW.Handle (From)) + 1);
