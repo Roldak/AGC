@@ -98,6 +98,9 @@ is
       Insert_Node_Between (From, To, Stmt);
    end Generate_Free_Between;
 
+   function Is_Parameter (Var : LAL.Defining_Name) return Boolean is
+     (Var.P_Basic_Decl.Kind in LALCO.Ada_Param_Spec);
+
    procedure Handle_Subp_Body (Subp : LAL.Base_Subp_Body) is
       Liveness_Result  : constant Analysis.Liveness.Problem.Solution :=
          Analysis.Liveness.Share.Get_Context_Solution (Subp.As_Body_Node);
@@ -116,12 +119,19 @@ is
             use Finite_Node_Sets.Lattice;
 
             Owners : constant Node_Sets.Set := Ownership_Result.Query_At (M);
+
+            procedure Kill (Var : LAL.Defining_Name) is
+            begin
+               if not Is_Parameter (Var) then
+                  if Owners.Contains (Var.As_Ada_Node) then
+                     Generate_Free_Between (M, N, Var.As_Defining_Name);
+                  end if;
+               end if;
+            end Kill;
          begin
             if not Leq (R, S) then
                for Var of R.Difference (S) loop
-                  if Owners.Contains (Var) then
-                     Generate_Free_Between (M, N, Var.As_Defining_Name);
-                  end if;
+                  Kill (Var.As_Defining_Name);
                end loop;
             end if;
          end Compare_To;
