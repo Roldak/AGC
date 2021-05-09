@@ -3,23 +3,15 @@ with Ada.Text_IO; use Ada.Text_IO;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
-with Libadalang.Analysis;
-with Libadalang.Common;
 with Libadalang.Helpers;
-with Libadalang.Rewriting;
-with Libadalang.Unparsing;
 
 procedure Pass.Add_With_Clauses
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
-   package LAL     renames Libadalang.Analysis;
-   package LALCO   renames Libadalang.Common;
-   package LALRW   renames Libadalang.Rewriting;
-
    use type LALCO.Ada_Node_Kind_Type;
 
-   RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
+   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 begin
    if Unit.Root.Kind /= LALCO.Ada_Compilation_Unit then
       raise Program_Error with "Unhandled multi compilation unit files";

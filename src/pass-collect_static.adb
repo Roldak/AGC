@@ -4,11 +4,8 @@ with Ada.Containers.Hashed_Sets;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
-with Libadalang.Analysis;
-with Libadalang.Common;
 with Libadalang.Helpers;
 with Libadalang.Iterators;
-with Libadalang.Rewriting;
 
 with Analysis.Dataflow;
 with Analysis.Lattices.Finite_Node_Sets;
@@ -21,11 +18,7 @@ procedure Pass.Collect_Static
   (Job_Ctx  : Libadalang.Helpers.App_Job_Context;
    Unit     : Libadalang.Analysis.Analysis_Unit)
 is
-   package LAL     renames Libadalang.Analysis;
    package LALI    renames Libadalang.Iterators;
-   package LALCO   renames Libadalang.Common;
-   package LALRW   renames Libadalang.Rewriting;
-
    package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
 
    --  Rewriting handle is created lazily in this phase because many units
@@ -36,7 +29,7 @@ is
       use type LALRW.Rewriting_Handle;
    begin
       if RH = LALRW.No_Rewriting_Handle then
-         RH := LALRW.Start_Rewriting (Unit.Context);
+         RH := Rewriting_Handle (Unit);
       end if;
    end Start_Rewriting;
 

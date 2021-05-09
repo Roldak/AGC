@@ -7,11 +7,7 @@ with Ada.Containers.Vectors;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
-with Libadalang.Analysis;
-with Libadalang.Common;
 with Libadalang.Helpers;
-with Libadalang.Rewriting;
-with Libadalang.Unparsing;
 
 with Node_Counters;
 with Utils;
@@ -21,10 +17,6 @@ procedure Pass.Generate_Types_Interfaces
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
-   package LAL     renames Libadalang.Analysis;
-   package LALCO   renames Libadalang.Common;
-   package LALRW   renames Libadalang.Rewriting;
-
    function Visitor_Name
      (Typ                 : LAL.Base_Type_Decl'Class;
       Is_Ref              : Boolean           := True;
@@ -55,7 +47,7 @@ is
       return False;
    end Derives_From_Instrumented_Type;
 
-   RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
+   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
    Decl_Part_Count : Node_Counters.Counter;
 

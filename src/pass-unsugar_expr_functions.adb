@@ -5,11 +5,7 @@ with Ada.Containers.Hashed_Maps;
 with Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
-with Libadalang.Analysis;
-with Libadalang.Common;
 with Libadalang.Helpers;
-with Libadalang.Rewriting;
-with Libadalang.Unparsing;
 
 with Node_Counters;
 with Utils;
@@ -18,11 +14,7 @@ procedure Pass.Unsugar_Expr_Functions
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit    : Libadalang.Analysis.Analysis_Unit)
 is
-   package LAL     renames Libadalang.Analysis;
-   package LALCO   renames Libadalang.Common;
-   package LALRW   renames Libadalang.Rewriting;
-
-   RH : LALRW.Rewriting_Handle := LALRW.Start_Rewriting (Unit.Context);
+   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
    procedure Handle_Expr_Function (Fun : LAL.Expr_Function'Class) is
       Has_Decl : Boolean  := not Fun.P_Previous_Part.Is_Null;

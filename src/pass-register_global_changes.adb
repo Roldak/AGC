@@ -7,19 +7,12 @@ with Session;
 with Post_Actions;
 with Utils;
 
-with Libadalang.Analysis;
-with Libadalang.Common;
 with Libadalang.Helpers;
-with Libadalang.Unparsing;
 
 procedure Pass.Register_Global_Changes
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit    : Libadalang.Analysis.Analysis_Unit)
 is
-   package LAL     renames Libadalang.Analysis;
-   package LALCO   renames Libadalang.Common;
-   package LALU    renames Libadalang.Unparsing;
-
    function Is_AGC_Decl (Node : LAL.Basic_Decl'Class) return Boolean is
      (Utils.Starts_With (LAL.Text (Node.P_Defining_Name), "AGC_"));
 
