@@ -34,10 +34,7 @@ procedure Test is
         AGC_T_Ops_Implem.Register;
       function Create (X : Integer) return T is
       begin
-         return
-           AGC_Ret : T := Test.P.AGC_Register_T (Test.P.T'(new Integer'(X))) do
-            null;
-         end return;
+         return Test.P.AGC_Register_T (Test.P.T'(new Integer'(X)));
       end Create;
 
       function Get (X : T) return Integer is

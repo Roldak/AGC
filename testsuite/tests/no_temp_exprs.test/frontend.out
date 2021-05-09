@@ -23,12 +23,8 @@ procedure Test is
    function F return Integer_Access is
    begin
       return
-        AGC_Ret : Integer_Access :=
-          Test.AGC_Register_Integer_Access
-            (Test.Integer_Access'(new Integer'(15)))
-      do
-         null;
-      end return;
+        Test.AGC_Register_Integer_Access
+          (Test.Integer_Access'(new Integer'(15)));
    end F;
 
    X : aliased Integer_Access :=

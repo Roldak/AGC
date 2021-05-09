@@ -48,12 +48,8 @@ package body Pkg is
    function Create (X : Integer) return T_Access is
    begin
       return
-        AGC_Ret : T_Access :=
-          Pkg.AGC_Register_T_Access
-            (Pkg.T_Access'(new T'(X => X, others => null)))
-      do
-         null;
-      end return;
+        Pkg.AGC_Register_T_Access
+          (Pkg.T_Access'(new T'(X => X, others => null)));
    end Create;
 end Pkg;
 with AGC;

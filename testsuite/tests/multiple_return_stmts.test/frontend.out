@@ -25,20 +25,12 @@ procedure Test is
    begin
       if B then
          return
-           AGC_Ret : Integer_Access :=
-             Test.AGC_Register_Integer_Access
-               (Test.Integer_Access'(new Integer'(X + 1)))
-         do
-            null;
-         end return;
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(X + 1)));
       else
          return
-           AGC_Ret : Integer_Access :=
-             Test.AGC_Register_Integer_Access
-               (Test.Integer_Access'(new Integer'(X - 1)))
-         do
-            null;
-         end return;
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(X - 1)));
       end if;
    end Inner;
 

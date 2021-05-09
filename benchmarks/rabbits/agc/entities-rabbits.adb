@@ -45,9 +45,7 @@ package body Entities.Rabbits is
       X, Y : Natural;
    begin
       Worlds.Grid.Random_Position (X, Y);
-      return AGC_Ret : Entity_Access := Create (X, Y) do
-         null;
-      end return;
+      return Create (X, Y);
    end Create;
 
    function Create (X, Y : Natural) return Entity_Access is

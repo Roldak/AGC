@@ -76,14 +76,10 @@ procedure Test is
       function Create (X : Integer) return T'Class is
       begin
          return
-           AGC_Ret : T'Class :=
-             T'
-               (X =>
-                  Test.AGC_Register_Integer_Access
-                    (Test.Integer_Access'(new Integer'(X))))
-         do
-            null;
-         end return;
+           T'
+             (X =>
+                Test.AGC_Register_Integer_Access
+                  (Test.Integer_Access'(new Integer'(X))));
       end Create;
 
       procedure Print (X : T) is

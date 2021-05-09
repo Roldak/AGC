@@ -24,11 +24,7 @@ procedure Test is
    function Foo return Int_Access is
    begin
       AGC.Collect;
-      return
-        AGC_Ret : Int_Access :=
-          Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1))) do
-         null;
-      end return;
+      return Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1)));
    end Foo;
 
    type Int_Array is array (Positive range <>) of Int_Access;

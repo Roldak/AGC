@@ -58,9 +58,7 @@ procedure Test is
 
    function Is_Lit (Ex : Expr_Access; V : Integer) return Boolean is
    begin
-      return AGC_Ret : Boolean := Ex.K = Lit and then Ex.Value = V do
-         null;
-      end return;
+      return Ex.K = Lit and then Ex.Value = V;
    end Is_Lit;
 
    function Simplify (Ex : Expr_Access) return Expr_Access is
@@ -69,22 +67,14 @@ procedure Test is
       case Ex.K is
          when Add =>
             if Is_Lit (Ex.Lhs, 0) then
-               return AGC_Ret : Expr_Access := Simplify (Ex.Rhs) do
-                  null;
-               end return;
+               return Simplify (Ex.Rhs);
             elsif Is_Lit (Ex.Rhs, 0) then
-               return AGC_Ret : Expr_Access := Simplify (Ex.Lhs) do
-                  null;
-               end return;
+               return Simplify (Ex.Lhs);
             elsif Ex.Lhs.K = Lit and Ex.Rhs.K = Lit then
                return
-                 AGC_Ret : Expr_Access :=
-                   Test.AGC_Register_Expr_Access
-                     (Test.Expr_Access'
-                        (new Expr'(Lit, Ex.Lhs.Value + Ex.Rhs.Value)))
-               do
-                  null;
-               end return;
+                 Test.AGC_Register_Expr_Access
+                   (Test.Expr_Access'
+                      (new Expr'(Lit, Ex.Lhs.Value + Ex.Rhs.Value)));
             else
                declare
                   AGC_Temp_1  : aliased Test.Expr_Access := Simplify (Ex.Rhs);
@@ -255,16 +245,12 @@ procedure Test is
    function To_String (Ex : Expr_Access) return String is
    begin
       return
-        AGC_Ret : String :=
-          (case Ex.K is
-             when Add =>
-               "(" & To_String (Ex.Lhs) & " + " & To_String (Ex.Rhs) & ")",
-             when Mul =>
-               "(" & To_String (Ex.Lhs) & " * " & To_String (Ex.Rhs) & ")",
-             when Lit => Ex.Value'Image, when Var => Ex.Name'Image)
-      do
-         null;
-      end return;
+        (case Ex.K is
+           when Add =>
+             "(" & To_String (Ex.Lhs) & " + " & To_String (Ex.Rhs) & ")",
+           when Mul =>
+             "(" & To_String (Ex.Lhs) & " * " & To_String (Ex.Rhs) & ")",
+           when Lit => Ex.Value'Image, when Var => Ex.Name'Image);
    end To_String;
 
    procedure Main is

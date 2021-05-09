@@ -28,7 +28,6 @@ with Pass.Add_With_Clauses;
 with Pass.Unsugar_Expr_Functions;
 with Pass.Handle_Temporaries;
 with Pass.Collect_Static;
-with Pass.Extend_Return_Stmts;
 with Pass.Track_Roots;
 with Pass.Generate_Types_Interfaces;
 with Pass.Register_Global_Changes;
@@ -169,9 +168,6 @@ procedure AGC is
 
          Pass.Collect_Static (Job_Ctx, Unit);
          Pass.Apply_Rewritings (Unit, "collect_static");
-
-         Pass.Extend_Return_Stmts (Job_Ctx, Unit);
-         Pass.Apply_Rewritings (Unit, "extend_return_stmts");
 
          Pass.Track_Roots (Job_Ctx, Unit);
          Pass.Generate_Types_Interfaces (Job_Ctx, Unit);

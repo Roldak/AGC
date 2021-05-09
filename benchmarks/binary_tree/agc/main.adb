@@ -116,16 +116,10 @@ procedure Main is
       case T.K is
          when Node =>
             return
-              AGC_Ret : String :=
-                "(" & To_String (T.Left) & T.Value'Image & " " &
-                To_String (T.Right) & ")"
-            do
-               null;
-            end return;
+              "(" & To_String (T.Left) & T.Value'Image & " " &
+              To_String (T.Right) & ")";
          when Leaf =>
-            return AGC_Ret : String := "<>" do
-               null;
-            end return;
+            return "<>";
       end case;
    end To_String;
 

@@ -73,11 +73,7 @@ package body Pkg is
      AGC_T_Access_Ops_Implem.Register;
    function Create return T_Access is
    begin
-      return
-        AGC_Ret : T_Access := Pkg.AGC_Register_T_Access (Pkg.T_Access'(new T))
-      do
-         null;
-      end return;
+      return Pkg.AGC_Register_T_Access (Pkg.T_Access'(new T));
    end Create;
 end Pkg;
 with AGC;

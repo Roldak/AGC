@@ -39,14 +39,10 @@ procedure Test is
    function F (X : Integer) return Rec is
    begin
       return
-        AGC_Ret : Rec :=
-          Rec'
-            (X =>
-               Test.AGC_Register_Integer_Access
-                 (Test.Integer_Access'(new Integer'(X))))
-      do
-         null;
-      end return;
+        Rec'
+          (X =>
+             Test.AGC_Register_Integer_Access
+               (Test.Integer_Access'(new Integer'(X))));
    end F;
 
    function G (X : Integer) return Integer is

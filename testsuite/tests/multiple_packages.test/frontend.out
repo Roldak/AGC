@@ -28,11 +28,7 @@ procedure Test is
       function Create (X : Integer) return T_Access is
       begin
          return
-           AGC_Ret : T_Access :=
-             Test.Pkg.AGC_Register_T_Access (Test.Pkg.T_Access'(new T'(T (X))))
-         do
-            null;
-         end return;
+           Test.Pkg.AGC_Register_T_Access (Test.Pkg.T_Access'(new T'(T (X))));
       end Create;
    end Pkg;
 

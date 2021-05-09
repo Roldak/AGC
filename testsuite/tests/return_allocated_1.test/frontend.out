@@ -24,19 +24,13 @@ procedure Test is
    function Inner (X : Integer) return Integer_Access is
    begin
       return
-        AGC_Ret : Integer_Access :=
-          Test.AGC_Register_Integer_Access
-            (Test.Integer_Access'(new Integer'(X)))
-      do
-         null;
-      end return;
+        Test.AGC_Register_Integer_Access
+          (Test.Integer_Access'(new Integer'(X)));
    end Inner;
 
    function Add (A, B : Integer_Access) return Integer is
    begin
-      return AGC_Ret : Integer := A.all + B.all do
-         null;
-      end return;
+      return A.all + B.all;
    end Add;
 
    function AGC_Func_0 return Integer;

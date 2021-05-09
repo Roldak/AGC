@@ -31,13 +31,9 @@ procedure Test is
    function Eq (X, Y : Integer_Access) return Integer_Access is
    begin
       return
-        AGC_Ret : Integer_Access :=
-          (Test.AGC_Register_Integer_Access
-             (Test.Integer_Access'
-                (new Integer'(if X.all = Y.all then 1 else 0))))
-      do
-         null;
-      end return;
+        (Test.AGC_Register_Integer_Access
+           (Test.Integer_Access'
+              (new Integer'(if X.all = Y.all then 1 else 0))));
    end Eq;
 begin
    declare

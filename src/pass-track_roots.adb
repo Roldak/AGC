@@ -291,35 +291,60 @@ is
    procedure Handle_Return_Stmt
      (Stmt : LAL.Return_Stmt'Class)
    is
-      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
-      SH : LALRW.Node_Rewriting_Handle :=
-         LALRW.Handle (Stmt);
-
-      PH : LALRW.Node_Rewriting_Handle :=
-         LALRW.Handle (Stmt.Parent);
-
-      Subp_Body : LAL.Ada_Node :=
-         Utils.Enclosing_Subp_Body (Stmt).As_Ada_Node;
+      Subp_Body : constant LAL.Base_Subp_Body :=
+         Utils.Enclosing_Subp_Body (Stmt);
    begin
-      if Node_Counters.Get (Subp_Roots, Subp_Body) > 0 then
-         Pop_Objects (PH, True, Utils.Child_Index (SH));
+      if Node_Counters.Get (Subp_Roots, Subp_Body.As_Ada_Node) > 0 then
+         declare
+            Ret_Type : constant LAL.Type_Expr :=
+               Subp_Body.F_Subp_Spec.F_Subp_Returns;
+
+            Ret_Expr : constant LAL.Expr := Stmt.F_Return_Expr;
+
+            RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+            SH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmt);
+            PH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Stmt.Parent);
+            EH : LALRW.Node_Rewriting_Handle;
+         begin
+            if Ret_Type.Is_Null or else Utils.Is_Named_Expr (Ret_Expr) then
+               Pop_Objects (PH, True, Utils.Child_Index (SH));
+            else
+               PH := LALRW.Create_Node (RH, LALCO.Ada_Stmt_List);
+
+               Pop_Objects (PH, True, 1);
+
+               EH := LALRW.Create_From_Template
+                 (RH,
+                  "return AGC_Ret : {} := null do null; end return;",
+                  (1 => LALRW.Handle (Ret_Type)),
+                  LALCO.Ext_Return_Stmt_Rule);
+
+               Utils.Force_Set_Child
+                 (LALRW.Child (EH, 1), 6, LALRW.Handle (Ret_Expr));
+
+               LALRW.Set_Child (LALRW.Child (EH, 2), 1, PH);
+
+               LALRW.Replace (SH, EH);
+            end if;
+         end;
       end if;
    end Handle_Return_Stmt;
 
    procedure Handle_Extended_Return_Stmt
      (Stmt : LAL.Extended_Return_Stmt'Class)
    is
-      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
-      SH : LALRW.Node_Rewriting_Handle :=
-         LALRW.Handle (Stmt.F_Stmts.F_Stmts);
-
       Subp_Body : LAL.Ada_Node :=
          Utils.Enclosing_Subp_Body (Stmt).As_Ada_Node;
    begin
       if Node_Counters.Get (Subp_Roots, Subp_Body) > 0 then
-         Pop_Objects (SH, True);
+         declare
+            RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
+            SH : LALRW.Node_Rewriting_Handle :=
+               LALRW.Handle (Stmt.F_Stmts.F_Stmts);
+         begin
+            Pop_Objects (SH, True);
+         end;
       end if;
    end Handle_Extended_Return_Stmt;
 

@@ -58,9 +58,7 @@ procedure Test is
       end Hash;
       function "=" (X, Y : Rec) return Boolean is
       begin
-         return AGC_Ret : Boolean := (X.Value.all = Y.Value.all) do
-            null;
-         end return;
+         return (X.Value.all = Y.Value.all);
       end "=";
    end Pkg;
    procedure Main is

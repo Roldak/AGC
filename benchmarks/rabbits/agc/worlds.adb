@@ -113,11 +113,7 @@ package body Worlds is
 
    function Is_Running (W : in out World) return Boolean is
    begin
-      return
-        AGC_Ret : Boolean :=
-          not W.Entities.Is_Empty or else not W.New_Entities.Is_Empty do
-         null;
-      end return;
+      return not W.Entities.Is_Empty or else not W.New_Entities.Is_Empty;
    end Is_Running;
 
    function Located (W : in World; X, Y : Natural) return Positioned_Array is
