@@ -658,8 +658,4 @@ is
    end Process_Node;
 begin
    Unit.Root.Traverse (Process_Node'Access);
-   if not LALRW.Apply (RH).Success then
-      raise Program_Error
-         with "generate_types_interfaces: could not apply rewritings";
-   end if;
 end Pass.Generate_Types_Interfaces;

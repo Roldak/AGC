@@ -410,7 +410,4 @@ begin
    Unit.Root.Traverse (Process_Node'Access);
    Node_Counters.Iterate (Subp_Roots, Process_Subp_Body'Access);
    Node_Sets.Iterate (Require_Root_Count, Process_Store_Request'Access);
-   if not LALRW.Apply (RH).Success then
-      raise Program_Error with "track_roots: could not apply rewritings";
-   end if;
 end Pass.Track_Roots;

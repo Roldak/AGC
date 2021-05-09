@@ -194,7 +194,4 @@ begin
    end if;
 
    Unit.Root.Traverse (Process_Node'Access);
-   if not Apply_Rewritings_If_Relevant then
-      raise Program_Error with "collect_static: could not apply rewritings";
-   end if;
 end Pass.Collect_Static;

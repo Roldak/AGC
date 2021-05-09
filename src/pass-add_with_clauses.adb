@@ -35,7 +35,4 @@ begin
          (1 .. 0 => <>), LALCO.With_Clause_Rule));
    end;
 
-   if not LALRW.Apply (RH).Success then
-      raise Program_Error with "add_with_clause: could not apply rewritings";
-   end if;
 end Pass.Add_With_Clauses;

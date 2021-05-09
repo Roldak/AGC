@@ -162,11 +162,21 @@ procedure AGC is
       else
          Pass.Add_With_Clauses (Job_Ctx, Unit);
          Pass.Unsugar_Expr_Functions (Job_Ctx, Unit);
+         Pass.Apply_Rewritings (Unit, "add_with_clause|unsugar_expr_functions");
+
          Pass.Handle_Temporaries (Job_Ctx, Unit);
+         Pass.Apply_Rewritings (Unit, "handle_temporaries");
+
          Pass.Collect_Static (Job_Ctx, Unit);
+         Pass.Apply_Rewritings (Unit, "collect_static");
+
          Pass.Extend_Return_Stmts (Job_Ctx, Unit);
+         Pass.Apply_Rewritings (Unit, "extend_return_stmts");
+
          Pass.Track_Roots (Job_Ctx, Unit);
          Pass.Generate_Types_Interfaces (Job_Ctx, Unit);
+         Pass.Apply_Rewritings (Unit, "track_roots|generate_type_interfaces");
+
          Pass.Register_Global_Changes (Job_Ctx, Unit);
       end if;
    end Process_Unit;

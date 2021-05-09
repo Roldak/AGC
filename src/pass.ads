@@ -9,4 +9,8 @@ package Pass is
 
    function Rewriting_Handle
      (Unit : LAL.Analysis_Unit) return LALRW.Rewriting_Handle;
+
+   procedure Apply_Rewritings
+     (Unit       : LAL.Analysis_Unit;
+      Error_Name : String);
 end Pass;

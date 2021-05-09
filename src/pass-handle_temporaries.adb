@@ -343,7 +343,4 @@ is
    end Process_Node;
 begin
    Unit.Root.Traverse (Process_Node'Access);
-   if not LALRW.Apply (RH).Success then
-      raise Program_Error with "handle_temporaries: could not apply rewritings";
-   end if;
 end Pass.Handle_Temporaries;
