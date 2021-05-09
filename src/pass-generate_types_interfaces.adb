@@ -581,24 +581,24 @@ is
    end Generate_Visitors;
 
    procedure Handle_Type_Decl
-     (Decl : LAL.Base_Type_Decl'Class; Base_Index : Integer := -1)
+     (Decl   : LAL.Base_Type_Decl'Class;
+      Origin : LAL.Ada_Node := LAL.No_Ada_Node)
    is
       Type_Name : Langkit_Support.Text.Text_Type :=
          Utils.Get_Type_Name (Decl);
 
-      Decl_Part : LAL.Ada_Node := Decl.Parent.As_Ada_Node;
-
-      DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl_Part);
+      DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl.Parent);
 
       procedure Insert_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
-         Index : Natural :=
-           (if Base_Index = -1
-            then Decl.Child_Index
-            else Base_Index) + Node_Counters.Get (Decl_Part_Count, Decl_Part);
+         Base  : constant LAL.Ada_Node :=
+           (if Origin.Is_Null then Decl.As_Ada_Node else Origin);
+
+         Index : constant Natural :=
+            Utils.Child_Index (LALRW.Handle (Base))
+            + Node_Counters.Get (Decl_Part_Count, Base);
       begin
-         LALRW.Insert_Child (DH, Index + 2, Visitor);
-         Node_Counters.Increase (Decl_Part_Count, Decl_Part);
-         Index := Index + 1;
+         LALRW.Insert_Child (DH, Index + 1, Visitor);
+         Node_Counters.Increase (Decl_Part_Count, Base);
       end Insert_Visitor;
    begin
       if Decl.Kind
@@ -633,7 +633,9 @@ is
          for Delayed of Get_Delayed_Types (Decl.As_Ada_Node) loop
             Handle_Type_Decl
               (Delayed.As_Type_Decl,
-               (if Base_Index = -1 then Decl.Child_Index else Base_Index));
+               (if Origin.Is_Null
+                then Decl.As_Ada_Node
+                else Origin));
          end loop;
       end if;
    end Handle_Type_Decl;
