@@ -34,5 +34,4 @@ begin
         (RH, "with Ada.Unchecked_Conversion;",
          (1 .. 0 => <>), LALCO.With_Clause_Rule));
    end;
-
 end Pass.Add_With_Clauses;

@@ -22,8 +22,6 @@ is
    Require_Root_Count : Node_Sets.Set;
    Subp_Roots : Node_Counters.Counter;
 
-   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
    function Ends_With_Return_Stmt
      (Stmts : LAL.Stmt_List'Class) return Boolean
    is
@@ -65,6 +63,8 @@ is
    procedure Push_Object
      (DH : LALRW.Node_Rewriting_Handle; X : LAL.Object_Decl)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (X.P_Defining_Name);
 
@@ -112,6 +112,7 @@ is
      (Decls : LALRW.Node_Rewriting_Handle;
       Leaving_Subp : Boolean)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
    begin
       LALRW.Insert_Child (Decls, 1, LALRW.Create_From_Template
         (RH,
@@ -127,6 +128,8 @@ is
       Index        : Integer := -1;
       Offset       : Natural := 0)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Offset_Text : Langkit_Support.Text.Text_Type :=
         (if Offset > 0
          then " + " & Offset'Wide_Wide_Image
@@ -164,6 +167,8 @@ is
       end if;
 
       declare
+         RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
          Type_Name     : Langkit_Support.Text.Text_Type :=
             Utils.Generate_Type_Reference (Typ);
          Register_Name : Langkit_Support.Text.Text_Type :=
@@ -183,13 +188,17 @@ is
 
    procedure Handle_Aliased_Annot (Node : LAL.Aliased_Absent'Class)
    is
-      SH  : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
    begin
       if Node.Parent.Kind in LALCO.Ada_Object_Decl then
          if Node.Parent.As_Object_Decl.F_Renaming_Clause.Is_Null then
             if Utils.Is_Relevant_Root (Node.Parent.As_Object_Decl) then
-               LALRW.Replace
-                 (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+               declare
+                  RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+                  SH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Node);
+               begin
+                  LALRW.Replace
+                    (SH, LALRW.Create_Node (RH, LALCO.Ada_Aliased_Present));
+               end;
             end if;
          end if;
       end if;
@@ -212,8 +221,6 @@ is
       Decls      : LAL.Ada_Node_List := Decl_Part.F_Decls;
       Subp_Level : Boolean :=
          Decl_Part.Parent.Kind in LALCO.Ada_Base_Subp_Body;
-
-      DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
 
       Has_Any_Root : Boolean := False;
 
@@ -242,8 +249,13 @@ is
          begin
             if C.Kind in LALCO.Ada_Object_Decl then
                if Utils.Is_Relevant_Root (C.As_Object_Decl) then
-                  Push_Object (DH, C.As_Object_Decl);
-                  Has_Any_Root := True;
+                  declare
+                     RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+                     DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decls);
+                  begin
+                     Push_Object (DH, C.As_Object_Decl);
+                     Has_Any_Root := True;
+                  end;
                end if;
             elsif C.Kind in LALCO.Ada_Base_Package_Decl then
                --  The package itself cannot pop its roots, so the enclosing
@@ -261,8 +273,12 @@ is
             and then not Parent_Block_Already_Pops (Handled_Stmts)
             and then not Ends_With_Return_Stmt (Handled_Stmts.F_Stmts)
          then
-            Require_Root_Count.Include (Decl_Part.As_Ada_Node);
-            Pop_Objects (LALRW.Handle (Handled_Stmts.F_Stmts), False);
+            declare
+               RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+            begin
+               Require_Root_Count.Include (Decl_Part.As_Ada_Node);
+               Pop_Objects (LALRW.Handle (Handled_Stmts.F_Stmts), False);
+            end;
          end if;
       end if;
    end Handle_Declarative_Part;
@@ -275,6 +291,8 @@ is
    procedure Handle_Return_Stmt
      (Stmt : LAL.Return_Stmt'Class)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       SH : LALRW.Node_Rewriting_Handle :=
          LALRW.Handle (Stmt);
 
@@ -292,6 +310,8 @@ is
    procedure Handle_Extended_Return_Stmt
      (Stmt : LAL.Extended_Return_Stmt'Class)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       SH : LALRW.Node_Rewriting_Handle :=
          LALRW.Handle (Stmt.F_Stmts.F_Stmts);
 
@@ -304,6 +324,8 @@ is
    end Handle_Extended_Return_Stmt;
 
    procedure Handle_Exception_Handler (Handler : LAL.Exception_Handler) is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Handled_Stmts : LAL.Handled_Stmts :=
          Handler.Parent.Parent.As_Handled_Stmts;
       Decl_Part     : LAL.Declarative_Part :=
@@ -377,6 +399,8 @@ is
    end Process_Subp_Body;
 
    procedure Process_Store_Request (Cursor : Node_Sets.Cursor) is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Node       : LAL.Ada_Node := Node_Sets.Element (Cursor);
       Subp_Level : Boolean := Node.Parent.Kind in LALCO.Ada_Base_Subp_Body;
 

@@ -14,9 +14,9 @@ procedure Pass.Unsugar_Expr_Functions
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit    : Libadalang.Analysis.Analysis_Unit)
 is
-   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
    procedure Handle_Expr_Function (Fun : LAL.Expr_Function'Class) is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Has_Decl : Boolean  := not Fun.P_Previous_Part.Is_Null;
 
       Actual_Expr : LAL.Expr := Fun.F_Expr;

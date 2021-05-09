@@ -14,11 +14,11 @@ procedure Pass.Extend_Return_Stmts
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
-   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
    procedure Handle_Return_Stmt (Stmt : LAL.Return_Stmt'Class) is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       Ret_Expr : LAL.Expr := Stmt.F_Return_Expr;
 

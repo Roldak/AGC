@@ -16,8 +16,6 @@ procedure Pass.Handle_Temporaries
   (Job_Ctx : Libadalang.Helpers.App_Job_Context;
    Unit : Libadalang.Analysis.Analysis_Unit)
 is
-   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
    package Node_Maps is new Ada.Containers.Hashed_Maps
      (LAL.Ada_Node,
       LALRW.Node_Rewriting_Handle,
@@ -37,6 +35,8 @@ is
      (Scope : LAL.Ada_Node) return LALRW.Node_Rewriting_Handle
    is
       use type Node_Maps.Cursor;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       Cursor : Node_Maps.Cursor := Node_Maps.Find (Decl_Blocks, Scope);
       Block  : LALRW.Node_Rewriting_Handle;
@@ -65,6 +65,8 @@ is
      (Scope : LAL.Object_Decl) return LALRW.Node_Rewriting_Handle
    is
       use type Node_Maps.Cursor;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       Node   : LAL.Ada_Node := Scope.As_Ada_Node;
       Cursor : Node_Maps.Cursor := Node_Maps.Find (Decl_Blocks, Node);
@@ -160,6 +162,8 @@ is
    is
       use type Node_Maps.Cursor;
 
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Node   : LAL.Ada_Node := Expr.As_Ada_Node;
       Cursor : Node_Maps.Cursor := Node_Maps.Find (Decl_Blocks, Node);
       Func   : LALRW.Node_Rewriting_Handle;
@@ -231,6 +235,8 @@ is
    procedure Handle_Expr (Expr : LAL.Expr'Class) is
       use type LALCO.Ada_Node_Kind_Type;
       use type LAL.Ada_Node;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       Scope : LAL.Ada_Node'Class := Find_Scope_Or_Raise (Expr);
 

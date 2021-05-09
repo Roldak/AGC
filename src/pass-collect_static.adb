@@ -21,33 +21,14 @@ is
    package LALI    renames Libadalang.Iterators;
    package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
 
-   --  Rewriting handle is created lazily in this phase because many units
-   --  won't need to be rewritten.
-   RH : LALRW.Rewriting_Handle := LALRW.No_Rewriting_Handle;
-
-   procedure Start_Rewriting is
-      use type LALRW.Rewriting_Handle;
-   begin
-      if RH = LALRW.No_Rewriting_Handle then
-         RH := Rewriting_Handle (Unit);
-      end if;
-   end Start_Rewriting;
-
-   function Apply_Rewritings_If_Relevant return Boolean is
-      use type LALRW.Rewriting_Handle;
-   begin
-      if RH /= LALRW.No_Rewriting_Handle then
-         return LALRW.Apply (RH).Success;
-      end if;
-      return True;
-   end Apply_Rewritings_If_Relevant;
-
    procedure Insert_Node_Between
      (From : LAL.Ada_Node;
       To   : LAL.Ada_Node;
       Stmt : LALRW.Node_Rewriting_Handle)
    is
       use type LAL.Ada_Node;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       procedure Insert_At
         (List  : LALRW.Node_Rewriting_Handle;
@@ -112,12 +93,12 @@ is
       To   : LAL.Ada_Node;
       Var  : LAL.Defining_Name)
    is
-      Stmt : LALRW.Node_Rewriting_Handle;
-   begin
-      Start_Rewriting;
-      Stmt := LALRW.Create_From_Template
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
+      Stmt : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
         (RH, "AGC.Free (" & Var.Text & ");",
          (1 .. 0 => <>), LALCO.Stmt_Rule);
+   begin
       Insert_Node_Between (From, To, Stmt);
    end Generate_Free_Between;
 

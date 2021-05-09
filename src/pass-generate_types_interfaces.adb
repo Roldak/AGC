@@ -47,8 +47,6 @@ is
       return False;
    end Derives_From_Instrumented_Type;
 
-   RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
    Decl_Part_Count : Node_Counters.Counter;
 
    type RWNode_Processor is access procedure (X : LALRW.Node_Rewriting_Handle);
@@ -115,6 +113,7 @@ is
       Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
    begin
       Append (LALRW.Create_From_Template
         (RH,
@@ -128,6 +127,8 @@ is
       Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       procedure Generate_Renaming (Classwide : Boolean)
       is
          Suffix : Langkit_Support.Text.Text_Type :=
@@ -157,6 +158,8 @@ is
       Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       Access_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.P_Defining_Name);
 
@@ -236,6 +239,8 @@ is
       Append     : RWNode_Processor)
    is
       use type Langkit_Support.Text.Unbounded_Text_Type;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
@@ -457,6 +462,8 @@ is
       Decl       : LAL.Base_Type_Decl'Class;
       Append     : RWNode_Processor)
    is
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
+
       N_Dims : Integer := Decl.P_Array_Ndims;
 
       function Index_Type_Names
@@ -509,6 +516,8 @@ is
       Append     : RWNode_Processor)
    is
       use type Langkit_Support.Text.Unbounded_Text_Type;
+
+      RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
 
       Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);
@@ -587,6 +596,7 @@ is
       Type_Name : Langkit_Support.Text.Text_Type :=
          Utils.Get_Type_Name (Decl);
 
+      RH : LALRW.Rewriting_Handle      := Rewriting_Handle (Unit);
       DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl.Parent);
 
       procedure Insert_Visitor (Visitor : LALRW.Node_Rewriting_Handle) is
