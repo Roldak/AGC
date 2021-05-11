@@ -116,7 +116,9 @@ is
       end Unexpected;
    begin
       case From.Kind is
-         when LALCO.Ada_Simple_Stmt | LALCO.Ada_Case_Stmt =>
+         when LALCO.Ada_Simple_Stmt
+               | LALCO.Ada_Object_Decl
+               | LALCO.Ada_Case_Stmt =>
             if From.Kind in LALCO.Ada_Return_Stmt then
                Insert_After_Return (From.As_Return_Stmt);
             else
@@ -143,12 +145,22 @@ is
       Var  : LAL.Defining_Name)
    is
       RH : LALRW.Rewriting_Handle := Rewriting_Handle (Unit);
-
-      Stmt : LALRW.Node_Rewriting_Handle := LALRW.Create_From_Template
-        (RH, "AGC.Free (" & Var.Text & ");",
-         (1 .. 0 => <>), LALCO.Stmt_Rule);
    begin
-      Insert_Node_Between (From, To, Stmt);
+      if From.Parent.Parent.Kind in LALCO.Ada_Declarative_Part then
+         Insert_Node_Between
+           (From, To,
+            LALRW.Create_From_Template
+              (RH,
+               "AGC_Free_" & Var.Text
+               & " : AGC.Empty_Type := AGC.Free (" & Var.Text & ");",
+               (1 .. 0 => <>), LALCO.Object_Decl_Rule));
+      else
+         Insert_Node_Between
+           (From, To,
+            LALRW.Create_From_Template
+              (RH, "AGC.Free (" & Var.Text & ");",
+               (1 .. 0 => <>), LALCO.Stmt_Rule));
+      end if;
    end Generate_Free_Between;
 
    function Is_Parameter (Var : LAL.Defining_Name) return Boolean is
