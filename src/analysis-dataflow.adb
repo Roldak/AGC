@@ -42,6 +42,12 @@ package body Analysis.Dataflow is
                     (PC.As_Ada_List.Last_Child_Index);
                end if;
 
+            when LALCO.Ada_Decl_Block =>
+               PC := PC.As_Decl_Block.F_Stmts.As_Ada_Node;
+
+            when LALCO.Ada_Begin_Block =>
+               PC := PC.As_Begin_Block.F_Stmts.As_Ada_Node;
+
             when LALCO.Ada_Return_Stmt
                    | LALCO.Ada_Extended_Return_Stmt
                    | LALCO.Ada_Raise_Stmt
