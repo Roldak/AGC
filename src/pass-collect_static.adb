@@ -138,6 +138,23 @@ is
    function Is_Parameter (Var : LAL.Defining_Name) return Boolean is
      (Var.P_Basic_Decl.Kind in LALCO.Ada_Param_Spec);
 
+   function Without_Returned_Value
+     (Stmt : LAL.Return_Stmt; State : Node_Sets.Set) return Node_Sets.Set
+   is
+      Returned_Expr : constant LAL.Expr := Stmt.F_Return_Expr;
+      Refd_Name     : constant LAL.Defining_Name :=
+        (if Returned_Expr.Kind in LALCO.Ada_Identifier
+         then Returned_Expr.As_Identifier.P_Referenced_Defining_Name
+         else LAL.No_Defining_Name);
+
+      New_State : Node_Sets.Set := State;
+   begin
+      if not Refd_Name.Is_Null then
+         New_State.Exclude (Refd_Name.P_Canonical_Part.As_Ada_Node);
+      end if;
+      return New_State;
+   end Without_Returned_Value;
+
    procedure Handle_Subp_Body (Subp : LAL.Base_Subp_Body) is
       Liveness_Result  : constant Analysis.Liveness.Problem.Solution :=
          Analysis.Liveness.Share.Get_Context_Solution (Subp.As_Body_Node);
@@ -180,7 +197,7 @@ is
       begin
          if N.Kind in LALCO.Ada_Return_Stmt then
             Compare_Between
-              (N, S,
+              (N, Without_Returned_Value (N.As_Return_Stmt, S),
                LAL.No_Ada_Node, Node_Sets.Empty_Set);
          else
             Liveness_Result.Query_Before (N, Compare_To'Access);
