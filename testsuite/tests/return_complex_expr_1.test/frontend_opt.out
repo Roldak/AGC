@@ -49,8 +49,8 @@ procedure Test is
            AGC_Ret : Integer :=
              AGC_Temp_0.all + AGC_Temp_1.all + AGC_Temp_2.all do
             AGC.Free (AGC_Temp_0);
-            AGC.Free (AGC_Temp_2);
             AGC.Free (AGC_Temp_1);
+            AGC.Free (AGC_Temp_2);
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end;

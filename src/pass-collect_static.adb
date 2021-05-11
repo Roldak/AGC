@@ -1,8 +1,9 @@
 with Ada.Text_IO; use Ada.Text_IO;
 with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
+with Ada.Containers.Ordered_Sets;
 
-with Langkit_Support.Slocs;
+with Langkit_Support.Slocs; use Langkit_Support.Slocs;
 with Langkit_Support.Text;
 
 with Libadalang.Helpers;
@@ -21,6 +22,21 @@ procedure Pass.Collect_Static
 is
    package LALI    renames Libadalang.Iterators;
    package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
+
+   function "<" (A, B : LAL.Ada_Node) return Boolean is
+     (Start_Sloc (A.Sloc_Range) < Start_Sloc (B.Sloc_Range));
+
+   package Sorted_Node_Sets is new Ada.Containers.Ordered_Sets
+     (LAL.Ada_Node, "<", LAL."=");
+
+   function To_Sorted_Set (X : Node_Sets.Set) return Sorted_Node_Sets.Set is
+      R : Sorted_Node_Sets.Set;
+   begin
+      for E of X loop
+         R.Insert (E);
+      end loop;
+      return R;
+   end To_Sorted_Set;
 
    package Node_Handle_Maps is new Ada.Containers.Hashed_Maps
      (LAL.Ada_Node, LALRW.Node_Rewriting_Handle, LAL.Hash, LAL."=", LALRW."=");
@@ -181,7 +197,7 @@ is
          end Kill;
       begin
          if not Leq (R, S) then
-            for Var of R.Difference (S) loop
+            for Var of To_Sorted_Set (R.Difference (S)) loop
                Kill (Var.As_Defining_Name);
             end loop;
          end if;
