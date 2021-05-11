@@ -10,6 +10,7 @@ with Langkit_Support.Text;
 with Libadalang.Helpers;
 
 with Node_Counters;
+with Session;
 with Utils;
 
 procedure Pass.Handle_Temporaries
@@ -287,7 +288,14 @@ is
    function Is_Dirty (Expr : LAL.Expr'Class) return Boolean is
       Scope : LAL.Ada_Node'Class := Find_Scope_Or_Raise (Expr);
    begin
-      return Dirty_Scopes.Contains (Scope.As_Ada_Node);
+      if Session.Get_Optimization_Level in Session.Full then
+         --  We want most temporaries to be extracted for the
+         --  ``Full`` optimization level so that static_collect
+         --  works on simpler programs.
+         return True;
+      else
+         return Dirty_Scopes.Contains (Scope.As_Ada_Node);
+      end if;
    end Is_Dirty;
 
    function Process_Node
