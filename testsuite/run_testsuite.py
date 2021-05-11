@@ -9,6 +9,7 @@ import sys
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("--rewrite", action="store_true")
+arg_parser.add_argument("--runner", default="")
 arg_parser.add_argument("patterns", nargs="*", type=str)
 
 
@@ -74,8 +75,8 @@ def run_test(runner, test, rewrite):
     ))
 
 
-def run(test_patterns, rewrite):
-    runners = list(discover_runners())
+def run(test_patterns, rewrite, runner):
+    runners = list(discover_runners()) if runner == "" else [runner]
     tests = list(discover_tests(test_patterns))
 
     for test in tests:
@@ -85,4 +86,4 @@ def run(test_patterns, rewrite):
 
 if __name__ == "__main__":
     args = arg_parser.parse_args()
-    run(args.patterns, args.rewrite)
+    run(args.patterns, args.rewrite, args.runner)
