@@ -1,4 +1,5 @@
 with Ada.Text_IO; use Ada.Text_IO;
+with Ada.Containers.Hashed_Maps;
 with Ada.Containers.Hashed_Sets;
 
 with Langkit_Support.Slocs;
@@ -21,6 +22,11 @@ is
    package LALI    renames Libadalang.Iterators;
    package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
 
+   package Node_Handle_Maps is new Ada.Containers.Hashed_Maps
+     (LAL.Ada_Node, LALRW.Node_Rewriting_Handle, LAL.Hash, LAL."=", LALRW."=");
+
+   Return_Stmt_Map : Node_Handle_Maps.Map;
+
    procedure Insert_Node_Between
      (From : LAL.Ada_Node;
       To   : LAL.Ada_Node;
@@ -38,29 +44,54 @@ is
          LALRW.Insert_Child (List, Index, Stmt);
       end Insert_At;
 
+      function Get_Extended_Return_Stmt
+        (Original : LAL.Return_Stmt) return LALRW.Node_Rewriting_Handle
+      is
+         use type Node_Handle_Maps.Cursor;
+
+         Cursor : Node_Handle_Maps.Cursor :=
+            Return_Stmt_Map.Find (Original.As_Ada_Node);
+      begin
+         if Cursor = Node_Handle_Maps.No_Element then
+            declare
+               Subp : constant LAL.Base_Subp_Body :=
+                  Utils.Enclosing_Subp_Body (Original);
+
+               Ret_Type : constant LAL.Type_Expr :=
+                  Subp.F_Subp_Spec.F_Subp_Returns;
+
+               Ret_Expr : constant LAL.Expr :=
+                  Original.F_Return_Expr;
+
+               ERH : LALRW.Node_Rewriting_Handle :=
+                  LALRW.Create_From_Template
+                    (RH,
+                     "return AGC_Ret : {} := {} do {} end return;",
+                     (1 => LALRW.Handle (Ret_Type),
+                      2 => LALRW.Handle (Ret_Expr),
+                      3 => LALRW.Create_Node (RH, LALCO.Ada_Stmt_List)),
+                     LALCO.Ext_Return_Stmt_Rule);
+
+               Dummy_Inserted : Boolean;
+            begin
+               LALRW.Replace (LALRW.Handle (Original), ERH);
+               Return_Stmt_Map.Insert
+                 (Original.As_Ada_Node, ERH, Cursor, Dummy_Inserted);
+            end;
+         end if;
+         return Node_Handle_Maps.Element (Cursor);
+      end Get_Extended_Return_Stmt;
+
       procedure Insert_After_Return
         (Original : LAL.Return_Stmt)
       is
-         Subp : constant LAL.Base_Subp_Body :=
-            Utils.Enclosing_Subp_Body (Original);
-
-         Ret_Type : constant LAL.Type_Expr := Subp.F_Subp_Spec.F_Subp_Returns;
-         Ret_Expr : constant LAL.Expr := Original.F_Return_Expr;
+         ERH : constant LALRW.Node_Rewriting_Handle :=
+            Get_Extended_Return_Stmt (Original);
 
          Stmt_List : constant LALRW.Node_Rewriting_Handle :=
-            LALRW.Create_Node (RH, LALCO.Ada_Stmt_List);
+            LALRW.Child (LALRW.Child (ERH, 2), 1);
       begin
          Insert_At (Stmt_List, 1);
-
-         LALRW.Replace
-           (LALRW.Handle (Original),
-            LALRW.Create_From_Template
-              (RH,
-               "return AGC_Ret : {} := {} do {} end return;",
-               (1 => LALRW.Clone (LALRW.Handle (Ret_Type)),
-                2 => LALRW.Clone (LALRW.Handle (Ret_Expr)),
-                3 => Stmt_List),
-               LALCO.Ext_Return_Stmt_Rule));
       end Insert_After_Return;
 
       procedure Unexpected is
