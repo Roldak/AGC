@@ -4,6 +4,11 @@ with Analysis.Lattices.Finite_Node_Sets;
 package Analysis.Ownership is
    package Node_Sets renames Analysis.Lattices.Finite_Node_Sets.Node_Sets;
 
+   use Ada.Strings.Wide_Wide_Unbounded;
+
+   package Id_Sets is new Ada.Containers.Hashed_Sets
+     (Unbounded_Text_Type, Wide_Wide_Hash, "=");
+
    use Analysis.Lattices;
 
    procedure Include_Parameter
@@ -34,12 +39,17 @@ package Analysis.Ownership is
    function Analyze (X : LAL.Body_Node) return Problem.Solution;
    function Default (X : LAL.Body_Node) return Problem.Solution;
 
-   type Universal_Solution is null record;
+   type Universal_Solution is record
+      Final_Owners  : Id_Sets.Set;
+      Returns_Owner : Boolean;
+   end record;
 
    function To_Universal
-     (X : Problem.Solution) return Universal_Solution
-   is
-     (null record);
+     (X : Problem.Solution) return Universal_Solution;
+
+   function Is_Owner
+     (Result : Universal_Solution;
+      Param  : LAL.Defining_Name) return Boolean;
 
    package Share is new Shared_Analysis
      (Problem.Solution,

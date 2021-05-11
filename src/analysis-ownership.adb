@@ -106,6 +106,11 @@ package body Analysis.Ownership is
       end loop;
    end Remove_Possibly_Aliased;
 
+   function Returns_Owning_Access (E : LAL.Expr) return Boolean is
+   begin
+      return E.Kind in LALCO.Ada_Allocator;
+   end Returns_Owning_Access;
+
    procedure Handle_Assignment
      (State : in out Node_Sets.Set;
       Ctx   : LAL.Base_Subp_Body;
@@ -125,11 +130,54 @@ package body Analysis.Ownership is
          return;
       end if;
 
-      case Val.Kind is
-         when LALCO.Ada_Allocator =>
-            State.Include (D.As_Ada_Node);
-         when others =>
-            State.Exclude (D.As_Ada_Node);
-      end case;
+      if Returns_Owning_Access (Val) then
+         State.Include (D.As_Ada_Node);
+      else
+         State.Exclude (D.As_Ada_Node);
+      end if;
    end Handle_Assignment;
+
+   function To_Universal
+     (X : Problem.Solution) return Universal_Solution
+   is
+      Result : Universal_Solution := (Returns_Owner => True, others => <>);
+      First  : Boolean := True;
+
+      procedure Handle_End_State (N : LAL.Ada_Node; S : Node_Sets.Set) is
+         Temp : Id_Sets.Set;
+      begin
+         for N of S loop
+            if N.As_Defining_Name.P_Basic_Decl.Kind in LALCO.Ada_Param_Spec then
+               Temp.Insert (To_Unbounded_Text (N.Text));
+            end if;
+         end loop;
+
+         if First then
+            First := False;
+            Result.Final_Owners := Temp;
+         else
+            Result.Final_Owners := Result.Final_Owners.Intersection (Temp);
+         end if;
+
+         if N.Kind in LALCO.Ada_Return_Stmt then
+            if not N.As_Return_Stmt.F_Return_Expr.Is_Null then
+               Result.Returns_Owner :=
+                  Result.Returns_Owner
+                  and then Returns_Owning_Access
+                    (N.As_Return_Stmt.F_Return_Expr);
+            end if;
+         end if;
+      end Handle_End_State;
+   begin
+      X.Query_End_States (Handle_End_State'Access);
+      return Result;
+   end To_Universal;
+
+   function Is_Owner
+     (Result : Universal_Solution;
+      Param  : LAL.Defining_Name) return Boolean
+   is
+   begin
+      return Result.Final_Owners.Contains (To_Unbounded_Text (Param.Text));
+   end Is_Owner;
 end Analysis.Ownership;
