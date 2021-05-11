@@ -4,15 +4,10 @@ package body Analysis.Ownership is
    use Langkit_Support.Text;
 
    function Analyze (X : LAL.Body_Node) return Problem.Solution is
-   begin
-      return Problem.Fixpoint (X.As_Base_Subp_Body);
-   end Analyze;
+     (Problem.Fixpoint (X.As_Base_Subp_Body));
 
    function Default (X : LAL.Body_Node) return Problem.Solution is
-      R : Problem.Solution;
-   begin
-      return R;
-   end Default;
+     (Problem.Empty (X.As_Base_Subp_Body));
 
    procedure Include_Parameter
      (State : in out Node_Sets.Set;

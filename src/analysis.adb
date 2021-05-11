@@ -53,7 +53,7 @@ package body Analysis is
                Key         : Unbounded_Text_Type := To_Unbounded_Text
                  (Subp.P_Unique_Identifying_Name);
             begin
-               Map_Ref.Replace_Element (Cursor, Default (Subp));
+               Map_Ref.Replace_Element (Cursor, Placeholder);
 
                Universal_Solutions_Holder.Insert (Key, Convert (Placeholder));
 

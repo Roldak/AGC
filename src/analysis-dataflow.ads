@@ -39,7 +39,8 @@ package Analysis.Dataflow is
    package Problem is
       type Solution is tagged private;
 
-      function Fixpoint (Subp  : LAL.Base_Subp_Body) return Solution;
+      function Empty (Subp : LAL.Base_Subp_Body) return Solution;
+      function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution;
 
       function Query_At
         (S : Solution; Node : LAL.Ada_Node) return States.T;

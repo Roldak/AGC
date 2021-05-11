@@ -324,6 +324,9 @@ package body Analysis.Dataflow is
          end if;
       end Flow_Next;
 
+      function Empty (Subp : LAL.Base_Subp_Body) return Solution is
+        ((Ctx => Subp.As_Body_Node, others => <>));
+
       function Fixpoint (Subp : LAL.Base_Subp_Body) return Solution is
          R : Solution := (Ctx => Subp.As_Body_Node, others => <>);
 
