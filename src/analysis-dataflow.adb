@@ -43,6 +43,7 @@ package body Analysis.Dataflow is
                end if;
 
             when LALCO.Ada_Return_Stmt
+                   | LALCO.Ada_Extended_Return_Stmt
                    | LALCO.Ada_Raise_Stmt
                    | LALCO.Ada_Goto_Stmt
                    | LALCO.Ada_Loop_Stmt =>
@@ -150,6 +151,8 @@ package body Analysis.Dataflow is
                PC := Orig.Parent.Parent;
             end if;
          end if;
+      elsif PC.Kind in LALCO.Ada_Extended_Return_Stmt then
+         PC := PC.As_Extended_Return_Stmt.F_Decl.As_Ada_Node;
       end if;
 
       while PC.Is_Null loop
@@ -170,6 +173,11 @@ package body Analysis.Dataflow is
       Orig : LAL.Ada_Node := PC;
    begin
       case PC.Kind is
+         when LALCO.Ada_Extended_Return_Stmt =>
+            PC := Right_Most_Element
+              (PC.As_Extended_Return_Stmt.F_Stmts, Include);
+            return;
+
          when LALCO.Ada_Declarative_Part =>
             PC := Enclosed_Parent (PC);
             return;
@@ -197,6 +205,12 @@ package body Analysis.Dataflow is
       if PC.Is_Null then
          if Orig.Kind in LALCO.Ada_Stmt then
             PC := Orig.Parent;
+            return;
+         elsif Orig.Kind in LALCO.Ada_Extended_Return_Stmt_Object_Decl then
+            PC := Orig.Parent.Previous_Sibling;
+            if PC.Is_Null then
+               PC := Orig.Parent.Parent;
+            end if;
             return;
          elsif Orig.Parent.Parent.Kind in LALCO.Ada_Declarative_Part then
             PC := Orig.Parent;
@@ -251,7 +265,7 @@ package body Analysis.Dataflow is
                   Ctx   => Ctx,
                   Expr  => PC.As_Expr_Function.F_Expr);
 
-            when LALCO.Ada_Object_Decl =>
+            when LALCO.Ada_Object_Decl_Range =>
                if PC.As_Object_Decl.F_Default_Expr.Is_Null then
                   return New_State;
                end if;
@@ -282,6 +296,14 @@ package body Analysis.Dataflow is
                  (State => New_State,
                   Ctx   => Ctx,
                   Expr  => PC.As_Return_Stmt.F_Return_Expr);
+
+            when LALCO.Ada_Extended_Return_Stmt =>
+               Visit_Return
+                 (State => New_State,
+                  Ctx   => Ctx,
+                  Expr  => PC.As_Extended_Return_Stmt
+                           .F_Decl.P_Defining_Name.As_Expr);
+
             when others =>
                null;
          end case;
@@ -295,8 +317,10 @@ package body Analysis.Dataflow is
          use Libadalang.Iterators;
          use all type LAL.Ada_Node;
 
-         Iter : Traverse_Iterator'Class :=
-            Find (Subp, Kind_Is (LALCO.Ada_Return_Stmt));
+         Iter : Traverse_Iterator'Class := Find
+           (Subp,
+            Kind_Is (LALCO.Ada_Return_Stmt) or
+            Kind_Is (LALCO.Ada_Extended_Return_Stmt));
          Node : LAL.Ada_Node;
       begin
          while Iter.Next (Node) loop

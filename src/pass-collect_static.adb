@@ -114,6 +114,8 @@ is
             else
                Unexpected;
             end if;
+         when LALCO.Ada_Extended_Return_Stmt_Object_Decl =>
+            Insert_At (LALRW.Handle (To.As_Handled_Stmts.F_Stmts), 1);
          when others =>
             Unexpected;
       end case;

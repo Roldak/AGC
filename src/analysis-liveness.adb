@@ -24,6 +24,10 @@ package body Analysis.Liveness is
          Ref : LAL.Defining_Name;
       begin
          case X.Kind is
+            when LALCO.Ada_Defining_Name =>
+               State.Include (X.As_Ada_Node);
+               return LALCO.Over;
+
             when LALCO.Ada_Identifier =>
                Ref := X.As_Name.P_Referenced_Defining_Name;
                if not Ref.Is_Null then
@@ -31,6 +35,7 @@ package body Analysis.Liveness is
                      State.Include (Ref.P_Canonical_Part.As_Ada_Node);
                   end if;
                end if;
+
             when others =>
                null;
          end case;

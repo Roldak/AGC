@@ -1,0 +1,63 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with Ada.Text_IO; use Ada.Text_IO;
+
+procedure Test is
+   type Integer_Access is access Integer;
+
+   for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
+   procedure AGC_Visit_Integer_Access (X : System.Address) with
+      Inline;
+   package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Standard.Integer, Integer_Access, False, AGC.No_Op);
+   procedure AGC_Visit_Integer_Access (X : System.Address) renames
+     AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access with
+      Inline;
+   function AGC_Register_Integer_Access
+     (X : Integer_Access) return Integer_Access renames
+     AGC_Integer_Access_Ops_Implem.Register;
+   function Inner (X : Integer) return Integer_Access is
+      AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   begin
+      declare
+         AGC_Temp_0 : aliased Test.Integer_Access :=
+           Test.AGC_Register_Integer_Access
+             (Test.Integer_Access'(new Integer'(X)));
+         AGC_Dummy_0 : constant AGC.Empty_Type :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+      begin
+         return Tmp : Integer_Access := AGC_Temp_0 do
+            AGC.Pop_Roots (AGC_Base_Root_Count);
+         end return;
+      end;
+   end Inner;
+
+   function Add (A, B : Integer_Access) return Integer is
+   begin
+      return A.all + B.all;
+   end Add;
+
+   function AGC_Func_0 return Integer;
+   function AGC_Func_0 return Integer is
+      AGC_Base_Root_Count : constant Natural            := AGC.Root_Count;
+      AGC_Temp_0          : aliased Test.Integer_Access := Inner (2);
+      AGC_Dummy_0         : constant AGC.Empty_Type     :=
+        AGC.Push_Root
+          (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
+   begin
+      return AGC_Ret : Integer := Add (Inner (1), AGC_Temp_0) do
+         AGC.Free (AGC_Temp_0);
+         null;
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end AGC_Func_0;
+   A : Integer := AGC_Func_0;
+begin
+   AGC.Collect;
+end Test;
