@@ -108,7 +108,35 @@ package body Analysis.Ownership is
 
    function Returns_Owning_Access (E : LAL.Expr) return Boolean is
    begin
-      return E.Kind in LALCO.Ada_Allocator;
+      if E.Kind in LALCO.Ada_Allocator then
+         return True;
+      elsif E.Kind in LALCO.Ada_Name and then E.As_Name.P_Is_Call then
+         declare
+            Name : constant LAL.Name := E.As_Name;
+
+            Spec : constant LAL.Base_Formal_Param_Holder'Class :=
+               Name.P_Called_Subp_Spec;
+
+            Is_Subp_Access : constant Boolean :=
+               Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def;
+
+            Called_Decl : constant LAL.Basic_Decl :=
+              (if Is_Subp_Access
+               then LAL.No_Basic_Decl
+               else Spec.Parent.As_Basic_Decl);
+
+            Called_Body : constant LAL.Body_Node :=
+              (if Is_Subp_Access
+               then LAL.No_Body_Node
+               else Utils.Get_Body (Called_Decl));
+         begin
+            if not Called_Body.Is_Null then
+               return Ownership.Share.Get_Universal_Solution
+                 (Called_Body).Returns_Owner;
+            end if;
+         end;
+      end if;
+      return False;
    end Returns_Owning_Access;
 
    procedure Handle_Assignment
