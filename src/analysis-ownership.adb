@@ -172,21 +172,22 @@ package body Analysis.Ownership is
             end if;
          end loop;
 
-         if First then
-            First := False;
-            Result.Final_Owners := Temp;
-         else
-            Result.Final_Owners := Result.Final_Owners.Intersection (Temp);
-         end if;
+         Result.Final_Owners :=
+           (if First then Temp else Result.Final_Owners.Intersection (Temp));
 
-         if N.Kind in LALCO.Ada_Return_Stmt then
-            if not N.As_Return_Stmt.F_Return_Expr.Is_Null then
-               Result.Returns_Owner :=
-                  Result.Returns_Owner
-                  and then Returns_Owning_Access
-                    (N.As_Return_Stmt.F_Return_Expr);
-            end if;
-         end if;
+         Result.Returns_Owner :=
+           (First or else Result.Returns_Owner) and then
+           (case N.Kind is
+               when LALCO.Ada_Return_Stmt =>
+                  not N.As_Return_Stmt.F_Return_Expr.Is_Null and then
+                  Returns_Owning_Access (N.As_Return_Stmt.F_Return_Expr),
+               when LALCO.Ada_Extended_Return_Stmt =>
+                  S.Contains
+                    (N.As_Extended_Return_Stmt
+                     .F_Decl.P_Defining_Name.As_Ada_Node),
+               when others => False);
+
+         First := False;
       end Handle_End_State;
    begin
       X.Query_End_States (Handle_End_State'Access);
