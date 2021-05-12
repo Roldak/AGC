@@ -32,7 +32,6 @@ procedure Test is
    begin
       if X.all < 100 then
          Foo (X);
-         AGC.Free (X);
       else
          AGC.Free (X);
       end if;

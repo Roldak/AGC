@@ -46,22 +46,12 @@ package body Analysis.Ownership is
                Called_Body : constant LAL.Body_Node :=
                   Utils.Get_Body (Called_Decl);
 
-               Callee_Solution : constant Problem.Solution :=
-                  Ownership.Share.Get_Context_Solution
+               Callee_Solution : constant Universal_Solution :=
+                  Ownership.Share.Get_Universal_Solution
                     (Called_Body);
-
-               Is_Still_Owner : Boolean := True;
-
-               procedure Contains_Param (X : LAL.Ada_Node; S : Node_Sets.Set) is
-               begin
-                  if not S.Contains (Param_Name.As_Ada_Node) then
-                     Is_Still_Owner := False;
-                  end if;
-               end Contains_Param;
             begin
-               Callee_Solution.Query_End_States
-                 (Contains_Param'Access);
-               return not Is_Still_Owner;
+               return not Callee_Solution.Final_Owners.Contains
+                 (To_Unbounded_Text (Param_Name.Text));
             end;
          when LALCO.Ada_Bin_Op_Range =>
             return not Id.Parent.As_Bin_Op.F_Op.P_Referenced_Decl.Is_Null;
