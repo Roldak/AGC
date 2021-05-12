@@ -593,9 +593,6 @@ is
      (Decl   : LAL.Base_Type_Decl'Class;
       Origin : LAL.Ada_Node := LAL.No_Ada_Node)
    is
-      Type_Name : Langkit_Support.Text.Text_Type :=
-         Utils.Get_Type_Name (Decl);
-
       RH : LALRW.Rewriting_Handle      := Rewriting_Handle (Unit);
       DH : LALRW.Node_Rewriting_Handle := LALRW.Handle (Decl.Parent);
 
@@ -617,7 +614,16 @@ is
       then
          return;
       elsif not Utils.Is_Relevant_Type (Decl) then
-         null;
+         if Decl.Kind in LALCO.Ada_Anonymous_Type_Decl and then
+            Decl.P_Is_Access_Type and then
+            Decl.P_Access_Def.Kind not in LALCO.Ada_Access_To_Subp_Def
+         then
+            Utils.Output_Diagnostic
+              (Decl,
+               "Anonymous access types are not tracked",
+               Utils.Warning);
+            return;
+         end if;
       elsif
          Decl.P_Is_Access_Type
          and then not Is_Handled (Decl.P_Accessed_Type)
@@ -656,8 +662,6 @@ is
    begin
       case Node.Kind is
          when LALCO.Ada_Generic_Formal_Part =>
-            return LALCO.Over;
-         when LALCO.Ada_Anonymous_Type =>
             return LALCO.Over;
          when LALCO.Ada_Base_Type_Decl =>
             Handle_Type_Decl (Node.As_Base_Type_Decl);

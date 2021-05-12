@@ -21,7 +21,8 @@ package body Utils is
    function Is_Access_To_Value_Type
      (Typ : LAL.Base_Type_Decl'Class) return Boolean
    is (Typ.P_Is_Access_Type
-       and then Typ.P_Access_Def.Kind not in LALCO.Ada_Access_To_Subp_Def);
+       and then Typ.P_Access_Def.Kind not in LALCO.Ada_Access_To_Subp_Def
+       and then Typ.Kind not in LALCO.Ada_Anonymous_Type_Decl);
 
    function Defined_In_Session (BD : LAL.Basic_Decl'Class) return Boolean is
    begin
@@ -146,6 +147,8 @@ package body Utils is
       if not Session.Is_File_To_Process (LAL.Get_Filename (Typ.Unit)) then
          return False;
       elsif not Typ.P_Is_Access_Type then
+         return False;
+      elsif Typ.Kind in LALCO.Ada_Anonymous_Type_Decl then
          return False;
       elsif not LAL.Exists (Sp) then
          return True;
