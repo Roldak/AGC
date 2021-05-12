@@ -63,6 +63,8 @@ package body Analysis.Ownership is
                  (Contains_Param'Access);
                return not Is_Still_Owner;
             end;
+         when LALCO.Ada_Bin_Op_Range =>
+            return not Id.Parent.As_Bin_Op.F_Op.P_Referenced_Decl.Is_Null;
          when others =>
             return True;
       end case;
