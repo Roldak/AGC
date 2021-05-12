@@ -160,7 +160,7 @@ package body Analysis.Ownership is
    function To_Universal
      (X : Problem.Solution) return Universal_Solution
    is
-      Result : Universal_Solution := (Returns_Owner => True, others => <>);
+      Result : Universal_Solution := (Returns_Owner => False, others => <>);
       First  : Boolean := True;
 
       procedure Handle_End_State (N : LAL.Ada_Node; S : Node_Sets.Set) is
