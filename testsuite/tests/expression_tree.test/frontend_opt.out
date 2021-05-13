@@ -233,13 +233,10 @@ procedure Test is
         AGC.Push_Root (Simplified'Address, Test.AGC_Visit_Expr_Access'Address);
    begin
       if Simplified.K = Lit then
-         return AGC_Ret : Integer := Simplified.Value do
-            AGC.Free (Simplified);
-            AGC.Pop_Roots (AGC_Base_Root_Count);
-         end return;
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+         return Simplified.Value;
       else
          return AGC_Ret : Integer := Evaluate (Simplified, Ev) do
-            AGC.Free (Simplified);
             AGC.Pop_Roots (AGC_Base_Root_Count);
          end return;
       end if;

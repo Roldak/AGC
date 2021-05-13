@@ -56,9 +56,6 @@ procedure Test is
           (AGC_Temp_0'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
       return AGC_Ret : Integer := Add (AGC_Temp_0, AGC_Temp_1) do
-         AGC.Free (AGC_Temp_0);
-         AGC.Free (AGC_Temp_1);
-         null;
          AGC.Pop_Roots (AGC_Base_Root_Count);
       end return;
    end AGC_Func_0;

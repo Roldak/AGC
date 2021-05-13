@@ -94,7 +94,8 @@ package body Analysis.Dataflow is
          when LALCO.Ada_Ada_List =>
             PC := PC.Child (1);
 
-         when LALCO.Ada_Return_Stmt =>
+         when LALCO.Ada_Return_Stmt
+                | LALCO.Ada_Extended_Return_Stmt =>
             PC := LAL.No_Ada_Node;
             return;
 
@@ -155,6 +156,10 @@ package body Analysis.Dataflow is
                Orig := Orig.Parent.Parent;
             elsif Orig.Parent.Parent.Kind in LALCO.Ada_Base_Loop_Stmt then
                PC := Orig.Parent.Parent;
+            elsif Orig.Parent.Parent.Parent.Kind
+                     in LALCO.Ada_Extended_Return_Stmt
+            then
+               PC := Orig.Parent.Parent.Parent;
             end if;
          end if;
       elsif PC.Kind in LALCO.Ada_Extended_Return_Stmt then
