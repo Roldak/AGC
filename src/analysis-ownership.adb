@@ -15,13 +15,11 @@ package body Analysis.Ownership is
       Param : LAL.Param_Spec)
    is
    begin
-      if not Utils.Is_Managed (Param.P_Formal_Type) then
-         return;
+      if Utils.Is_Managed (Param.P_Formal_Type) then
+         for Id of Param.F_Ids loop
+            State.Include (Id.P_Canonical_Part.As_Ada_Node);
+         end loop;
       end if;
-
-      for Id of Param.F_Ids loop
-         State.Include (Id.P_Canonical_Part.As_Ada_Node);
-      end loop;
    end Include_Parameter;
 
    function Is_Aliasing_Reference (Id : LAL.Base_Id'Class) return Boolean is
