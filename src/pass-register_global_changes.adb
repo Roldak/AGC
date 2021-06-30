@@ -190,7 +190,9 @@ is
             FQN : Langkit_Support.Text.Text_Type :=
                Gen_Decl.P_Fully_Qualified_Name;
          begin
-            if Utils.Starts_With (FQN, "Ada.Containers") then
+            if Node.Kind in LALCO.Ada_Generic_Package_Instantiation
+               and then Utils.Starts_With (FQN, "Ada.Containers")
+            then
                Handle_Container_Package_Instantiation
                  (Node.As_Generic_Package_Instantiation, FQN);
             else
