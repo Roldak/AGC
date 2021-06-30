@@ -1,20 +1,17 @@
-Instrument
-   [Ada]          test.adb
-Check consistency
-Output units
---  test.adb
-with AGC;with AGC.Standard;with AGC.Storage.Get;with System;with Ada.Unchecked_Conversion;with AGC;
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+with AGC;
 
 procedure Test is
 begin
    declare
-      X : access Integer := new Integer'(2);
+      X : access Integer          := new Integer'(2);
       Y : access constant Integer := new Integer'(3);
    begin
       null;
    end;
    AGC.Collect;
 end Test;
-
-
-Done: instrumented 1 units.
