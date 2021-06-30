@@ -28,8 +28,8 @@ package Session is
    procedure Iterate_Files_To_Process
      (Process: access procedure (File : String));
 
-   procedure Include_New_Unit
-     (Derived_From : LAL.Analysis_Unit; Name : String);
+   function Include_New_Unit
+     (Derived_From : LAL.Analysis_Unit; Name : String) return String;
 
    function Get_Out_File (X : String) return GNATCOLL.VFS.Virtual_File;
 

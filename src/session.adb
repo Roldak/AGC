@@ -59,8 +59,8 @@ package body Session is
       end loop;
    end Iterate_Files_To_Process;
 
-   procedure Include_New_Unit
-     (Derived_From : LAL.Analysis_Unit; Name : String)
+   function Include_New_Unit
+     (Derived_From : LAL.Analysis_Unit; Name : String) return String
    is
       use GNATCOLL.VFS;
 
@@ -77,6 +77,8 @@ package body Session is
          Derived_Out_File.Dir.Join (+Base_Name));
 
       Incremental.Requires_Processing (Hypothetical_Full);
+
+      return Hypothetical_Full;
    end Include_New_Unit;
 
    function Get_Out_File (X : String) return GNATCOLL.VFS.Virtual_File is

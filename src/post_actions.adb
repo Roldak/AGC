@@ -322,15 +322,17 @@ package body Post_Actions is
 
          for Unit_Info of Created_Units loop
             declare
-               Name : String := To_String (Unit_Info.Name);
+               Name     : String := To_String (Unit_Info.Name);
+               Filename : String :=
+                  Session.Include_New_Unit (Unit_Info.From, Name);
+
                Unit : LAL.Analysis_Unit :=
                   LAL.Get_From_Buffer
                     (Ctx,
-                     Filename => Name,
+                     Filename => Filename,
                      Buffer   => Unit_Info.Buff);
             begin
                Units.Append (Unit);
-               Session.Include_New_Unit (Unit_Info.From, Name);
             end;
          end loop;
       end Perform_Actions;
