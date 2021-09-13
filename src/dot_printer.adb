@@ -51,7 +51,9 @@ package body Dot_Printer is
          Cursor : Cluster_Trees.Cursor := Cluster_Trees.First_Child (Root);
       begin
          while Cursor /= Cluster_Trees.No_Element loop
-            if Cluster_Trees.Element (Cursor) = Elem then
+            if Langkit_Support.Text."="
+                 (Cluster_Trees.Element (Cursor), Elem)
+            then
                return Cursor;
             end if;
             Cursor := Cluster_Trees.Next_Sibling (Cursor);
@@ -95,7 +97,9 @@ package body Dot_Printer is
       Append (C, Escape (Name));
       Append (C, """");
 
-      if Color /= Null_Unbounded_Wide_Wide_String then
+      if Langkit_Support.Text."/="
+           (Color, Null_Unbounded_Wide_Wide_String)
+      then
          Append (C, ",color=""");
          Append (C, Color);
          Append (C, """");
