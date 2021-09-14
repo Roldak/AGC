@@ -1,0 +1,65 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+   type T is record
+      X : Integer;
+   end record;
+
+   type T_Access is access T;
+
+   for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
+   procedure AGC_Visit_T_Access (X : System.Address) with
+      Inline;
+   package AGC_T_Access_Ops_Implem is new AGC.Access_Type_Operations
+     (Test.T, T_Access, False, AGC.No_Op);
+   procedure AGC_Visit_T_Access (X : System.Address) renames
+     AGC_T_Access_Ops_Implem.Mark_And_Visit_Access_Type;
+   function AGC_Register_T_Access (X : T_Access) return T_Access with
+      Inline;
+   function AGC_Register_T_Access (X : T_Access) return T_Access renames
+     AGC_T_Access_Ops_Implem.Register;
+   function Make_T return T_Access;
+   function Make_T return T_Access is
+   begin
+      return (Test.AGC_Register_T_Access (Test.T_Access'(new T'(X => 12))));
+   end Make_T;
+   function Ident (X : T_Access) return T_Access;
+   function Ident (X : T_Access) return T_Access is
+   begin
+      return (X);
+   end Ident;
+   function AGC_Func_0 return T_Access;
+   function AGC_Func_0 return T_Access is
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      AGC_Temp_0          : aliased Test.T_Access   := Make_T;
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (AGC_Temp_0'Address, Test.AGC_Visit_T_Access'Address);
+   begin
+      return AGC_Ret : T_Access := T_Access (AGC_Temp_0) do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end AGC_Func_0;
+   X           : aliased constant T_Access := AGC_Func_0;
+   AGC_Dummy_0 : constant AGC.Empty_Type   :=
+     AGC.Push_Root (X'Address, Test.AGC_Visit_T_Access'Address);
+   function AGC_Func_1 return T_Access;
+   function AGC_Func_1 return T_Access is
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      AGC_Temp_0          : aliased Test.T_Access   := Make_T;
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
+        AGC.Push_Root (AGC_Temp_0'Address, Test.AGC_Visit_T_Access'Address);
+   begin
+      return AGC_Ret : T_Access := Ident (AGC_Temp_0) do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end AGC_Func_1;
+   Y           : aliased constant T_Access := AGC_Func_1;
+   AGC_Dummy_1 : constant AGC.Empty_Type   :=
+     AGC.Push_Root (Y'Address, Test.AGC_Visit_T_Access'Address);
+begin
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;

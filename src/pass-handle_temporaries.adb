@@ -313,10 +313,16 @@ is
                Expr : LAL.Expr := Node.As_Expr;
             begin
                if
-                  Utils.Is_Actual_Expr (Expr)
-                  and then Utils.Is_Relevant_Type (Expr.P_Expression_Type)
-                  and then not Utils.Is_Named_Expr (Expr)
+                  Utils.Is_Actual_Expr (Expr) and then
+                  Utils.Is_Relevant_Type (Expr.P_Expression_Type)
                then
+                  if Utils.Is_Named_Expr (Expr) then
+                     if Expr.Parent.Kind in LALCO.Ada_Object_Decl then
+                        Flag_Dirty (Expr);
+                     end if;
+                     return LALCO.Into;
+                  end if;
+
                   if Utils.Expands_To_Loop (Expr) then
                      Utils.Output_Diagnostic
                        (Expr.Parent,

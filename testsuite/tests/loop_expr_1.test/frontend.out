@@ -24,14 +24,34 @@ procedure Test is
 
    procedure AGC_Visit_Int_Array is new AGC.Visit_Unconstrained_Array_1_Type
      (Int_Access, Positive, Int_Array, Test.AGC_Visit_Int_Access);
-   X : aliased Int_Array (1 .. 10) :=
-     (others =>
-        Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1))));
+   function AGC_Func_0 return Int_Array;
+   function AGC_Func_0 return Int_Array is
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      AGC_Temp_0          : aliased Test.Int_Access :=
+        Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1)));
+      AGC_Dummy_0 : constant AGC.Empty_Type :=
+        AGC.Push_Root (AGC_Temp_0'Address, Test.AGC_Visit_Int_Access'Address);
+   begin
+      return AGC_Ret : Int_Array (1 .. 10) := (others => AGC_Temp_0) do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end AGC_Func_0;
+   X           : aliased Int_Array       := AGC_Func_0;
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.AGC_Visit_Int_Array'Address);
-   Y : aliased Int_Array (1 .. 2) :=
-     (1 | 2 =>
-        Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1))));
+   function AGC_Func_1 return Int_Array;
+   function AGC_Func_1 return Int_Array is
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      AGC_Temp_0          : aliased Test.Int_Access :=
+        Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(1)));
+      AGC_Dummy_0 : constant AGC.Empty_Type :=
+        AGC.Push_Root (AGC_Temp_0'Address, Test.AGC_Visit_Int_Access'Address);
+   begin
+      return AGC_Ret : Int_Array (1 .. 2) := (1 | 2 => AGC_Temp_0) do
+         AGC.Pop_Roots (AGC_Base_Root_Count);
+      end return;
+   end AGC_Func_1;
+   Y           : aliased Int_Array       := AGC_Func_1;
    AGC_Dummy_1 : constant AGC.Empty_Type :=
      AGC.Push_Root (Y'Address, Test.AGC_Visit_Int_Array'Address);
 begin
