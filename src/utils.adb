@@ -396,10 +396,10 @@ package body Utils is
 
          Subp_Body   : LAL.Body_Node;
       begin
-         if Called_Spec.Parent.Kind in LALCO.Ada_Enum_Literal_Decl then
-            return True;
-         elsif Called_Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def then
+         if Name.P_Is_Dispatching_Call then
             return False;
+         elsif Called_Spec.Parent.Kind in LALCO.Ada_Enum_Literal_Decl then
+            return True;
          elsif Session.Get_Optimization_Level in Session.None then
             return False;
          end if;
