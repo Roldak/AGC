@@ -20,7 +20,8 @@ package Worlds is
    type Entity_Array is array (Positive range <>) of Entity_Access;
 
    procedure AGC_Visit_Entity_Array is new AGC.Visit_Unconstrained_Array_1_Type
-     (Entity_Access, Positive, Entity_Array, Worlds.AGC_Visit_Entity_Access);
+     (Worlds.Entity_Access, Positive, Entity_Array,
+      Worlds.AGC_Visit_Entity_Access);
    type Positioned_Access is access all Entities.Positioned.Positioned'Class;
    for Positioned_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Positioned_Access (X : System.Address) with
@@ -32,7 +33,7 @@ package Worlds is
 
    procedure AGC_Visit_Positioned_Array is new AGC
      .Visit_Unconstrained_Array_1_Type
-     (Positioned_Access, Positive, Positioned_Array,
+     (Worlds.Positioned_Access, Positive, Positioned_Array,
       Worlds.AGC_Visit_Positioned_Access);
    type World is tagged private;
 

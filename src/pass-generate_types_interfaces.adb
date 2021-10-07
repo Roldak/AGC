@@ -486,7 +486,7 @@ is
          Decl.P_Comp_Type;
 
       Element_Type_Name : Langkit_Support.Text.Text_Type :=
-         LAL.Text (Element_Type.F_Name);
+         Utils.Generate_Type_Reference (Element_Type, Decl.Unit);
 
       Array_Type_Name : Langkit_Support.Text.Text_Type :=
          LAL.Text (Decl.F_Name);

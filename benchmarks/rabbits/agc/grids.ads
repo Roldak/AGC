@@ -48,7 +48,7 @@ private
    type Matrix is array (X_Range, Y_Range) of Cell;
 
    procedure AGC_Visit_Matrix is new AGC.Visit_Constrained_Array_2_Type
-     (Cell, X_Range, Y_Range, Matrix, Grids.AGC_Visit_Cell);
+     (Grids.Cell, X_Range, Y_Range, Matrix, Grids.AGC_Visit_Cell);
    type Grid is tagged record
       Cells : Matrix;
       Count : Natural := 0;

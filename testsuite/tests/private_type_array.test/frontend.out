@@ -36,7 +36,7 @@ procedure Test is
       procedure AGC_Visit_U_Private (X : System.Address) renames
         Test.Pkg.AGC_Visit_U;
       procedure AGC_Visit_A_Implem is new AGC.Visit_Unconstrained_Array_1_Type
-        (T, Integer, A, Test.Pkg.AGC_Visit_T_Private);
+        (Test.Pkg.T, Integer, A, Test.Pkg.AGC_Visit_T_Private);
       procedure AGC_Visit_A (X : System.Address) renames AGC_Visit_A_Implem;
       procedure AGC_Visit_T (X : System.Address) is
          pragma Suppress (All_Checks);

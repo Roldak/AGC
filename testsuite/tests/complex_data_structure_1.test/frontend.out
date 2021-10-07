@@ -34,7 +34,7 @@ procedure Test is
      AGC_Quad_Tree_Access_Ops_Implem.Register;
    procedure AGC_Visit_Quad_Tree_Access_Array is new AGC
      .Visit_Unconstrained_Array_1_Type
-     (Quad_Tree_Access, Positive, Quad_Tree_Access_Array,
+     (Test.Quad_Tree_Access, Positive, Quad_Tree_Access_Array,
       Test.AGC_Visit_Quad_Tree_Access);
    procedure AGC_Visit_Quad_Tree (X : System.Address) is
       pragma Suppress (All_Checks);
