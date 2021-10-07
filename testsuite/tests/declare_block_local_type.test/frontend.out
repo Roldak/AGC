@@ -1,0 +1,33 @@
+with AGC;
+with AGC.Standard;
+with AGC.Storage.Get;
+with System;
+with Ada.Unchecked_Conversion;
+procedure Test is
+   AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
+begin
+   Foo :
+   declare
+      AGC_Root_Count : constant Natural := AGC.Root_Count;
+      type T is access Integer;
+
+      for T'Storage_Pool use AGC.Storage.Get.Pool;
+      procedure AGC_Visit_T (X : System.Address) with
+         Inline;
+      package AGC_T_Ops_Implem is new AGC.Access_Type_Operations
+        (Standard.Integer, T, False, AGC.No_Op);
+      procedure AGC_Visit_T (X : System.Address) renames
+        AGC_T_Ops_Implem.Mark_And_Visit_Access_Type;
+      function AGC_Register_T (X : T) return T with
+         Inline;
+      function AGC_Register_T (X : T) return T renames
+        AGC_T_Ops_Implem.Register;
+      X : aliased T := Test.Foo.AGC_Register_T (Test.Foo.T'(new Integer'(2)));
+      AGC_Dummy_0 : constant AGC.Empty_Type :=
+        AGC.Push_Root (X'Address, Test.Foo.AGC_Visit_T'Address);
+   begin
+      X.all := 3;
+      AGC.Pop_Roots (AGC_Root_Count);
+   end Foo;
+   AGC.Pop_Roots (AGC_Base_Root_Count);
+end Test;
