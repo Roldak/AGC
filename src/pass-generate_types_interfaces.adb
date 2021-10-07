@@ -498,16 +498,34 @@ is
         (if Is_Constrained
          then "AGC.Visit_Constrained_Array_" & AGC_Dim & "_Type"
          else "AGC.Visit_Unconstrained_Array_" & AGC_Dim & "_Type");
+
+      procedure Generate_Visitor (Visit_Name : Langkit_Support.Text.Text_Type) is
+      begin
+         Append (LALRW.Create_From_Template
+           (RH,
+           "procedure " & Visit_Name & " is new " & Generic_Visitor_Name & " ("
+           & Element_Type_Name & ", "
+           & Index_Type_Names & ", "
+           & Array_Type_Name & ", "
+           & Visitor_Name (Element_Type) & ");",
+           (1 .. 0 => <>),
+           LALCO.Basic_Decl_Rule));
+      end Generate_Visitor;
    begin
-      Append (LALRW.Create_From_Template
-        (RH,
-        "procedure " & Visit_Name & " is new " & Generic_Visitor_Name &" ("
-        & Element_Type_Name & ", "
-        & Index_Type_Names & ", "
-        & Array_Type_Name & ", "
-        & Visitor_Name (Element_Type) & ");",
-        (1 .. 0 => <>),
-        LALCO.Basic_Decl_Rule));
+      if Element_Type.P_Is_Private
+         and then not Element_Type.P_Is_Generic_Formal
+      then
+         Generate_Visitor_Prototype (Visit_Name, Decl, Append);
+         Generate_Visitor (Visit_Name & "_Implem");
+         Append (LALRW.Create_From_Template
+           (RH,
+           "procedure " & Visit_Name & " (X : System.Address) renames "
+           & Visit_Name & "_Implem;",
+           (1 .. 0 => <>),
+           LALCO.Basic_Decl_Rule));
+      else
+         Generate_Visitor (Visit_Name);
+      end if;
    end Generate_Array_Type_Visitor;
 
    procedure Generate_Interface_Type_Visitor
