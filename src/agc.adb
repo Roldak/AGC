@@ -111,6 +111,11 @@ procedure AGC is
        & "This should be used with --optimize otherwise the computed "
        & "call-graph will probably be empty.");
 
+   package No_Sanity_Check is new GNATCOLL.Opt_Parse.Parse_Flag
+     (Parser => App.Args.Parser,
+      Long   => "--no-check",
+      Help   => "Do not perform sanity checks (improve processing time)");
+
    procedure Put_Line (X : String) is
    begin
       if Quiet.Get then
@@ -221,10 +226,12 @@ procedure AGC is
          Jobs (Jobs'First + 1 .. Jobs'Last),
          All_Units);
 
-      Put_Line ("Check consistency");
+      if not No_Sanity_Check.Get then
+         Put_Line ("Check consistency");
 
-      if not Pass.Check_Consistency (Ctx, First_Context, All_Units) then
-         return;
+         if not Pass.Check_Consistency (Ctx, First_Context, All_Units) then
+            return;
+         end if;
       end if;
 
       if Post_Action_Count > 0 then
