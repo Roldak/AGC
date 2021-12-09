@@ -118,7 +118,8 @@ is
       case From.Kind is
          when LALCO.Ada_Simple_Stmt
                | LALCO.Ada_Object_Decl
-               | LALCO.Ada_Case_Stmt =>
+               | LALCO.Ada_Case_Stmt
+               | LALCO.Ada_While_Loop_Stmt =>
             if From.Kind in LALCO.Ada_Return_Stmt then
                Insert_After_Return (From.As_Return_Stmt);
             else
