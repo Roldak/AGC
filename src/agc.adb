@@ -20,6 +20,7 @@ with Libadalang.Unparsing;
 
 with Session;
 with Utils;
+with Wrapper;
 
 with Analysis.Call_Graph.Dump;
 
@@ -268,7 +269,9 @@ procedure AGC is
       Done := True;
    end Post_Process;
 begin
-   App.Run;
+   if not Wrapper then
+      App.Run;
+   end if;
 exception
    when Program_Error =>
       if not Done then
