@@ -30,7 +30,17 @@ begin
       AGC.Free (X);
    else
       AGC.Free (X);
-      X := Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(3)));
+      declare
+         AGC_Root_Count : constant Natural        := AGC.Root_Count;
+         AGC_Temp_0     : aliased Test.Int_Access :=
+           Test.AGC_Register_Int_Access (Test.Int_Access'(new Integer'(3)));
+         AGC_Dummy_1 : constant AGC.Empty_Type :=
+           AGC.Push_Root
+             (AGC_Temp_0'Address, Test.AGC_Visit_Int_Access'Address);
+      begin
+         X := AGC_Temp_0;
+         AGC.Pop_Roots (AGC_Root_Count);
+      end;
    end if;
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

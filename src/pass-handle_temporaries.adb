@@ -316,6 +316,15 @@ is
                   Utils.Is_Actual_Expr (Expr) and then
                   Utils.Is_Relevant_Type (Expr.P_Expression_Type)
                then
+                  if Expr.Parent.Kind in LALCO.Ada_Assign_Stmt then
+                     if Expr.Parent.As_Assign_Stmt.F_Expr = Expr then
+                        if Session.Get_Optimization_Level in Session.Full then
+                           Handle_Expr (Expr);
+                           return LALCO.Into;
+                        end if;
+                     end if;
+                  end if;
+
                   if Utils.Is_Named_Expr (Expr) then
                      if Expr.Parent.Kind in LALCO.Ada_Object_Decl then
                         Flag_Dirty (Expr);
