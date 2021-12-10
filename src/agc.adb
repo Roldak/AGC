@@ -89,6 +89,12 @@ procedure AGC is
       Long   => "--quiet",
       Help   => "Do not print progress information");
 
+   package Before_GPRBuild is new GNATCOLL.Opt_Parse.Parse_Flag
+     (Parser => App.Args.Parser,
+      Long   => "--before-gprbuild",
+      Help   => "Print less information about instrumentation "
+                & " for smoother integration with gprbuild's output.");
+
    package No_Hash is new GNATCOLL.Opt_Parse.Parse_Flag
      (Parser => App.Args.Parser,
       Long   => "--no-hash",
@@ -117,9 +123,9 @@ procedure AGC is
       Long   => "--no-check",
       Help   => "Do not perform sanity checks (improve processing time)");
 
-   procedure Put_Line (X : String) is
+   procedure Put_Line (X : String; Always: Boolean := True) is
    begin
-      if Quiet.Get then
+      if Quiet.Get or else (not Always and then Before_GPRBuild.Get) then
          return;
       end if;
       Ada.Text_IO.Put_Line (X);
@@ -228,7 +234,7 @@ procedure AGC is
          All_Units);
 
       if not No_Sanity_Check.Get then
-         Put_Line ("Check consistency");
+         Put_Line ("Check consistency", False);
 
          if not Pass.Check_Consistency (Ctx, First_Context, All_Units) then
             return;
@@ -236,12 +242,13 @@ procedure AGC is
       end if;
 
       if Post_Action_Count > 0 then
-         Put_Line ("Apply" & Post_Action_Count'Image & " Global Changes");
+         Put_Line
+           ("Apply" & Post_Action_Count'Image & " Global Changes", False);
       end if;
 
       Post_Actions.Actions.Perform_Actions (First_Context, All_Units);
 
-      Put_Line ("Output units");
+      Put_Line ("Output units", False);
 
       --  output units
       for Unit of All_Units loop
@@ -253,7 +260,7 @@ procedure AGC is
 
       --  dump call graph
       if Dump_Call_Graph.Get /= "" then
-         Put_Line ("Dump computed call-graph");
+         Put_Line ("Dump computed call-graph", False);
          Analysis.Call_Graph.Dump
            (GNATCOLL.Strings.To_String (Dump_Call_Graph.Get));
       end if;
@@ -262,7 +269,8 @@ procedure AGC is
       if Total_Written = 0 then
          Put_Line ("Done: everything up-to-date.");
       else
-         Put_Line ("Done: instrumented" & Total_Written'Image & " units.");
+         Put_Line
+           ("Done: instrumented" & Total_Written'Image & " units.", False);
       end if;
 
       Post_Actions.Actions.Clear;

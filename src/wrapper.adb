@@ -4,10 +4,11 @@ with GNAT.OS_Lib; use GNAT.OS_Lib;
 with GNATCOLL.VFS; use GNATCOLL.VFS;
 
 function Wrapper return Boolean is
-   Instr_Dir         : constant String := "agc-instr";
-   Output_Dir_Opt    : constant String := "--output-dir=" & Instr_Dir;
-   Src_Subdirs_Opt   : constant String := "--src-subdirs=" & Instr_Dir;
-   Implicit_With_Opt : constant String := "--implicit-with=agc_runtime";
+   Instr_Dir           : constant String := "agc-instr";
+   Output_Dir_Opt      : constant String := "--output-dir=" & Instr_Dir;
+   Src_Subdirs_Opt     : constant String := "--src-subdirs=" & Instr_Dir;
+   Implicit_With_Opt   : constant String := "--implicit-with=agc_runtime";
+   Before_GPRBuild_Opt : constant String := "--before-gprbuild";
 
    function Extract_GPRBuild_Arguments
      (From_Index : Positive) return Argument_List
@@ -33,7 +34,7 @@ function Wrapper return Boolean is
       First_GPRBuild_Arg_Index : Positive)
    is
       AGC_Success        : Boolean;
-      AGC_Base_Args      : Argument_List (1 .. Last_AGC_Arg_Index + 1);
+      AGC_Base_Args      : Argument_List (1 .. Last_AGC_Arg_Index + 2);
       AGC_Extracted_Args : Argument_List :=
          Extract_GPRBuild_Arguments (First_GPRBuild_Arg_Index);
       AGC_Command        : Virtual_File := Locate_On_Path ("agc");
@@ -42,6 +43,8 @@ function Wrapper return Boolean is
          AGC_Base_Args (I) := new String'(Argument (I));
       end loop;
       AGC_Base_Args (Last_AGC_Arg_Index + 1) := new String'(Output_Dir_Opt);
+      AGC_Base_Args (Last_AGC_Arg_Index + 2) :=
+         new String'(Before_GPRbuild_Opt);
 
       Spawn
         (AGC_Command.Display_Full_Name,
