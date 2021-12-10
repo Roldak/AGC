@@ -111,14 +111,12 @@ jobs:
                 --build-mode=prod --library-types=static
       - name: Build libadalang
         run: |
-            langkit/utils/gh_wrap_errors.py \
-                ./libadalang/manage.py make -Dgnu-full \
-                    --build-mode=prod --library-types=static
+            ./libadalang/manage.py make -Dgnu-full \
+                --build-mode=prod --library-types=static
       - name: Install & package libadalang
         run: |
-            langkit/utils/gh_wrap_errors.py \
-                ./libadalang/manage.py install $PREFIX \
-                    --build-mode=prod --library-types=static
+            ./libadalang/manage.py install $PREFIX \
+                --build-mode=prod --library-types=static
       - name: Build AGC instrumenter
         run: |
             gprbuild agc.gpr -j0 -p -XLIBRARY_TYPES=static \
