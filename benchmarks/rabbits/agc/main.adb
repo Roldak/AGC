@@ -16,7 +16,7 @@ procedure Main is
 
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (W'Address, Worlds.AGC_Visit_World_Private'Address);
-   Stage : Natural := 0;
+   Stage       : Natural                 := 0;
    procedure Print_Stats is
       Rabbits, Wolves, Grass : Natural;
    begin

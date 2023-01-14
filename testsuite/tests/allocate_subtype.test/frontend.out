@@ -10,18 +10,18 @@ procedure Test is
 
    for My_Nat_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_My_Nat_Access (X : System.Address) with
-      Inline;
+     Inline;
    package AGC_My_Nat_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Test.My_Natural, My_Nat_Access, False, AGC.No_Op);
    procedure AGC_Visit_My_Nat_Access (X : System.Address) renames
      AGC_My_Nat_Access_Ops_Implem.Mark_And_Visit_Access_Type;
    function AGC_Register_My_Nat_Access
      (X : My_Nat_Access) return My_Nat_Access with
-      Inline;
+     Inline;
    function AGC_Register_My_Nat_Access
      (X : My_Nat_Access) return My_Nat_Access renames
      AGC_My_Nat_Access_Ops_Implem.Register;
-   X : aliased My_Nat_Access :=
+   X           : aliased My_Nat_Access   :=
      Test.AGC_Register_My_Nat_Access (Test.My_Nat_Access'(new My_Natural'(2)));
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (X'Address, Test.AGC_Visit_My_Nat_Access'Address);

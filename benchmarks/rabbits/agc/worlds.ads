@@ -13,10 +13,10 @@ package Worlds is
    type Entity_Access is access Entities.Entity'Class;
    for Entity_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Entity_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_Entity_Access
      (X : Entity_Access) return Entity_Access with
-      Inline;
+     Inline;
    type Entity_Array is array (Positive range <>) of Entity_Access;
 
    procedure AGC_Visit_Entity_Array is new AGC.Visit_Unconstrained_Array_1_Type
@@ -25,10 +25,10 @@ package Worlds is
    type Positioned_Access is access all Entities.Positioned.Positioned'Class;
    for Positioned_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Positioned_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_Positioned_Access
      (X : Positioned_Access) return Positioned_Access with
-      Inline;
+     Inline;
    type Positioned_Array is array (Positive range <>) of Positioned_Access;
 
    procedure AGC_Visit_Positioned_Array is new AGC
@@ -38,9 +38,9 @@ package Worlds is
    type World is tagged private;
 
    procedure AGC_Visit_World_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_World_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    package Grid is new Grids
      (50, 50, Positioned_Access,
       AGC_Visit_Item_Private => Worlds.AGC_Visit_Positioned_Access);
@@ -73,9 +73,9 @@ private
       Cells        : Grid.Grid;
    end record;
    procedure AGC_Visit_World (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit (X : access World) with
-      Inline;
+     Inline;
    procedure AGC_Visit_World_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Worlds;

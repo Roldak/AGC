@@ -26,9 +26,9 @@ package Pkg is
 
    for Int_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Int_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_Int_Access (X : Int_Access) return Int_Access with
-      Inline;
+     Inline;
    procedure Foo;
 
    X           : aliased Int_Access;

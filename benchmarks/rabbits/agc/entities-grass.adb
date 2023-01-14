@@ -11,7 +11,7 @@ package body Entities.Grass is
    procedure AGC_Visit_Grass (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Grass'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -26,7 +26,7 @@ package body Entities.Grass is
    procedure AGC_Visit_Grass_Classwide (X : System.Address) is
       pragma Suppress (All_Checks);
       type T_Access is access Grass'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin
@@ -43,10 +43,10 @@ package body Entities.Grass is
       AGC_Base_Root_Count : constant Natural := AGC.Root_Count;
    begin
       declare
-         AGC_Temp_0 : aliased Worlds.Entity_Access :=
+         AGC_Temp_0  : aliased Worlds.Entity_Access :=
            Worlds.AGC_Register_Entity_Access
              (Worlds.Entity_Access'(new Grass));
-         AGC_Dummy_0 : constant AGC.Empty_Type :=
+         AGC_Dummy_0 : constant AGC.Empty_Type      :=
            AGC.Push_Root
              (AGC_Temp_0'Address, Worlds.AGC_Visit_Entity_Access'Address);
       begin

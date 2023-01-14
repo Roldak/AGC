@@ -8,23 +8,23 @@ procedure Test is
 
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
-      Inline;
+     Inline;
    package AGC_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Standard.Integer, Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_Integer_Access (X : System.Address) renames
      AGC_Integer_Access_Ops_Implem.Mark_And_Visit_Access_Type;
    function AGC_Register_Integer_Access
      (X : Integer_Access) return Integer_Access with
-      Inline;
+     Inline;
    function AGC_Register_Integer_Access
      (X : Integer_Access) return Integer_Access renames
      AGC_Integer_Access_Ops_Implem.Register;
    function Foo (X : Integer) return Integer is
-      AGC_Base_Root_Count : constant Natural       := AGC.Root_Count;
-      Y                   : aliased Integer_Access :=
+      AGC_Base_Root_Count : constant Natural        := AGC.Root_Count;
+      Y                   : aliased Integer_Access  :=
         Test.AGC_Register_Integer_Access
           (Test.Integer_Access'(new Integer'(X)));
-      AGC_Dummy_0 : constant AGC.Empty_Type :=
+      AGC_Dummy_0         : constant AGC.Empty_Type :=
         AGC.Push_Root (Y'Address, Test.AGC_Visit_Integer_Access'Address);
    begin
       return V : Integer := Y.all do

@@ -2,7 +2,7 @@ package body Pkg is
    procedure AGC_Visit_Rec (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Rec with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -24,7 +24,7 @@ package Pkg is
       X : T;
    end record;
    procedure AGC_Visit_Rec (X : System.Address) with
-      Inline;
+     Inline;
 end Pkg;
 with AGC;
 with AGC.Standard;

@@ -13,7 +13,7 @@ package body Grids is
    procedure AGC_Visit_Cell (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Cell with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -25,7 +25,7 @@ package body Grids is
    procedure AGC_Visit_Grid (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Grid'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -42,7 +42,7 @@ package body Grids is
    procedure AGC_Visit_Grid_Classwide (X : System.Address) is
       pragma Suppress (All_Checks);
       type T_Access is access Grid'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin

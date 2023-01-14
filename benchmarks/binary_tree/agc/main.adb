@@ -23,23 +23,23 @@ procedure Main is
    end record;
 
    procedure AGC_Visit_Tree (X : System.Address) with
-      Inline;
+     Inline;
    for Tree_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Tree_Access (X : System.Address) with
-      Inline;
+     Inline;
    package AGC_Tree_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Main.Tree, Tree_Access, False, Main.AGC_Visit_Tree);
    procedure AGC_Visit_Tree_Access (X : System.Address) renames
      AGC_Tree_Access_Ops_Implem.Mark_And_Visit_Access_Type;
    function AGC_Register_Tree_Access (X : Tree_Access) return Tree_Access with
-      Inline;
+     Inline;
    function AGC_Register_Tree_Access
      (X : Tree_Access) return Tree_Access renames
      AGC_Tree_Access_Ops_Implem.Register;
    procedure AGC_Visit_Tree (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Tree with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);

@@ -3,7 +3,7 @@ package body Pkg is
       procedure AGC_Visit_Rec2 (X : System.Address) is
          pragma Suppress (All_Checks);
          type Rec_Access is access Rec2 with
-            Storage_Size => 0;
+           Storage_Size => 0;
          for Rec_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, Rec_Access);
@@ -14,7 +14,7 @@ package body Pkg is
       procedure AGC_Visit_Rec3 (X : System.Address) is
          pragma Suppress (All_Checks);
          type Rec_Access is access Rec3 with
-            Storage_Size => 0;
+           Storage_Size => 0;
          for Rec_Access'Size use Standard'Address_Size;
          function Conv is new Ada.Unchecked_Conversion
            (System.Address, Rec_Access);
@@ -33,7 +33,7 @@ package body Pkg is
    procedure AGC_Visit_Rec1 (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Rec1 with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -44,7 +44,7 @@ package body Pkg is
    procedure AGC_Visit_Rec4 (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Rec4 with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -63,33 +63,33 @@ package Pkg is
 
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_Integer_Access
      (X : Integer_Access) return Integer_Access with
-      Inline;
+     Inline;
    type Rec1 is record
       X : Integer_Access;
    end record;
 
    procedure AGC_Visit_Rec1 (X : System.Address) with
-      Inline;
+     Inline;
    package Inner is
       type Rec2 is record
          X : Rec1;
       end record;
 
       procedure AGC_Visit_Rec2 (X : System.Address) with
-         Inline;
+        Inline;
       type Rec3 is record
          X : Rec2;
       end record;
       procedure AGC_Visit_Rec3 (X : System.Address) with
-         Inline;
+        Inline;
    end Inner;
 
    type Rec4 is record
       X : Inner.Rec3;
    end record;
    procedure AGC_Visit_Rec4 (X : System.Address) with
-      Inline;
+     Inline;
 end Pkg;

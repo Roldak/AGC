@@ -9,9 +9,9 @@ package Entities.Wolves is
    type Wolf is new Positioned.Positioned with private;
 
    procedure AGC_Visit_Wolf_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Wolf_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    function Create return Entity_Access;
    function Create (X, Y : Natural) return Entity_Access;
 
@@ -23,9 +23,9 @@ private
       Food : Natural;
    end record;
    procedure AGC_Visit_Wolf (X : System.Address) with
-      Inline;
+     Inline;
    overriding procedure AGC_Visit (X : access Wolf) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Wolf_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Entities.Wolves;

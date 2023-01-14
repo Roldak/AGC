@@ -9,9 +9,9 @@ package Entities.Grass is
    type Grass is new Positioned.Positioned with private;
 
    procedure AGC_Visit_Grass_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Grass_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    function Create return Entity_Access;
    function Create (X, Y : Natural) return Entity_Access;
 
@@ -24,9 +24,9 @@ private
       Content : Natural;
    end record;
    procedure AGC_Visit_Grass (X : System.Address) with
-      Inline;
+     Inline;
    overriding procedure AGC_Visit (X : access Grass) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Grass_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Entities.Grass;

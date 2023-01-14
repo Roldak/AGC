@@ -30,9 +30,9 @@ package Grids is
       AGC_Visit_Element_Type             => Grids.AGC_Visit_Item_Private);
    type Grid is tagged private;
    procedure AGC_Visit_Grid_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Grid_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    procedure Put (G : in out Grid; X, Y : Natural; I : Item);
    procedure Del (G : in out Grid; X, Y : Natural; I : Item);
    function Get (G : in Grid; X, Y : Natural) return Item_Vectors.Vector;
@@ -44,7 +44,7 @@ private
    end record;
 
    procedure AGC_Visit_Cell (X : System.Address) with
-      Inline;
+     Inline;
    type Matrix is array (X_Range, Y_Range) of Cell;
 
    procedure AGC_Visit_Matrix is new AGC.Visit_Constrained_Array_2_Type
@@ -54,9 +54,9 @@ private
       Count : Natural := 0;
    end record;
    procedure AGC_Visit_Grid (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit (X : access Grid) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Grid_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Grids;

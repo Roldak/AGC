@@ -9,9 +9,9 @@ package Entities is
    type Entity is abstract tagged private;
 
    procedure AGC_Visit_Entity_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Entity_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    procedure Start (E : in out Entity; W : in out World) is abstract;
    procedure Update (E : in out Entity; W : in out World) is abstract;
 
@@ -24,9 +24,9 @@ private
    end record;
 
    procedure AGC_Visit_Entity (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit (X : access Entity) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Entity_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Entities;

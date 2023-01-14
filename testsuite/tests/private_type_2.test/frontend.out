@@ -15,7 +15,7 @@ package body Pkg is
    procedure AGC_Visit_T (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access T'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -30,7 +30,7 @@ package body Pkg is
    procedure AGC_Visit_T_Classwide (X : System.Address) is
       pragma Suppress (All_Checks);
       type T_Access is access T'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin
@@ -58,7 +58,7 @@ package Pkg is
    type T is private;
 
    procedure AGC_Visit_T_Private (X : System.Address) with
-      Inline;
+     Inline;
    function Create (X : Integer) return T;
 
    function Get (X : T) return Integer;
@@ -67,19 +67,19 @@ private
    type Integer_Access is access Integer;
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_Integer_Access
      (X : Integer_Access) return Integer_Access with
-      Inline;
+     Inline;
    type T is tagged record
       X : Integer_Access;
    end record;
    procedure AGC_Visit_T (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit (X : access T) with
-      Inline;
+     Inline;
    procedure AGC_Visit_T_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Pkg;
 with AGC;
 with AGC.Standard;

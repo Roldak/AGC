@@ -32,10 +32,10 @@ package Pkg is
 
    for Integer_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Integer_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_Integer_Access
      (X : Integer_Access) return Integer_Access with
-      Inline;
+     Inline;
    function Foo return Integer_Access;
    function AGC_Func_0 return Integer;
    Y : Integer := AGC_Func_0;

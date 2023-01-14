@@ -9,13 +9,13 @@ procedure Test is
 
    for Int_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Int_Access (X : System.Address) with
-      Inline;
+     Inline;
    package AGC_Int_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Standard.Integer, Int_Access, False, AGC.No_Op);
    procedure AGC_Visit_Int_Access (X : System.Address) renames
      AGC_Int_Access_Ops_Implem.Mark_And_Visit_Access_Type;
    function AGC_Register_Int_Access (X : Int_Access) return Int_Access with
-      Inline;
+     Inline;
    function AGC_Register_Int_Access (X : Int_Access) return Int_Access renames
      AGC_Int_Access_Ops_Implem.Register;
    function Foo (X : Integer) return Int_Access is
@@ -51,13 +51,13 @@ procedure Test is
    A           : aliased Int_Access      := Foo (2);
    AGC_Dummy_0 : constant AGC.Empty_Type :=
      AGC.Push_Root (A'Address, Test.AGC_Visit_Int_Access'Address);
-   X : Integer := (if A = null then 0 else A.all);
+   X           : Integer                 := (if A = null then 0 else A.all);
 
    AGC_Free_A  : AGC.Empty_Type          := AGC.Free (A);
    B           : aliased Int_Access      := Bar (2);
    AGC_Dummy_1 : constant AGC.Empty_Type :=
      AGC.Push_Root (B'Address, Test.AGC_Visit_Int_Access'Address);
-   Y : Integer := (if B = null then 0 else B.all);
+   Y           : Integer                 := (if B = null then 0 else B.all);
 begin
    AGC.Pop_Roots (AGC_Base_Root_Count);
 end Test;

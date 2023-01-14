@@ -43,8 +43,8 @@ package Pkg is
 
    for T_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_T_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_T_Access (X : T_Access) return T_Access with
-      Inline;
+     Inline;
    function Create (X : Integer) return T_Access;
 end Pkg;

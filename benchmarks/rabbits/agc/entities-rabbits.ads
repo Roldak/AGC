@@ -9,9 +9,9 @@ package Entities.Rabbits is
    type Rabbit is new Positioned.Positioned with private;
 
    procedure AGC_Visit_Rabbit_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Rabbit_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    function Create return Entity_Access;
    function Create (X, Y : Natural) return Entity_Access;
 
@@ -23,9 +23,9 @@ private
       Food : Natural;
    end record;
    procedure AGC_Visit_Rabbit (X : System.Address) with
-      Inline;
+     Inline;
    overriding procedure AGC_Visit (X : access Rabbit) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Rabbit_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Entities.Rabbits;

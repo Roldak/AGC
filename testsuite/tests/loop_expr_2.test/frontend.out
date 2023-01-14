@@ -12,13 +12,13 @@ procedure Test is
 
    for Int_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_Int_Access (X : System.Address) with
-      Inline;
+     Inline;
    package AGC_Int_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Standard.Integer, Int_Access, False, AGC.No_Op);
    procedure AGC_Visit_Int_Access (X : System.Address) renames
      AGC_Int_Access_Ops_Implem.Mark_And_Visit_Access_Type;
    function AGC_Register_Int_Access (X : Int_Access) return Int_Access with
-      Inline;
+     Inline;
    function AGC_Register_Int_Access (X : Int_Access) return Int_Access renames
      AGC_Int_Access_Ops_Implem.Register;
    function Foo return Int_Access is

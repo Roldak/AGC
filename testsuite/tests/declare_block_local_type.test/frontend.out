@@ -13,13 +13,13 @@ begin
 
       for T'Storage_Pool use AGC.Storage.Get.Pool;
       procedure AGC_Visit_T (X : System.Address) with
-         Inline;
+        Inline;
       package AGC_T_Ops_Implem is new AGC.Access_Type_Operations
         (Standard.Integer, T, False, AGC.No_Op);
       procedure AGC_Visit_T (X : System.Address) renames
         AGC_T_Ops_Implem.Mark_And_Visit_Access_Type;
       function AGC_Register_T (X : T) return T with
-         Inline;
+        Inline;
       function AGC_Register_T (X : T) return T renames
         AGC_T_Ops_Implem.Register;
       X : aliased T := Test.Foo.AGC_Register_T (Test.Foo.T'(new Integer'(2)));

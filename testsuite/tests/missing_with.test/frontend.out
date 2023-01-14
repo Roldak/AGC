@@ -2,7 +2,7 @@ package body Bar is
    procedure AGC_Visit_T (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access T'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -17,7 +17,7 @@ package body Bar is
    procedure AGC_Visit_T_Classwide (X : System.Address) is
       pragma Suppress (All_Checks);
       type T_Access is access T'Class with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for T_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion (System.Address, T_Access);
    begin
@@ -39,11 +39,11 @@ package Bar is
    type T is tagged null record;
 
    procedure AGC_Visit_T (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit (X : access T) with
-      Inline;
+     Inline;
    procedure AGC_Visit_T_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    function Get_U (Self : T) return Foo.U;
 end Bar;
 package body Foo is
@@ -62,9 +62,9 @@ package Foo is
    type U is access Integer;
    for U'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_U (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_U (X : U) return U with
-      Inline;
+     Inline;
 end Foo;
 with AGC;
 with AGC.Standard;

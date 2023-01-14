@@ -7,9 +7,9 @@ package Entities.Positioned is
    type Positioned is abstract new Entity with private;
 
    procedure AGC_Visit_Positioned_Private (X : System.Address) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Positioned_Private_Classwide (X : System.Address) with
-      Inline;
+     Inline;
    procedure Initialize (E : in out Positioned; X, Y : Natural);
 
    function X (P : Positioned) return Natural;
@@ -23,9 +23,9 @@ private
       P_X, P_Y : Natural;
    end record;
    procedure AGC_Visit_Positioned (X : System.Address) with
-      Inline;
+     Inline;
    overriding procedure AGC_Visit (X : access Positioned) with
-      Inline;
+     Inline;
    procedure AGC_Visit_Positioned_Classwide (X : System.Address) with
-      Inline;
+     Inline;
 end Entities.Positioned;

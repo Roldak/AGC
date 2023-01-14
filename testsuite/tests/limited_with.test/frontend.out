@@ -15,7 +15,7 @@ package body P is
    procedure AGC_Visit_Rec (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access Rec with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -40,15 +40,15 @@ package P is
 
    for U_Access'Storage_Pool use AGC.Storage.Get.Pool;
    procedure AGC_Visit_U_Access (X : System.Address) with
-      Inline;
+     Inline;
    function AGC_Register_U_Access (X : U_Access) return U_Access with
-      Inline;
+     Inline;
    type Rec is record
       X : U_Access;
    end record;
 
    procedure AGC_Visit_Rec (X : System.Address) with
-      Inline;
+     Inline;
    procedure Bar (X : Rec);
 end P;
 with AGC;
@@ -60,7 +60,7 @@ package body Q is
    procedure AGC_Visit_U (X : System.Address) is
       pragma Suppress (All_Checks);
       type Rec_Access is access U with
-         Storage_Size => 0;
+        Storage_Size => 0;
       for Rec_Access'Size use Standard'Address_Size;
       function Conv is new Ada.Unchecked_Conversion
         (System.Address, Rec_Access);
@@ -86,6 +86,6 @@ package Q is
    end record;
 
    procedure AGC_Visit_U (X : System.Address) with
-      Inline;
+     Inline;
    procedure Foo (X : U);
 end Q;

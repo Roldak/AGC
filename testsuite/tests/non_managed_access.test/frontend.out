@@ -11,10 +11,10 @@ with AGC;
 
 procedure Test is
    type My_Integer_Access is access Integer with
-      Storage_Pool => AGC.Non_Managed'Storage_Pool;
+     Storage_Pool => AGC.Non_Managed'Storage_Pool;
 
    procedure AGC_Visit_My_Integer_Access (X : System.Address) with
-      Inline;
+     Inline;
    package AGC_My_Integer_Access_Ops_Implem is new AGC.Access_Type_Operations
      (Standard.Integer, My_Integer_Access, False, AGC.No_Op);
    procedure AGC_Visit_My_Integer_Access (X : System.Address) renames
