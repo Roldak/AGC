@@ -339,7 +339,7 @@ is
                      LALCO.Case_Stmt_Rule);
 
                Alts : LALRW.Node_Rewriting_Handle :=
-                  LALRW.Child (Case_Stmt, 2);
+                  LALRW.Child (Case_Stmt, 3);
             begin
                LALRW.Remove_Child (Alts, 1);
                for J in 1 .. Variants.Children_Count loop

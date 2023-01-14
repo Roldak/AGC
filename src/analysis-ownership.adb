@@ -69,7 +69,7 @@ package body Analysis.Ownership is
       Expr : LAL.Expr) return Boolean
    is
    begin
-      for Ref of Obj.P_Find_Refs (Expr, LAL.No_Ada_Node) loop
+      for Ref of Obj.P_Find_Refs (Expr) loop
          if Is_Aliasing_Reference (LAL.Ref (Ref)) then
             return True;
          end if;

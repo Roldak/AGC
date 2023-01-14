@@ -4,6 +4,7 @@ with Ada.Text_IO; use Ada.Text_IO;
 
 with Libadalang.Analysis;
 with Libadalang.Helpers; use Libadalang;
+with Libadalang.Project_Provider;
 
 with GNATCOLL.Projects; use GNATCOLL;
 
@@ -31,8 +32,8 @@ is
      (Project : Projects.Project_Tree_Access)
    is
    begin
-      Helpers.List_Sources_From_Project
-        (Project.all, True, Files_To_Check);
+      Files_To_Check := Project_Provider.Source_Files
+        (Project.all, Project_Provider.Default);
    end Populate_From_Project_File;
 
    procedure Populate_From_Auto_Dir

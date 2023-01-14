@@ -9,20 +9,26 @@ package body Analysis.Call_Graph is
         (Spec : LAL.Base_Formal_Param_Holder'Class)
          return LALCO.Visit_Status
       is
-         Is_Subp_Access : Boolean :=
+         Is_Subp_Access : constant Boolean :=
             Spec.Parent.Kind in LALCO.Ada_Access_To_Subp_Def;
 
+         Is_Synthetic_Subp : constant Boolean :=
+            Spec.Kind in LALCO.Ada_Synthetic_Unary_Spec
+                       | LALCO.Ada_Synthetic_Binary_Spec;
+
          Called_Decl : LAL.Basic_Decl :=
-           (if Is_Subp_Access
+           (if Is_Subp_Access or Is_Synthetic_Subp
             then LAL.No_Basic_Decl
             else Spec.Parent.As_Basic_Decl);
 
          Called_Body : LAL.Body_Node :=
-           (if Is_Subp_Access
+           (if Is_Subp_Access or Is_Synthetic_Subp
             then LAL.No_Body_Node
             else Utils.Get_Body (Called_Decl));
       begin
-         if Called_Decl.Is_Null then
+         if Is_Synthetic_Subp then
+            return LALCO.Into;
+         elsif Called_Decl.Is_Null then
             Result.Has_Unknown_Calls := True;
          elsif Called_Body.Is_Null then
             --  An instantiation with a null body is probably an
