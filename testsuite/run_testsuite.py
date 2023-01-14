@@ -27,7 +27,7 @@ def runner_name(runner_path):
 def discover_tests(patterns):
     regexps = [re.compile(p) for p in patterns]
     for test_folder in iglob(path.join(base_dir, "**", "*.test")):
-        if len(regexps) == 0 or any(r.match(test_folder) for r in regexps):
+        if len(regexps) == 0 or any(r.search(test_folder) for r in regexps):
             yield test_folder
 
 
