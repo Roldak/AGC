@@ -77,8 +77,8 @@ As you can see the AGC version that uses its own free-list based storage pool pe
 
 **Build requirements**:
  - A relatively recent GNAT
- - Libadalang from [here](https://github.com/Roldak/libadalang/tree/topic/env_rework_agc_2),
-   generated from [this](https://github.com/Roldak/langkit/tree/topic/env_rework_agc_2) Langkit.
+ - Libadalang from [here](https://github.com/Roldak/libadalang/tree/topic/agc),
+   generated from [this](https://github.com/Roldak/langkit/tree/topic/agc) Langkit.
 
 Run `gprbuild agc.gpr -p -j0` to produce AGC's frontend binary in the `bin/` directory.
 
