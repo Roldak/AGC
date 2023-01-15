@@ -25,10 +25,10 @@ is
    use type Strings.XString;
    use type VFS.Virtual_File;
 
-   Filename : String := Unit.Get_Filename;
-   Content  : String := LALU.Unparse (Unit.Root, Preserve_Formatting => True);
-
-   Out_File : VFS.Virtual_File := Session.Get_Out_File (Filename);
+   Filename : constant String := Unit.Get_Filename;
+   Out_File : constant VFS.Virtual_File := Session.Get_Out_File (Filename);
+   Content  : constant String :=
+      Langkit_Support.Text.Encode (Unit.Root.Text, "utf-8");
 begin
    if Out_File = VFS.No_File then
       Put_Line ("--  " & Utils.Base_Name (Filename));
